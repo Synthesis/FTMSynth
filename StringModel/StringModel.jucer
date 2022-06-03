@@ -2,7 +2,8 @@
 
 <JUCERPROJECT id="ez6eyY" name="StringModel" projectType="audioplug" jucerVersion="5.4.5"
               pluginName="Stringmodel" pluginManufacturer="THESIS" pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
-              pluginFormats="buildAU,buildVST3" companyName="THESIS">
+              pluginFormats="buildStandalone,buildAU,buildVST3" companyName="THESIS"
+              pluginVST3Category="Drum,Instrument,Synth" cppLanguageStandard="latest">
   <MAINGROUP id="RvdlOT" name="StringModel">
     <GROUP id="{1E368382-AFE3-B851-6460-B81F306FAB88}" name="Source">
       <FILE id="Jqe2qa" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -17,15 +18,17 @@
       <FILE id="dCh6Jz" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>
       <FILE id="SnWXSu" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
       <FILE id="ybFIVA" name="cusSlider.h" compile="0" resource="0" file="Source/cusSlider.h"/>
-      <FILE id="MIgLOv" name="stringOn.png" compile="0" resource="1" file="Source/stringOn.png"/>
-      <FILE id="xhtMAa" name="question2.png" compile="0" resource="1" file="../../../../Desktop/question2.png"/>
-      <FILE id="IvXTdD" name="boxOff.png" compile="0" resource="1" file="Source/boxOff.png"/>
-      <FILE id="TVYZJk" name="drumOff.png" compile="0" resource="1" file="Source/drumOff.png"/>
-      <FILE id="QqBpQH" name="stringOff.png" compile="0" resource="1" file="Source/stringOff.png"/>
-      <FILE id="jAwQ4K" name="boxOn.png" compile="0" resource="1" file="Source/boxOn.png"/>
-      <FILE id="UFcegy" name="drumOn.png" compile="0" resource="1" file="Source/drumOn.png"/>
-      <FILE id="Q9Iy0s" name="Existence-Light.otf" compile="0" resource="1"
-            file="../../../NYU/THESIS/StringModel/Source/Existence-Light.otf"/>
+    </GROUP>
+    <GROUP id="{C61A0867-1E87-1969-876A-3CC9E304CA3B}" name="Assets">
+      <FILE id="nO11PF" name="stringOff.png" compile="0" resource="1" file="Assets/stringOff.png"/>
+      <FILE id="NlYyLC" name="stringOn.png" compile="0" resource="1" file="Assets/stringOn.png"/>
+      <FILE id="i2vUOK" name="drumOff.png" compile="0" resource="1" file="Assets/drumOff.png"/>
+      <FILE id="RSOlyl" name="drumOn.png" compile="0" resource="1" file="Assets/drumOn.png"/>
+      <FILE id="gUHSu7" name="boxOff.png" compile="0" resource="1" file="Assets/boxOff.png"/>
+      <FILE id="mj5nIE" name="boxOn.png" compile="0" resource="1" file="Assets/boxOn.png"/>
+      <FILE id="XeIONK" name="question2.png" compile="0" resource="1" file="Assets/question2.png"/>
+      <FILE id="RyLyKs" name="Existence-Light.otf" compile="0" resource="1"
+            file="Assets/Existence-Light.otf"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
@@ -51,6 +54,29 @@
         <MODULEPATH id="juce_opengl" path="../Documents/music_tech/JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <VS2022 targetFolder="Builds/VisualStudio2022" extraDefs="_USE_MATH_DEFINES"
+            extraCompilerFlags="/permissive-">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\Programmation\audio\asiosdk_2.3.3_2019-06-14\common"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\Programmation\audio\asiosdk_2.3.3_2019-06-14\common"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_cryptography" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
+        <MODULEPATH id="juce_opengl" path="../../juce"/>
+      </MODULEPATHS>
+    </VS2022>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
