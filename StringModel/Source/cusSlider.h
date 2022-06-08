@@ -41,7 +41,7 @@ class cusSlider : public LookAndFeel_V4
 
         /* */
         Path dialTick;
-        dialTick.addRoundedRectangle(-rx - (pointerThickness/2), -radius, pointerThickness, radius, radius/9);
+        dialTick.addRoundedRectangle(-pointerThickness/2, -radius, pointerThickness, radius, radius/9);
         
         g.setColour(Colours::black);
         g.fillPath(dialTick, AffineTransform::rotation(angle).translated(centreX, centreY));

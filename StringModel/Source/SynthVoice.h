@@ -1,12 +1,12 @@
 /*
- ==============================================================================
+  ==============================================================================
  
- SynthesiserVoice.h
- Created: 10 Oct 2018 3:46:36pm
- Author:  Lily H
+    SynthesiserVoice.h
+    Created: 10 Oct 2018 3:46:36pm
+    Author:  Lily H
  
- ==============================================================================
- */
+  ==============================================================================
+*/
 
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
@@ -15,70 +15,74 @@
 #include <math.h>       /* pow */
 #include <cmath>
 #include <algorithm>
-#include<array>
+#include <array>
 #include <complex>
 #include <typeinfo>
-using namespace std;
 
 #define MAX_M1  5
 #define MAX_M2  5
+#define MAX_M3  5
+
+using namespace std;
+
 
 class SynthVoice: public SynthesiserVoice
 {
 public:
-    bool canPlaySound(SynthesiserSound* sound )
+    bool canPlaySound(SynthesiserSound* sound)
     {
         //if succesfully cast sound into my own class, return true
         return dynamic_cast<SynthSound*>(sound)!=nullptr;
     };
-    
+
     //==================================
-    //some function that grabs value from the slider, and then either returns or set the signal of my synethesized drum sound
-    void getcusParam(float* tau,float* omega,float* p,float* dispersion,float* alpha1,float* alpha2,float* dim1,float* dim2, float* dim3)
+    //some function that grabs value from the slider, and then either returns or set the signal of my synthesized drum sound
+    void getcusParam(std::atomic<float>* _tau,
+                     std::atomic<float>* omega,
+                     std::atomic<float>* p,
+                     std::atomic<float>* dispersion,
+                     std::atomic<float>* alpha1,
+                     std::atomic<float>* alpha2,
+                     std::atomic<float>* _r1,
+                     std::atomic<float>* _r2,
+                     std::atomic<float>* _r3,
+                     std::atomic<float>* dim1,
+                     std::atomic<float>* dim2,
+                     std::atomic<float>* dim3)
     {
         //this function fetch parameters from the customized GUI and calculate the corresponding parameters in order to synthesize the sound
         //for each dimension, different algorithms are called
         //std::cout<<"dimension!! "<<float(*dim1)<<" "<<float(*dim2)<<" "<<float(*dim3)<<"\n";
-        ftau=float(*tau);
+        ftau=_tau->load();
         fomega=float(frequency*4+2*M_PI*200);
         //fomega=float(frequency);
         //std::cout<<"frequency "<<frequency<<" "<<float(frequency/2/M_PI+1000)<<" "<<fomega<<"\n";
-        fp=float(*p);
-        fd=float(*dispersion);
-        fa=float(*alpha1);
-        fa2=float(*alpha2);
-        
-        if(float(*dim1)==1){
+        fp=p->load();
+        fd=dispersion->load();
+        fa=alpha1->load();
+        fa2=alpha2->load();
+
+        r1=_r1->load();
+        r2=_r2->load();
+        r3=_r3->load();
+
+        if(dim1->load()==1){
             dim = 0;
         }
-        else if(float(*dim2)==1){
+        else if(dim2->load()==1){
             dim = 1;
         }
-        else if(float(*dim3)==1){
+        else if(dim3->load()==1){
             dim = 2;
         }
         //std::cout<<"what dim "<<dim<<"\n";
         //dim=float(*dimtype);
-        //2-D drum
-        if(dim==1){
-            //set the three vectors - sigma, omega, K to use later
-            deff(1);
-            deff(2);
-            getf(1);
-            getf(2);
-            
-            getsigma();
-            getw();
-            getK();
-            findmax();
-        }
         //1-D string
         if(dim==0){
             //need sigma, omega
-            
             deff(1);
             getf(1);
-            
+
             getsigma1d();
             getw1d();
             getK1d();
@@ -87,10 +91,22 @@ public:
             ///////////////////the difference eq implementation///////////////
             getsigma1d();
             getw1d();
-*/
-            
+        */
         }
-        //3-D drum
+        //2-D drum
+        if(dim==1){
+            //set the three vectors - sigma, omega, K to use later
+            deff(1);
+            deff(2);
+            getf(1);
+            getf(2);
+
+            getsigma2d();
+            getw2d();
+            getK2d();
+            findmax2d();
+        }
+        //3-D box
         if(dim==2){
             deff(1);
             deff(2);
@@ -98,29 +114,15 @@ public:
             getf(1);
             getf(2);
             getf(3);
+
             getsigma3d();
             getw3d();
             getK3d();
             findmax3d();
         }
     }
-    
+
     //findmax functions find value of first sample and scale everything else based on this value
-    void findmax()
-    {
-        float h=0;
-        float t1=M_PI/2/omega[0];
-        for(int i=0;i<m1;i++)
-        {
-            for(int j=0;j<m2;j++)
-            {
-                h+=k[i*m1+j]*exp(sigma[i*m1+j]*t1)*sin(omega[i*m1+j]*t1);
-            }
-            
-        }
-        maxh=h;
-    }
-    
     void findmax1d()
     {
         float h=0;
@@ -133,7 +135,22 @@ public:
         }
         maxh=h;
     }
-    
+
+    void findmax2d()
+    {
+        float h=0;
+        float t1=M_PI/2/omega2d[0];
+        for(int i=0;i<m1;i++)
+        {
+            for(int j=0;j<m2;j++)
+            {
+                h+=k2d[i*m1+j]*exp(sigma2d[i*m1+j]*t1)*sin(omega2d[i*m1+j]*t1);
+            }
+            
+        }
+        maxh=h;
+    }
+
     void findmax3d()
     {
         float h=0;
@@ -150,26 +167,11 @@ public:
         }
         maxh=h;
     }
-    
-  
-   
-    
+
+
+
     //intermediate variables
     //sigma
-    void getsigma()
-    {
-        float sigma1=-1/ftau;
-        float beta=fa+1/fa;
-        for(int i=0;i<m1;i++)
-        {
-            for(int j=0;j<m2;j++)
-            {
-                sigma[i*m1+j]=sigma1*(1+fp*(pow(i+1,2)*fa+pow(j+1,2)/fa-beta));
-                decayamp[i*m1+j]=exp(sigma[i*m1+j]/sr);
-            }
-        }
-    }
-    
     void getsigma1d()
     {
         float sigma1=-1/ftau;
@@ -182,7 +184,21 @@ public:
             sigmasq1d[i]=sigma1d[i]*sigma1d[i];
         }
     }
-    
+
+    void getsigma2d()
+    {
+        float sigma1=-1/ftau;
+        float beta=fa+1/fa;
+        for(int i=0;i<m1;i++)
+        {
+            for(int j=0;j<m2;j++)
+            {
+                sigma2d[i*m1+j]=sigma1*(1+fp*(pow(i+1,2)*fa+pow(j+1,2)/fa-beta));
+                decayamp2[i*m1+j]=exp(sigma2d[i*m1+j]/sr);
+            }
+        }
+    }
+
     void getsigma3d()
     {
         float sigma1=-1/ftau;
@@ -262,7 +278,7 @@ public:
             float h=M_PI/tau;
             for(int i=0;i<tau+1;i++)
             {
-                fx1[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-M_PI/2.0)/s, 2.0 ) );
+                fx1[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-M_PI*r1)/s, 2.0 ) );
             }
         }
         else if(which==2)
@@ -270,7 +286,7 @@ public:
             float h=fa*M_PI/tau;
             for(int i=0;i<tau+1;i++)
             {
-                fx2[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa*M_PI/2.0)/s, 2.0 ) );
+                fx2[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa*M_PI*r2)/s, 2.0 ) );
             }
         }
         else
@@ -278,50 +294,49 @@ public:
             float h=fa*M_PI/tau;
             for(int i=0;i<tau+1;i++)
             {
-                fx3[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa*M_PI/2.0)/s, 2.0 ) );
+                fx3[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa*M_PI*r3)/s, 2.0 ) );
             }
         }
     }
     
     //get coefficient k for the impulse response
-    void getK()
-    {
-        float l1=M_PI;
-        float l2=fa*M_PI;
-        float x1=l1/2;
-        float x2=l2/2;
-        
-        for(int i=0;i<m1;i++)
-        {
-            for(int j=0;j<m2;j++)
-            {
-                k[i*m1+j]=f1[i]*f2[j]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)/omega[i*m1+j];
-            }
-        }
-        
-    }
     void getK1d()
     {
         float l1=M_PI;
-        float x1=l1/2;
-        
-        
+        float x1=l1*r1;
+
         for(int i=0;i<m1;i++)
         {
             
             k1d[i]=f1[i]*sin((i+1)*x1*M_PI/l1)/omega1d[i];
             
         }
-        
     }
+
+    void getK2d()
+    {
+        float l1=M_PI;
+        float l2=fa*M_PI;
+        float x1=l1*r1;
+        float x2=l2*r2;
+
+        for(int i=0;i<m1;i++)
+        {
+            for(int j=0;j<m2;j++)
+            {
+                k2d[i*m1+j]=f1[i]*f2[j]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)/omega2d[i*m1+j];
+            }
+        }
+    }
+
     void getK3d()
     {
         float l1=M_PI;
         float l2=fa*M_PI;
         float l3=fa2*M_PI;
-        float x1=l1/2;
-        float x2=l2/2;
-        float x3=l3/2;
+        float x1=l1*r1;
+        float x2=l2*r2;
+        float x3=l3*r3;
         for(int i=0;i<m1;i++)
         {
             for(int j=0;j<m2;j++)
@@ -332,11 +347,23 @@ public:
                 }
             }
         }
-        
     }
-    
+
     //get coefficient omega for the impulse response
-    void getw()
+    void getw1d()
+    {
+        float sigma=-1/ftau;
+        for(int i=0;i<m1;i++)
+        {
+            float interm=pow(i+1,2);//M^2
+            omega1d[i]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp),2)+pow(fomega,2)*(1-pow(fd,2)))-pow(sigma*(1-fp),2));
+            sinomega1d[i] = sin(omega1d[i]/sr);
+            cosomega1d[i] = cos(omega1d[i]/sr);
+            omegasq1d[i] = omega1d[i]*omega1d[i];
+        }
+    }
+
+    void getw2d()
     {
         float beta=fa+1/fa;
         float sigma=-1/ftau;
@@ -346,26 +373,11 @@ public:
             {
                 float interm=pow(i+1,2)*fa+pow(j+1,2)/fa;
                 
-                omega[i*m1+j]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp*beta),2)/beta+pow(fomega,2)*(1-pow(fd*beta,2))/beta)-pow(sigma*(1-fp*beta),2));
-                
+                omega2d[i*m1+j]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp*beta),2)/beta+pow(fomega,2)*(1-pow(fd*beta,2))/beta)-pow(sigma*(1-fp*beta),2));
             }
         }
     }
-    void getw1d()
-    {
-        float sigma=-1/ftau;
-        for(int i=0;i<m1;i++)
-        {
-            
-            float interm=pow(i+1,2);//M^2
-            omega1d[i]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp),2)+pow(fomega,2)*(1-pow(fd,2)))-pow(sigma*(1-fp),2));
-            sinomega1d[i] = sin(omega1d[i]/sr);
-            cosomega1d[i] = cos(omega1d[i]/sr);
-            omegasq1d[i] = omega1d[i]*omega1d[i];
-            
-            
-        }
-    }
+
     void getw3d()
     {
         float beta=fa*fa2+fa/fa2+fa2/fa;
@@ -380,7 +392,6 @@ public:
                     
                     omega3d[i*m1+j*m2+m]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp*beta),2)/beta+pow(fomega,2)*(1-pow(fd*beta,2))/beta)-pow(sigma*(1-fp*beta),2));
                 }
-                
             }
         }
     }
@@ -403,9 +414,8 @@ public:
         num_buffer = 0;
         uplim = 1;
         maxh2 = 1;
-       
     };
-    
+
     //==================================
     void stopNote (float velocity, bool allowTailOff)
     {
@@ -414,12 +424,12 @@ public:
         if(isKeyDown() ==0)//allow next note to come in
             t=0;
         clearCurrentNote();
-        
     };
+
     //==================================
     bool isVoiceActive()
     {
-        if(t<2*sr or isPlayingButReleased()==true){
+        if(t<dur or isPlayingButReleased()==true){
             return true;
         }
         else{
@@ -441,13 +451,13 @@ public:
                 {
                     //designate the exponential envelope
                     if(nsamp==0){
-                        decayampn[i*m1+j]=decayamp[i*m1+j];
+                        decayampn2[i*m1+j]=decayamp2[i*m1+j];
                     }
                     else{
-                        decayampn[i*m1+j]*=decayamp[i*m1+j];
+                        decayampn2[i*m1+j]*=decayamp2[i*m1+j];
                     }
                     //synthesize the sound at time t
-                    h+=k[i*m1+j]*decayampn[i*m1+j]*sin(omega[i*m1+j]*t);
+                    h+=k2d[i*m1+j]*decayampn2[i*m1+j]*sin(omega2d[i*m1+j]*t);
                 }
             }
             
@@ -559,11 +569,7 @@ public:
                 trig = 0;
             }
         }
-       
-        
-        
-       
-        
+
         //setKeyDown(false);
         
         
@@ -580,7 +586,7 @@ public:
     //==================================
     void controllerMoved (int controllerNumber, int newControllerValue)
     {
-        
+        // TODO Map CCs to x y z coordinates
     };
     //==================================
     void aftertouchChanged (int newAftertouchValue)
@@ -603,7 +609,7 @@ public:
             
             //put the synthesized drum sound here
             double drumSound=finaloutput(sample);
-            if(abs(lastsound-drumSound)>0.1){
+            if(abs(lastsound-drumSound)>0.1){          // [Synth_dfr: "huh? what is this for?"]
                 drumSound=(lastsound+drumSound)/2;
             }
             lastsound = drumSound;
@@ -617,10 +623,8 @@ public:
             //std::cout<<"drumSound "<<drumSound<<"\n";
             for(int channel=0;channel<outputBuffer.getNumChannels();++channel)
             {
-                outputBuffer.addSample(channel,  startSample, drumSound );//put whatever sound synthesized here.
+                outputBuffer.addSample(channel, startSample+sample, drumSound );//put whatever sound synthesized here.
             }
-            ++startSample;
-            
         }
         
         num_buffer+=1;
@@ -719,7 +723,7 @@ private:
     int nsamp;
     double sr=44100;
     double sinlookup[62832];
-    int dur = 2*sr;
+    int dur = 2*int(sr);
     float ftau;
     float fa;
     float fa2;
@@ -728,32 +732,38 @@ private:
     float fd;
     float dim;
     int tau=300;
+
     int m1=5;   //can't be bigger than MAX_M1
     int m2=5;
     int m3=5;
-    float k[MAX_M1*MAX_M2];//m1*m2
-    float omega[25];
-    float sigma[25];
+
+    float k1d[MAX_M1];
+    float k2d[MAX_M1*MAX_M2];//m1*m2
+    float k3d[125];//m1*m2*m3
+
+    float omega1d[MAX_M1];
+    float omegasq1d[MAX_M1];
+    float sinomega1d[MAX_M1];
+    float cosomega1d[MAX_M1];
+    float omega2d[25];
+    float omega3d[125];
+
+    float sigma1d[MAX_M1];
+    float sigmasq1d[MAX_M1];
+    float expsigma1d[MAX_M1];
+    float exp2sigma1d[MAX_M1];
+    float sigma2d[25];
+    float sigma3d[125];
+
     float lastsound=0;
     float decayamp1[MAX_M1];
     float decayampn1[MAX_M1];
-    float decayamp[25];
-    float decayampn[25];
+    float decayamp2[25];
+    float decayampn2[25];
     float decayamp3[125];
     float decayampn3[125];
-    float k3d[125];//m1*m2
-    float k1d[MAX_M1];
-    float omega3d[125];
-    float omega1d[MAX_M1];
-    float omegasq1d[MAX_M1];
+
     float c = sr*2;
-    float sigma3d[125];
-    float sigma1d[MAX_M1];
-    float expsigma1d[MAX_M1];
-    float exp2sigma1d[MAX_M1];
-    float sigmasq1d[MAX_M1];
-    float sinomega1d[MAX_M1];
-    float cosomega1d[MAX_M1];
     float f1[5];//m1
     float f2[5];//m2
     float f3[5];//m3
@@ -766,13 +776,12 @@ private:
     float fx3[301];
     //double drumSound[512];
     double gain;
-    
-    
-    
+
+
     //circular buffers! [t,t-1,t-2]
     //std::array<float,MAX_M1> A = {10,20,30,40};
     //std::array<int,4> B = A; //copy array A into array B
-    
+
     std::array<float,MAX_M1> ybuffer;
     std::array<float,MAX_M1> ybuffer1;
     std::array<float,MAX_M1> ybuffer2;
@@ -783,7 +792,6 @@ private:
     //pointers for buffers!
     //int yread,ywrite;
     //int xread,xwrite;
-    
-    
-    
+
+    float r1=0.5, r2=0.5, r3=0.5;
 };
