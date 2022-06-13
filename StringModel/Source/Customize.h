@@ -30,7 +30,7 @@ private:
     Slider tauSlider;
     Slider pSlider;
     Slider dispersionSlider;
-    Slider alphaSlider;
+    Slider alpha1Slider;
     Slider alpha2Slider;
     Slider r1Slider;
     Slider r2Slider;
@@ -39,15 +39,15 @@ private:
     ImageComponent helpComp;
     
     //ComboBox dimMenu;
-    Label taulabel;
-    Label plabel;
-    Label dispersionlabel;
-    Label alphalabel;
-    Label alpha2label;
+    Label tauLabel;
+    Label pLabel;
+    Label dispersionLabel;
+    Label alpha1Label;
+    Label alpha2Label;
     Label r1Label;
     Label r2Label;
     Label r3Label;
-    Label dimlabel;
+    //Label dimLabel; // unused
     Label title;
 
     

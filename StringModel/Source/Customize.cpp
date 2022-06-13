@@ -49,10 +49,10 @@ processor(p),helpComp("help")
     tauSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox,true,0,0);
     tauSlider.setColour(Slider::ColourIds::backgroundColourId,Colours::red);
     addAndMakeVisible(&tauSlider);
-    addAndMakeVisible (&taulabel);
-    taulabel.setText ("Sustain", dontSendNotification);//(fundamental time constant)
-    //taulabel.setFont(myFont2);
-    //taulabel.attachToComponent (&tauSlider, false);
+    addAndMakeVisible (&tauLabel);
+    tauLabel.setText ("Sustain", dontSendNotification);//(fundamental time constant)
+    //tauLabel.setFont(myFont2);
+    //tauLabel.attachToComponent (&tauSlider, false);
     tauTree= new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"tau",tauSlider);//this class maintains a connection between slider and parameter in apvts
 
 
@@ -64,11 +64,11 @@ processor(p),helpComp("help")
     pSlider.setValue(0.1f);
     pSlider.setColour(Slider::ColourIds::backgroundColourId,Colours::red);
     addAndMakeVisible(&pSlider);
-    addAndMakeVisible (&plabel);
+    addAndMakeVisible (&pLabel);
     pSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox,true,0,0);
-    plabel.setText ("Roundness", dontSendNotification);//(frequency dependent damping)
-    //plabel.setFont(myFont3);
-    //plabel.attachToComponent (&pSlider, false);
+    pLabel.setText ("Roundness", dontSendNotification);//(frequency dependent damping)
+    //pLabel.setFont(myFont3);
+    //pLabel.attachToComponent (&pSlider, false);
     pTree= new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"p",pSlider);
 
 
@@ -77,10 +77,10 @@ processor(p),helpComp("help")
     dispersionSlider.setValue(0.1f);
     dispersionSlider.setColour(Slider::ColourIds::backgroundColourId,Colours::red);
     addAndMakeVisible(&dispersionSlider);
-    addAndMakeVisible (&dispersionlabel);
+    addAndMakeVisible (&dispersionLabel);
     dispersionSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox,true,0,0);
-    dispersionlabel.setText ("Inharmonicity", dontSendNotification);//(inharmonicity)
-    //dispersionlabel.attachToComponent (&dispersionSlider, false);
+    dispersionLabel.setText ("Inharmonicity", dontSendNotification);//(inharmonicity)
+    //dispersionLabel.attachToComponent (&dispersionSlider, false);
     dispersionTree= new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"dispersion",dispersionSlider);
 
 
@@ -97,18 +97,18 @@ processor(p),helpComp("help")
 
 
     if(mode >= 2){
-        alphaSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-        alphaSlider.setRange(0.1f,5000.0f);
-        alphaSlider.setValue(0.1f);
-        alphaSlider.setColour(Slider::ColourIds::backgroundColourId,Colours::red);
-        addAndMakeVisible(&alphaSlider);
-        addAndMakeVisible (&alphalabel);
-        alphaSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox,true,0,0);
-        alphalabel.setText ("Drum Squareness", dontSendNotification);//(shape of drum)
+        alpha1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+        alpha1Slider.setRange(0.1f,5000.0f);
+        alpha1Slider.setValue(0.1f);
+        alpha1Slider.setColour(Slider::ColourIds::backgroundColourId,Colours::red);
+        addAndMakeVisible(&alpha1Slider);
+        addAndMakeVisible (&alpha1Label);
+        alpha1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox,true,0,0);
+        alpha1Label.setText ("Drum Squareness", dontSendNotification);//(shape of drum)
         //std::cout<<"fonts "<<juce::Font::findAllTypefaceNames()[0]<<"\n";
-        //alphalabel.setFont(myFont);
-        //alphalabel.attachToComponent (&alphaSlider, false);
-        alphaTree= new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"alpha",alphaSlider);
+        //alpha1Label.setFont(myFont);
+        //alpha1Label.attachToComponent (&alpha1Slider, false);
+        alphaTree= new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"alpha1",alpha1Slider);
 
         r2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
         r2Slider.setRange(0.0f, 1.0f);
@@ -127,10 +127,10 @@ processor(p),helpComp("help")
             alpha2Slider.setValue(0.1f);
             alpha2Slider.setColour(Slider::ColourIds::backgroundColourId,Colours::red);
             addAndMakeVisible(&alpha2Slider);
-            addAndMakeVisible (&alpha2label);
+            addAndMakeVisible (&alpha2Label);
             alpha2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox,true,0,0);
-            alpha2label.setText ("Box Shape", dontSendNotification);//(shape of drum)
-            //alpha2label.attachToComponent (&alpha2Slider, false);
+            alpha2Label.setText ("Box Shape", dontSendNotification);//(shape of drum)
+            //alpha2Label.attachToComponent (&alpha2Slider, false);
             alpha2Tree= new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"alpha2",alpha2Slider);
                
             r3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -167,7 +167,7 @@ void Customize::paint(Graphics& g)
         tauSlider.setLookAndFeel(newl);
         pSlider.setLookAndFeel(newl);
         dispersionSlider.setLookAndFeel(newl);
-        alphaSlider.setLookAndFeel(newl);
+        alpha1Slider.setLookAndFeel(newl);
         alpha2Slider.setLookAndFeel(newl);
         r1Slider.setLookAndFeel(newl);
         r2Slider.setLookAndFeel(newl);
@@ -182,15 +182,15 @@ void Customize::resized()
     //Rectangle<int> area=getLocalBounds();
     
     tauSlider.setBounds(13,30,100,100);
-    taulabel.setBounds(37,131,133,11);
+    tauLabel.setBounds(37,131,133,11);
     pSlider.setBounds(125,103,100,100);
-    plabel.setBounds(136,205,133,11);
+    pLabel.setBounds(136,205,133,11);
     dispersionSlider.setBounds(13,177,100,100);
-    dispersionlabel.setBounds(18,279,133,13);
-    alphaSlider.setBounds(125,247,100,100);
-    alphalabel.setBounds(119,351,131,13);
+    dispersionLabel.setBounds(18,279,133,13);
+    alpha1Slider.setBounds(125,247,100,100);
+    alpha1Label.setBounds(119,351,131,13);
     alpha2Slider.setBounds(13,321,100,100);
-    alpha2label.setBounds(29,426,133,13);
+    alpha2Label.setBounds(29,426,133,13);
     r1Slider.setBounds(395,30,100,100);
     r1Label.setBounds(407,131,133,13);
     r2Slider.setBounds(395,177,100,100);
@@ -217,7 +217,7 @@ float Customize::getsliderval(int seq)
     }
     else if(seq == 4)
     {
-        return alphaSlider.getValue();
+        return alpha1Slider.getValue();
     }
     else if(seq == 5)
     {
