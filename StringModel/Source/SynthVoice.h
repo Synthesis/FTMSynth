@@ -11,13 +11,14 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./SynthSound.h"
-//#include "maximilian.h"
+
 #include <math.h>       /* pow */
 #include <cmath>
 #include <algorithm>
 #include <array>
 #include <complex>
 #include <typeinfo>
+#include <iomanip>
 
 #define MAX_M1  5
 #define MAX_M2  5
@@ -52,11 +53,7 @@ public:
     {
         // this function fetch parameters from the customized GUI and calculate the corresponding parameters in order to synthesize the sound
         // for each dimension, different algorithms are called
-        //std::cout<<"dimension!! "<<float(*dim1)<<" "<<float(*dim2)<<" "<<float(*dim3)<<"\n";
         ftau=_tau->load();
-        //fomega=float(frequency*4+2*M_PI*200); // moved to the MIDI Note On callback
-        //fomega=float(frequency);
-        //std::cout<<"frequency "<<frequency<<" "<<float(frequency/2/M_PI+1000)<<" "<<fomega<<"\n";
         fp=p->load();
         fd=dispersion->load();
         fa=alpha1->load();
@@ -75,68 +72,60 @@ public:
         else if(dim3->load()==1){
             dim = 2;
         }
-        //std::cout<<"what dim "<<dim<<"\n";
-        //dim=float(*dimtype);
 
-        for (int i = 1; i <= dim+1; i++)
-            deff(i);
-        for (int i = 1; i <= dim+1; i++)
-            getf(i);
+        deff();
+        getf();
 
         // need sigma, omega
-        getSigma(dim);
-        getw(dim);
-        getK(dim);
-        findmax(dim);
+        getSigma();
+        getw();
+        getK();
+        findmax();
     }
 
 
     // define f(x) as a gaussian distribution with mean at the middle point l/2
-    void deff(int which)
+    void deff()
     {
         float s=0.4; // standard deviation
-        if(which==1)
+        if (dim >= 0)
         {
-            float h=M_PI/tau;
-            for(int i=0;i<tau+1;i++)
+            float h = M_PI/tau;
+            for(int i=0; i < tau+1; i++)
             {
                 fx1[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-M_PI*r1)/s, 2.0 ) );
             }
         }
-        else if(which==2)
+        if (dim >= 1)
         {
-            float h=fa*M_PI/tau;
-            for(int i=0;i<tau+1;i++)
+            float h = fa*M_PI/tau;
+            for(int i=0; i < tau+1; i++)
             {
                 fx2[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa*M_PI*r2)/s, 2.0 ) );
             }
         }
-        else
+        if (dim >= 2)
         {
-            float h=fa*M_PI/tau;
-            for(int i=0;i<tau+1;i++)
+            // [Synth_dfr] Is that really how it's supposed to be implemented? the same as the 2D model?
+            float h = fa*M_PI/tau;
+            for(int i=0; i < tau+1; i++)
             {
-                fx3[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa*M_PI*r3)/s, 2.0 ) );
+                fx3[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa2*M_PI*r3)/s, 2.0 ) );
             }
         }
     }
 
     // get coefficients of the integral f1m1 using trapezoid rule
-    void getf(int which)
+    void getf()
     {
         // integrate f(x)sin(mpix/l)dx from 0 to l using trapezoid rule
-        float l;
-        int m;
         float integral;
-        float l1=M_PI;
-        float l2=fa*M_PI;
-        float l3=fa2*M_PI;
-        if(which==1) {l=l1;m=m1;}
-        else if(which==2) {l=l2;m=m2;}
-        else{l=l3;m=m3;}
-        float h=l/tau;
-        if(which==1)
+
+        if (dim >= 0)
         {
+            float l=M_PI;
+            int m=m1;
+            float h=l/tau;
             for(int j=0;j<m;j++)
             {
                 integral=0;
@@ -146,10 +135,12 @@ public:
                 }
                 f1[j]=2*integral/l;
             }
-            
         }
-        else if(which==2)
+        if (dim >= 1)
         {
+            float l=fa*M_PI;
+            int m=m2;
+            float h=l/tau;
             for(int j=0;j<m;j++)
             {
                 integral=0;
@@ -160,8 +151,11 @@ public:
                 f2[j]=2*integral/l;
             }
         }
-        else
+        if (dim >= 2)
         {
+            float l=fa2*M_PI;
+            int m=m3;
+            float h=l/tau;
             for(int j=0;j<m;j++)
             {
                 integral=0;
@@ -177,25 +171,22 @@ public:
 
     // intermediate variables
     // sigma
-    void getSigma(int dimensions)
+    void getSigma()
     {
         // might be unnecessary to pass dimension as a parameter, since it's already defined in the class attribute 'dim'
         float sigma1=-1/ftau;
 
         // 1D
-        if (dimensions == 0)
+        if (dim == 0)
         {
             for(int i=0;i<m1;i++)
             {
                 sigma1d[i]=sigma1*(1+fp*(pow(i+1,2)-1));
-                expsigma1d[i]=exp(sigma1d[i]/sr);
-                exp2sigma1d[i]=exp(2*sigma1d[i]/sr);
                 decayamp1[i]=exp(sigma1d[i]/sr);
-                sigmasq1d[i]=sigma1d[i]*sigma1d[i];
             }
         }
         // 2D
-        else if (dimensions == 1)
+        else if (dim == 1)
         {
             float beta=fa+1/fa;
             for(int i=0;i<m1;i++)
@@ -208,7 +199,7 @@ public:
             }
         }
         // 3D
-        else if (dimensions == 2)
+        else if (dim == 2)
         {
             float beta=fa*fa2+fa/fa2+fa2/fa;
             for(int i=0;i<m1;i++)
@@ -217,8 +208,8 @@ public:
                 {
                     for(int m=0;m<m3;m++)
                     {
-                        sigma3d[i*m1+j*m2+m]=(sigma1*(1+fp*(pow(i+1,2)*fa*fa2+pow(j+1,2)*fa2/fa+pow(m+1,2)*fa/fa2-beta)));
-                        decayamp3[i*m1+j*m2+m]=exp(sigma3d[i*m1+j*m2+m]/sr);
+                        sigma3d[(i*m1+j)*m2+m]=(sigma1*(1+fp*(pow(i+1,2)*fa*fa2+pow(j+1,2)*fa2/fa+pow(m+1,2)*fa/fa2-beta)));
+                        decayamp3[(i*m1+j)*m2+m]=exp(sigma3d[(i*m1+j)*m2+m]/sr);
                     }
                 }
             }
@@ -227,23 +218,20 @@ public:
 
 
     // get coefficient omega for the impulse response
-    void getw(int dimensions)
+    void getw()
     {
         // 1D
-        if (dimensions == 0)
+        if (dim == 0)
         {
             float sigma=-1/ftau;
             for(int i=0;i<m1;i++)
             {
                 float interm=pow(i+1,2);//M^2
                 omega1d[i]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp),2)+pow(fomega,2)*(1-pow(fd,2)))-pow(sigma*(1-fp),2));
-                sinomega1d[i] = sin(omega1d[i]/sr);
-                cosomega1d[i] = cos(omega1d[i]/sr);
-                omegasq1d[i] = omega1d[i]*omega1d[i];
             }
         }
         // 2D
-        else if (dimensions == 1)
+        else if (dim == 1)
         {
             float beta=fa+1/fa;
             float sigma=-1/ftau;
@@ -252,13 +240,12 @@ public:
                 for(int j=0;j<m2;j++)
                 {
                     float interm=pow(i+1,2)*fa+pow(j+1,2)/fa;
-                    
                     omega2d[i*m1+j]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp*beta),2)/beta+pow(fomega,2)*(1-pow(fd*beta,2))/beta)-pow(sigma*(1-fp*beta),2));
                 }
             }
         }
         // 3D
-        else if (dimensions == 2)
+        else if (dim == 2)
         {
             float beta=fa*fa2+fa/fa2+fa2/fa;
             float sigma=-1/ftau;
@@ -269,8 +256,7 @@ public:
                     for(int m=0;m<m3;m++)
                     {
                         float interm=pow(i+1,2)*fa*fa2+pow(j+1,2)*fa2/fa+pow(m+1,2)*fa/fa2;
-                        
-                        omega3d[i*m1+j*m2+m]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp*beta),2)/beta+pow(fomega,2)*(1-pow(fd*beta,2))/beta)-pow(sigma*(1-fp*beta),2));
+                        omega3d[(i*m1+j)*m2+m]= sqrt(pow(fd*fomega*interm,2)+interm*(pow(sigma*(1-fp*beta),2)/beta+pow(fomega,2)*(1-pow(fd*beta,2))/beta)-pow(sigma*(1-fp*beta),2));
                     }
                 }
             }
@@ -279,13 +265,13 @@ public:
 
 
     // get coefficient k for the impulse response
-    void getK(int dimensions)
+    void getK()
     {
         float l1=M_PI;
         float x1=l1*r1;
 
         // 1D
-        if (dimensions == 0)
+        if (dim == 0)
         {
             for(int i=0;i<m1;i++)
             {
@@ -293,7 +279,7 @@ public:
             }
         }
         // 2D
-        else if (dimensions == 1)
+        else if (dim == 1)
         {
             float l2=fa*M_PI;
             float x2=l2*r2;
@@ -307,19 +293,20 @@ public:
             }
         }
         // 3D
-        else if (dimensions == 2)
+        else if (dim == 2)
         {
             float l2=fa*M_PI;
             float l3=fa2*M_PI;
             float x2=l2*r2;
             float x3=l3*r3;
+
             for(int i=0;i<m1;i++)
             {
                 for(int j=0;j<m2;j++)
                 {
                     for(int m=0;m<m3;m++)
                     {
-                        k3d[i*m1+j*m2+m]=f1[i]*f2[j]*f3[m]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)*sin((m+1)*x3*M_PI/l3)/omega3d[i*m1+j*m2+m];
+                        k3d[(i*m1+j)*m2+m]=f1[i]*f2[j]*f3[m]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)*sin((m+1)*x3*M_PI/l3)/omega3d[(i*m1+j)*m2+m];
                     }
                 }
             }
@@ -327,69 +314,46 @@ public:
     }
 
 
-    // Generic findmax function, used instead of the previous findmax functions (see below)
-    // Computes a max amplitude value using the model's parameters
-    void findmax(int dimensions)
-    {
-        float h = 1.0f/512.0f;
-        /*
-        if (dimensions == 1)
-        {
-            // Compensation for r1
-            float offset = 1.0f/2048.0f;
-            h *= (1/(sin(r1*M_PI)*(1-offset)+offset))*0.5+1;
-        }
-        if (dimensions == 2)
-        {
-            float offset = 1.0f/2048.0f;
-        }
-        else if (dimensions == 3)
-        {
-        }
-        */
-        maxh=h;
-    }
     // findmax functions find value of first sample and scale everything else based on this value
-    void findmax1d()
+    void findmax()
     {
         float h=0;
-        float t1=M_PI/2/omega1d[0];
-        for(int i=0;i<m1;i++)
-        {
-            h+=k1d[i]*exp(sigma1d[i]*t1)*sin(omega1d[i]*t1);
-        }
-        maxh=h;
-    }
 
-    void findmax2d()
-    {
-        float h=0;
-        float t1=M_PI/2/omega2d[0];
-        for(int i=0;i<m1;i++)
+        // 1D
+        if (dim == 0)
         {
-            for(int j=0;j<m2;j++)
+            for(int i=0;i<m1;i++)
             {
-                h+=k2d[i*m1+j]*exp(sigma2d[i*m1+j]*t1)*sin(omega2d[i*m1+j]*t1);
+                h += k1d[i]*exp(sigma1d[i]*M_PI/2/omega1d[i]);
             }
         }
-        maxh=h;
-    }
-
-    void findmax3d()
-    {
-        float h=0;
-        float t1=M_PI/2/omega3d[0];
-        for(int i=0;i<m1;i++)
+        // 2D
+        else if (dim == 1)
         {
-            for(int j=0;j<m2;j++)
+            for(int i=0;i<m1;i++)
             {
-                for(int m=0;m<m3;m++)
+                for(int j=0;j<m2;j++)
                 {
-                    h+=k3d[i*m1+j*m2+m]*exp(sigma3d[i*m1+j*m2+m]*t1)*sin(omega3d[i*m1+j*m2+m]*t1);
+                    h += k2d[i*m1+j]*exp(sigma2d[i*m1+j]*M_PI/2/omega2d[i*m1+j]);
                 }
             }
         }
-        maxh=h;
+        // 3D
+        else if (dim == 2)
+        {
+            for(int i=0;i<m1;i++)
+            {
+                for(int j=0;j<m2;j++)
+                {
+                    for(int m=0;m<m3;m++)
+                    {
+                        h += k3d[(i*m1+j)*m2+m]*exp(sigma3d[(i*m1+j)*m2+m]*M_PI/2/omega3d[(i*m1+j)*m2+m]);
+                    }
+                }
+            }
+        }
+
+        maxh = h * 16;
     }
 
 
@@ -400,20 +364,17 @@ public:
     {
         // the keyboard-voice activation interface, should write different excitation signals here.
         trig = 1;
-        t=0;
+        t = 0;
         setKeyDown(true);
-        nsamp=0;
-        level=velocity;
+        nsamp = 0;
+        level = velocity;
         // map keyboard to frequency
-        frequency= MidiMessage::getMidiNoteInHertz(midiNoteNumber,440);
+        frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
         //std::cout<<"midinote "<<midiNoteNumber<<"\n";
-        fomega=float(frequency*4+2*M_PI*200);
-        getw(dim);
-        getK(dim);
-        xbuf0 = 1.0;
-        num_buffer = 0;
-        uplim = 1;
-        maxh2 = 1;
+        fomega = frequency*8 * pow(2.0, -4.19/12.0);
+
+        getw();
+        getK();
     };
 
     //==================================
@@ -421,8 +382,6 @@ public:
     {
         allowTailOff=true;
         // trig = 0;
-        //if(isKeyDown() == 0) // allow next note to come in
-            //t=0;
         clearCurrentNote();
     };
 
@@ -436,7 +395,7 @@ public:
             return false;
         }
     };
-    
+
     // this function synthesize signalvalue at each sample
     double finaloutput(int sample)
     {
@@ -445,18 +404,17 @@ public:
         //1-D
         if(dim==0)
         {
-            
-             for(int i=0;i<m1;i++)
-             {
-                 if(nsamp==0){
-                 decayampn1[i]=decayamp1[i];
-                 }
-                 else{
-                 decayampn1[i]*=decayamp1[i];
-                 }
-                 
+            for(int i=0;i<m1;i++)
+            {
+                if(nsamp==0){
+                    decayampn1[i]=decayamp1[i];
+                }
+                else{
+                    decayampn1[i]*=decayamp1[i];
+                }
+                
                 h+=k1d[i]*decayampn1[i]*sin(omega1d[i]*t);
-             }
+            }
         }
         //2-D
         else if(dim==1)
@@ -488,20 +446,19 @@ public:
                     for(int m=0;m<m3;m++)
                     {
                         if(nsamp==0){
-                            decayampn3[i*m1+j*m2+m]=decayamp3[i*m1+j*m2+m];
+                            decayampn3[(i*m1+j)*m2+m]=decayamp3[(i*m1+j)*m2+m];
                         }
                         else{
-                            decayampn3[i*m1+j*m2+m]*=decayamp3[i*m1+j*m2+m];
+                            decayampn3[(i*m1+j)*m2+m]*=decayamp3[(i*m1+j)*m2+m];
                         }
-                        h+=k3d[i*m1+j*m2+m]*decayampn3[i*m2+j*m2+m]*sin(omega3d[i*m1+j*m2+m]*t);
+                        h+=k3d[(i*m1+j)*m2+m]*decayampn3[(i*m2+j)*m2+m]*sin(omega3d[(i*m1+j)*m2+m]*t);
                     }
                 }
-                
             }
         }
         // else h = 0;
 
-        double output = h/maxh/4;
+        double output = h/maxh;
 
         if (trig != 0) // if note is pressed, start counting time samples
         {
@@ -509,91 +466,42 @@ public:
             nsamp += 1;
         }
 
-        //std::cout<<"output  "<<output<<"\n";
-        //std::cout<<"nsamp "<<nsamp<<" playing "<<isKeyDown()<<" "<<maxh<<" output "<<output<<"\n";
         return output;
     }
 
     //==================================
     void pitchWheelMoved (int newPitchWheelValue)
     {
-        
     };
     //==================================
     void controllerMoved (int controllerNumber, int newControllerValue)
     {
-        // TODO Map CCs to x y z coordinates
     };
     //==================================
     void aftertouchChanged (int newAftertouchValue)
     {
-        
     };
     //==================================
     void channelPressureChanged (int newChannelPressureValue)
     {
-        
     };
     //==================================
     void renderNextBlock (AudioBuffer< float > &outputBuffer, int startSample, int numSamples)
     {
         // callback function
-        // int startgain;
 
         for(int sample=0;sample<numSamples;++sample)
         {
             // put the synthesized drum sound here
-            double drumSound=finaloutput(sample);
+            double drumSound = finaloutput(sample);
 
             //std::cout<<"t "<<t<<" "<<getCurrentlyPlayingNote()<<"\n";
             //std::cout<<"drumSound "<<drumSound<<"\n";
             for(int channel=0;channel<outputBuffer.getNumChannels();++channel)
             {
-                outputBuffer.addSample(channel, startSample+sample, drumSound );//put whatever sound synthesized here.
+                outputBuffer.addSample(channel, startSample+sample, drumSound);//put whatever sound synthesized here.
             }
         }
-
-        num_buffer+=1;
-        if(num_buffer == 1 and outputBuffer.getMagnitude(1,0,numSamples)>maxh){
-            //maxh = outputBuffer.getMagnitude(1,0,numSamples);
-            //outputBuffer.applyGain(0, startgain, 1, 1/maxh);
-            //std::cout<<"gain from outputbuffer "<<maxh<<"\n";
-        }
-
-        //std::cout<<"min signal "<<outputBuffer.getMagnitude(1, 0, numSamples)<<"\n";
-        /*
-        //count buffer since start note
-        num_buffer+=1;
-        //biggest value in the current buffer
-        auto gain = outputBuffer.getMagnitude(1,0,numSamples);
-
-        //std::cout<<"before signal values "<<outputBuffer.getMagnitude(1,0,numSamples)<<" "<<num_buffer<<"\n";
-
-        //in case buffer contains last note's content, only change from where the note starts.
-        //how to detect situations when first buffer is triggered before valid values are put into it
-        if(num_buffer==1 and outputBuffer.findMinMax(0, 0, numSamples).getLength()>1e-4){
-            scale = float(1.0)/gain;
-            maxh2 = gain;
-
-            if(gain*scale<=1){
-               outputBuffer.applyGain(scale);
-            }
-            scale = 1;
-        }
-        //sometimes the biggest value appear in second buffer, then update scaling factor
-        else if(num_buffer==2 and outputBuffer.findMinMax(0, 0, numSamples).getLength()>1e-4){
-            scale = float(1.0)/gain;
-            maxh2 = gain;
-            if(gain*scale<=1){
-                 outputBuffer.applyGain(scale);
-            }
-            scale = 1;
-        }
-
-        std::cout<<"num buffer "<<numSamples<<" "<< outputBuffer.getMagnitude(1,0,numSamples)<<"\n";
-       //see if range of buffer tells anything about if the excitation is initiated
-       //std::cout<<"signal values "<<outputBuffer.getMagnitude(1,0,numSamples)<<" "<<outputBuffer.findMinMax(0, 0, numSamples).getLength()<<" "<<num_buffer<<"\n";
-       */
     };
 
     //==================================
@@ -613,10 +521,6 @@ public:
     {
     };
     //==================================
-  
-    //==================================
-  
-    //==================================
     bool isPlayingButReleased()
     {
     };
@@ -626,90 +530,62 @@ public:
     };
     //==================================
     //==================================
-    //==================================
-    //==================================
-    
-    
+
+
 private:
     double level;
     double frequency;
     int trig;
     double t;
-    int num_buffer;
-    int uplim=1;
-    float scale=1.0;
     int nsamp;
-    double sr=44100;
-    double sinlookup[62832];
+    double sr = 44100;
     int dur = 2*int(sr);
+
+    // drum model parameters
     float ftau;
+    float fomega = 1;
+    float fp;
+    float fd;
     float fa;
     float fa2;
-    float fp;
-    float fomega;
-    float fd;
-    float dim;
+    float r1=0.5, r2=0.5, r3=0.5;
+    int dim;
+
     int tau=300;
 
-    int m1=5;   // can't be bigger than MAX_M1
-    int m2=5;
-    int m3=5;
-
-    float k1d[MAX_M1];
-    float k2d[MAX_M1*MAX_M2]; // m1*m2
-    float k3d[125]; // m1*m2*m3
-
-    float omega1d[MAX_M1];
-    float omegasq1d[MAX_M1];
-    float sinomega1d[MAX_M1];
-    float cosomega1d[MAX_M1];
-    float omega2d[25];
-    float omega3d[125];
-
-    float sigma1d[MAX_M1];
-    float sigmasq1d[MAX_M1];
-    float expsigma1d[MAX_M1];
-    float exp2sigma1d[MAX_M1];
-    float sigma2d[25];
-    float sigma3d[125];
-
-    float lastsound=0;
-    float decayamp1[MAX_M1];
-    float decayampn1[MAX_M1];
-    float decayamp2[25];
-    float decayampn2[25];
-    float decayamp3[125];
-    float decayampn3[125];
-
-    float c = sr*2;
-    float f1[5]; //m1
-    float f2[5]; //m2
-    float f3[5]; //m3
-    float maxh=1;
-    float firstgain;
-    float maxh2=1;//the max of h for each set of parameters
-    // float test[25];
     float fx1[301]; //tau
     float fx2[301];
     float fx3[301];
-    //double drumSound[512];
-    double gain;
+    float f1[MAX_M1];
+    float f2[MAX_M2];
+    float f3[MAX_M3];
 
+    int m1 = MAX_M1; // can't be bigger than MAX_M1
+    int m2 = MAX_M2; // can't be bigger than MAX_M2
+    int m3 = MAX_M3; // can't be bigger than MAX_M3
 
-    //circular buffers! [t,t-1,t-2]
-    //std::array<float,MAX_M1> A = {10,20,30,40};
-    //std::array<int,4> B = A; //copy array A into array B
+    // mode decay/damping factors
+    float sigma1d[MAX_M1];
+    float sigma2d[MAX_M1*MAX_M2];
+    float sigma3d[MAX_M1*MAX_M2*MAX_M3];
 
-    std::array<float,MAX_M1> ybuffer;
-    std::array<float,MAX_M1> ybuffer1;
-    std::array<float,MAX_M1> ybuffer2;
-    //float ybuffer1[MAX_M1];
-    //float ybuffer2[MAX_M1];
-    //float xbuffer[3] = {1.0, 0.0, 0.0};
-    float xbuf0,xbuf1,xbuf2;
-    //pointers for buffers!
-    //int yread,ywrite;
-    //int xread,xwrite;
+    // and their sample-rate-dependant counterparts
+    float decayamp1[MAX_M1];
+    float decayampn1[MAX_M1];
+    float decayamp2[MAX_M1*MAX_M2];
+    float decayampn2[MAX_M1*MAX_M2];
+    float decayamp3[MAX_M1*MAX_M2*MAX_M3];
+    float decayampn3[MAX_M1*MAX_M2*MAX_M3];
 
-    float r1=0.5, r2=0.5, r3=0.5;
+    // mode frequencies
+    float omega1d[MAX_M1];
+    float omega2d[MAX_M1*MAX_M2];
+    float omega3d[MAX_M1*MAX_M2*MAX_M3];
+
+    // mode magnitudes
+    float k1d[MAX_M1];
+    float k2d[MAX_M1*MAX_M2];
+    float k3d[MAX_M1*MAX_M2*MAX_M3];
+
+    float maxh = 1; //the max of h for each set of parameters
 };
