@@ -39,39 +39,28 @@ public:
     //==================================
     // some function that grabs value from the slider, and then either returns or set the signal of my synthesized drum sound
     void getcusParam(std::atomic<float>* _tau,
-                     std::atomic<float>* omega,
                      std::atomic<float>* p,
                      std::atomic<float>* dispersion,
                      std::atomic<float>* alpha1,
                      std::atomic<float>* alpha2,
-                     std::atomic<float>* _r1,
-                     std::atomic<float>* _r2,
-                     std::atomic<float>* _r3,
-                     std::atomic<float>* dim1,
-                     std::atomic<float>* dim2,
-                     std::atomic<float>* dim3)
+                     std::atomic<float>* x,
+                     std::atomic<float>* y,
+                     std::atomic<float>* z,
+                     std::atomic<float>* dimensions)
     {
         // this function fetch parameters from the customized GUI and calculate the corresponding parameters in order to synthesize the sound
         // for each dimension, different algorithms are called
-        ftau=_tau->load();
-        fp=p->load();
-        fd=dispersion->load();
-        fa=alpha1->load();
-        fa2=alpha2->load();
+        ftau = _tau->load();
+        fp = p->load();
+        fd = dispersion->load();
+        fa = alpha1->load();
+        fa2 = alpha2->load();
 
-        r1=_r1->load();
-        r2=_r2->load();
-        r3=_r3->load();
+        r1 = x->load();
+        r2 = y->load();
+        r3 = z->load();
 
-        if(dim1->load()==1){
-            dim = 0;
-        }
-        else if(dim2->load()==1){
-            dim = 1;
-        }
-        else if(dim3->load()==1){
-            dim = 2;
-        }
+        nextDim = int(dimensions->load()) - 1;
     }
 
 
@@ -352,10 +341,8 @@ public:
                     currentPitchWheelPosition)
     {
         // the keyboard-voice activation interface, should write different excitation signals here.
-        trig = true;
-        t = 0;
-        setKeyDown(true);
-        nsamp = 0;
+        dim = nextDim;
+
         level = velocity;
         // map keyboard to frequency
         frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
@@ -372,7 +359,12 @@ public:
         getw();
         getK();
         findmax();
-    };
+
+        t = 0;
+        nsamp = 0;
+        trig = true;
+        setKeyDown(true);
+    }
 
     //==================================
     void stopNote (float velocity, bool allowTailOff)
@@ -382,13 +374,13 @@ public:
             trig = false;
             clearCurrentNote();
         }
-    };
+    }
 
     //==================================
     bool isVoiceActive()
     {
         return trig;
-    };
+    }
 
     // this function synthesize signalvalue at each sample
     double finaloutput(int sample)
@@ -470,7 +462,6 @@ public:
     //==================================
     void pitchWheelMoved (int newPitchWheelValue)
     {
-        cout << "Pitch bend: " << newPitchWheelValue << endl;
         pitchBend = (newPitchWheelValue-8192)/8192.0;
     }
     //==================================
@@ -554,6 +545,7 @@ private:
     float r2;
     float r3;
     int dim;
+    int nextDim;
 
     int tau=300;
 

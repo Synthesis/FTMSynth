@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="ez6eyY" name="StringModel" projectType="audioplug" jucerVersion="5.4.5"
+<JUCERPROJECT id="ez6eyY" name="StringModel" projectType="audioplug" jucerFormatVersion="1"
               pluginName="Stringmodel" pluginManufacturer="THESIS" pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
               pluginFormats="buildStandalone,buildAU,buildVST3" companyName="THESIS"
               pluginVST3Category="Drum,Instrument,Synth" cppLanguageStandard="latest">

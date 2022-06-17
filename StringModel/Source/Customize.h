@@ -16,16 +16,16 @@
 //==============================================================================
 /*
  */
-class Customize    : public Component
+class Customize : public Component
 {
 public:
     Customize(StringModelAudioProcessor&,int mode);
     ~Customize();
-    
+
     void paint (Graphics&) override;
     void resized() override;
-    float getsliderval(int seq);
- 
+    double getsliderval(int seq);
+
 private:
     Slider tauSlider;
     Slider pSlider;
@@ -35,10 +35,9 @@ private:
     Slider r1Slider;
     Slider r2Slider;
     Slider r3Slider;
-   
+
     ImageComponent helpComp;
-    
-    //ComboBox dimMenu;
+
     Label tauLabel;
     Label pLabel;
     Label dispersionLabel;
@@ -47,23 +46,19 @@ private:
     Label r1Label;
     Label r2Label;
     Label r3Label;
-    //Label dimLabel; // unused
-    Label title;
 
-    
-   
     StringModelAudioProcessor& processor;
-    
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> tauTree;
-    //ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> omegaTree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> pTree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> dispersionTree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> alphaTree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> alpha2Tree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> r1Tree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> r2Tree;
-    ScopedPointer <AudioProcessorValueTreeState::SliderAttachment> r3Tree;
-    ScopedPointer<AudioProcessorValueTreeState::ComboBoxAttachment> dimSelection;
+
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> tauTree;
+    //std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> omegaTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> pTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dispersionTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> alphaTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> alpha2Tree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> r1Tree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> r2Tree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> r3Tree;
+    std::unique_ptr<AudioProcessorValueTreeState::ComboBoxAttachment> dimSelection;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Customize)
 };
 

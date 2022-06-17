@@ -14,9 +14,8 @@
 #include "PluginProcessor.h"
 #include "Customize.h"
 //#include "theString.h"
+
 //==============================================================================
-/**
-*/
 class StringModelAudioProcessorEditor  : public AudioProcessorEditor
 {
 public:
@@ -25,7 +24,7 @@ public:
 
     //==============================================================================
     void paint (Graphics&) override;
-    void buttonClicked(int seq);
+    void setDimensions(int dimensions);
     void resized() override;
 
 private:
@@ -33,25 +32,19 @@ private:
     // access the processor object that created it.
     StringModelAudioProcessor& processor;
 
-    
-    
-   
     SharedResourcePointer <TooltipWindow> help;
 
-    Label title;
     Customize stringCUS;
     Customize drumCUS;
     Customize boxCUS;
-    //Customize* cusGUI;
+
     DrawableButton stringButton;
     DrawableButton drumButton;
     DrawableButton boxButton;
+    Slider dimensionsSlider;
+
     Image background;
     TabbedComponent mode;
-    ScopedPointer<AudioProcessorValueTreeState::ButtonAttachment> dimSelection;
-    ScopedPointer<AudioProcessorValueTreeState::ButtonAttachment> stringTree;
-    ScopedPointer<AudioProcessorValueTreeState::ButtonAttachment> drumTree;
-    ScopedPointer<AudioProcessorValueTreeState::ButtonAttachment> boxTree;
-    Button* but;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimSelection;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StringModelAudioProcessorEditor)
 };

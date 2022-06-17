@@ -24,30 +24,26 @@ StringModelAudioProcessor::StringModelAudioProcessor()
                        ),
 #endif
 tree (*this,nullptr,"PARAMETERS",
-{   std::make_unique<AudioParameterFloat> ("tau", "tau", NormalisableRange<float> (0.01f,0.3f),0.07f),
-    std::make_unique<AudioParameterFloat> ("p", "p", NormalisableRange<float> (0.0f,0.35f),0.0f),
+{   std::make_unique<AudioParameterFloat> ("sustain", "sustain", NormalisableRange<float> (0.01f,0.3f),0.07f),
+    std::make_unique<AudioParameterFloat> ("damp", "damp", NormalisableRange<float> (0.0f,0.35f),0.0f),
     std::make_unique<AudioParameterFloat> ("dispersion", "dispersion", NormalisableRange<float> (0.0f,10.0f),0.06f),
-    std::make_unique<AudioParameterFloat> ("alpha1", "alpha1", NormalisableRange<float> (0.01f,1.0f),0.5f),
-    std::make_unique<AudioParameterFloat> ("alpha2", "alpha2", NormalisableRange<float> (0.01f,1.0f),0.5f),
-    //std::make_unique<AudioParameterInt> ("dimtype", "dimtype", 0,2,1),
-    std::make_unique<AudioParameterInt> ("dim1", "dim1", 0,1,0),
-    std::make_unique<AudioParameterInt> ("dim2", "dim2", 0,1,1),
-    std::make_unique<AudioParameterInt> ("dim3", "dim3", 0,1,0),
-    std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.01f,1.0f), 0.5f),
-    std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.01f,1.0f), 0.5f),
-    std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.01f,1.0f), 0.5f)
+    std::make_unique<AudioParameterFloat> ("squareness", "squareness", NormalisableRange<float> (0.01f,1.0f),0.5f),
+    std::make_unique<AudioParameterFloat> ("cubeness", "cubeness", NormalisableRange<float> (0.01f,1.0f),0.5f),
+    std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.01f,0.99f), 0.5f),
+    std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.01f,0.99f), 0.5f),
+    std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.01f,0.99f), 0.5f),
+    std::make_unique<AudioParameterInt> ("dimensions", "dimensions", 1,3,2)
 })
 {
     mySynth.clearVoices();
-    for(int i=0;i<4;i++){
-        
+    for (int i=0;i<4;i++)
+    {
         mySynth.addVoice(new SynthVoice());
     }
     //clear and add sounds
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
 }
-
 
 
 StringModelAudioProcessor::~StringModelAudioProcessor()
@@ -164,28 +160,25 @@ void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
         if((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
         {
             //add my synthesizer, inputs are values from my new sliders
-            myVoice->getcusParam(tree.getRawParameterValue("tau"),//this is the actual step that gets value from the tree, which are linked with slider
-                                 tree.getRawParameterValue("omega"),
-                                 tree.getRawParameterValue("p"),
+            myVoice->getcusParam(tree.getRawParameterValue("sustain"), //this is the actual step that gets value from the tree, which are linked with slider
+                                 tree.getRawParameterValue("damp"),
                                  tree.getRawParameterValue("dispersion"),
-                                 tree.getRawParameterValue("alpha1"),
-                                 tree.getRawParameterValue("alpha2"),
+                                 tree.getRawParameterValue("squareness"),
+                                 tree.getRawParameterValue("cubeness"),
                                  tree.getRawParameterValue("r1"),
                                  tree.getRawParameterValue("r2"),
                                  tree.getRawParameterValue("r3"),
-                                 tree.getRawParameterValue("dim1"),
-                                 tree.getRawParameterValue("dim2"),
-                                 tree.getRawParameterValue("dim3"));
+                                 tree.getRawParameterValue("dimensions"));
         }
     }
-    
+
     buffer.clear();
     MidiBuffer processedMidi;//can modify this processMidi and swap with the original midi
     //MidiBuffer processedMidi;//can modify this processMidi and swap with the original midi
-    
+
     MidiMessage m;
     //MidiMessage m;
-    
+
     mySynth.renderNextBlock(buffer, midiMessages , 0, buffer.getNumSamples());//which is the callback function
 }
 
