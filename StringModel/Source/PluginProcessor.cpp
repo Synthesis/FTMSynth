@@ -33,13 +33,13 @@ tree (*this,nullptr,"PARAMETERS",
     std::make_unique<AudioParameterInt> ("dim1", "dim1", 0,1,0),
     std::make_unique<AudioParameterInt> ("dim2", "dim2", 0,1,1),
     std::make_unique<AudioParameterInt> ("dim3", "dim3", 0,1,0),
-    std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.0f,1.0f), 0.5f),
-    std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.0f,1.0f), 0.5f),
-    std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.0f,1.0f), 0.5f)
+    std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.01f,1.0f), 0.5f),
+    std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.01f,1.0f), 0.5f),
+    std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.01f,1.0f), 0.5f)
 })
 {
     mySynth.clearVoices();
-    for(int i=0;i<1;i++){
+    for(int i=0;i<4;i++){
         
         mySynth.addVoice(new SynthVoice());
     }

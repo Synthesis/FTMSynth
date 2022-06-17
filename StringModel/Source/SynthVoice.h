@@ -34,7 +34,7 @@ public:
     {
         // if succesfully cast sound into my own class, return true
         return dynamic_cast<SynthSound*>(sound)!=nullptr;
-    };
+    }
 
     //==================================
     // some function that grabs value from the slider, and then either returns or set the signal of my synthesized drum sound
@@ -360,7 +360,10 @@ public:
         // map keyboard to frequency
         frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
         //std::cout<<"midinote "<<midiNoteNumber<<"\n";
-        fomega = frequency*8 * pow(2.0, -4.19/12.0);
+        fomega = frequency*8 * pow(2.0, -4.18/12.0);
+        pitchBend = (currentPitchWheelPosition-8192)/8192.0;
+
+        dur = 20.0*ftau; // computation duration depending on sustain
 
         deff();
         getf();
@@ -384,7 +387,7 @@ public:
     //==================================
     bool isVoiceActive()
     {
-        return (trig or isPlayingButReleased());
+        return trig;
     };
 
     // this function synthesize signalvalue at each sample
@@ -450,9 +453,9 @@ public:
             }
         }
 
-        double output = h*level/maxh;
+        double output = (h*level)/(maxh*2); // maxh*2 to leave some headroom
 
-        nsamp += 1;
+        nsamp += pow(2,pitchBend);
         t = nsamp/sr; // t advancing one sample
 
         if (t >= dur)
@@ -467,19 +470,21 @@ public:
     //==================================
     void pitchWheelMoved (int newPitchWheelValue)
     {
-    };
+        cout << "Pitch bend: " << newPitchWheelValue << endl;
+        pitchBend = (newPitchWheelValue-8192)/8192.0;
+    }
     //==================================
     void controllerMoved (int controllerNumber, int newControllerValue)
     {
-    };
+    }
     //==================================
     void aftertouchChanged (int newAftertouchValue)
     {
-    };
+    }
     //==================================
     void channelPressureChanged (int newChannelPressureValue)
     {
-    };
+    }
     //==================================
     void renderNextBlock (AudioBuffer< float > &outputBuffer, int startSample, int numSamples)
     {
@@ -490,39 +495,36 @@ public:
             // put the synthesized drum sound here
             double drumSound = finaloutput(sample);
 
-            //std::cout<<"t "<<t<<" "<<getCurrentlyPlayingNote()<<"\n";
-            //std::cout<<"drumSound "<<drumSound<<"\n";
             for(int channel=0;channel<outputBuffer.getNumChannels();++channel)
             {
-                outputBuffer.addSample(channel, startSample+sample, drumSound);//put whatever sound synthesized here.
+                outputBuffer.addSample(channel, startSample+sample, drumSound);
             }
         }
-    };
+    }
 
     //==================================
     void renderNextBlock (AudioBuffer< double > &outputBuffer, int startSample, int numSamples)
     {
-    };
+    }
     //==================================
     void setCurrentPlaybackSampleRate (double newRate)
     {
-    };
-    //==================================
-    bool isPlayingChannel (int midiChannel)
-    {
-    };
+        sr = newRate;
+        getSigma();
+    }
     //==================================
     double getSampleRate()
     {
-    };
+        return sr;
+    }
     //==================================
     bool isPlayingButReleased()
     {
-    };
+    }
     //==================================
     bool wasStartedBefore(const SynthesiserVoice& other)
     {
-    };
+    }
     //==================================
     //==================================
 
@@ -533,12 +535,13 @@ private:
     // note parameters
     double level;
     double frequency;
+    double pitchBend;
 
     // time-related variables
     bool trig;
     double t;
-    int nsamp;
-    double dur = 5; // in seconds
+    double nsamp;
+    double dur; // in seconds
 
     // drum model parameters
     float ftau;
@@ -547,7 +550,9 @@ private:
     float fd;
     float fa;
     float fa2;
-    float r1=0.5, r2=0.5, r3=0.5;
+    float r1;
+    float r2;
+    float r3;
     int dim;
 
     int tau=300;
