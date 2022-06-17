@@ -97,8 +97,7 @@ public:
         }
         if (dim >= 2)
         {
-            // [Synth_dfr] Is that really how it's supposed to be implemented? the same as the 2D model?
-            float h = fa*M_PI/tau;
+            float h = fa2*M_PI/tau;
             for(int i=0; i < tau+1; i++)
             {
                 fx3[i]=( 1 / ( s * sqrt(2*M_PI) ) ) * exp( -0.5 * pow( (i*h-fa2*M_PI*r3)/s, 2.0 ) );
@@ -164,7 +163,6 @@ public:
     // sigma
     void getSigma()
     {
-        // might be unnecessary to pass dimension as a parameter, since it's already defined in the class attribute 'dim'
         float sigma1=-1/ftau;
 
         // 1D
@@ -344,7 +342,7 @@ public:
             }
         }
 
-        maxh = h * 16;
+        maxh = h;
     }
 
 
@@ -354,7 +352,7 @@ public:
                     currentPitchWheelPosition)
     {
         // the keyboard-voice activation interface, should write different excitation signals here.
-        trig = 1;
+        trig = true;
         t = 0;
         setKeyDown(true);
         nsamp = 0;
@@ -376,29 +374,28 @@ public:
     //==================================
     void stopNote (float velocity, bool allowTailOff)
     {
-        allowTailOff=true;
-        // trig = 0;
-        clearCurrentNote();
+        if (!allowTailOff)
+        {
+            trig = false;
+            clearCurrentNote();
+        }
     };
 
     //==================================
     bool isVoiceActive()
     {
-        if(t<dur or isPlayingButReleased()==true){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return (trig or isPlayingButReleased());
     };
 
     // this function synthesize signalvalue at each sample
     double finaloutput(int sample)
     {
+        if (trig == false) return 0;
+
         float h=0;
 
-        //1-D
-        if(dim==0)
+        // 1D
+        if (dim == 0)
         {
             for(int i=0;i<m1;i++)
             {
@@ -412,8 +409,8 @@ public:
                 h+=k1d[i]*decayampn1[i]*sin(omega1d[i]*t);
             }
         }
-        //2-D
-        else if(dim==1)
+        // 2D
+        else if (dim == 1)
         {
             // sum up to mode m1 and mode m2
             for(int i=0;i<m1;i++)
@@ -432,8 +429,8 @@ public:
                 }
             }
         }
-        //3-D
-        else if(dim==2)
+        // 3D
+        else if (dim == 2)
         {
             for(int i=0;i<m1;i++)
             {
@@ -441,10 +438,10 @@ public:
                 {
                     for(int m=0;m<m3;m++)
                     {
-                        if(nsamp==0){
+                        if (nsamp==0) {
                             decayampn3[(i*m1+j)*m2+m]=decayamp3[(i*m1+j)*m2+m];
                         }
-                        else{
+                        else {
                             decayampn3[(i*m1+j)*m2+m]*=decayamp3[(i*m1+j)*m2+m];
                         }
                         h+=k3d[(i*m1+j)*m2+m]*decayampn3[(i*m2+j)*m2+m]*sin(omega3d[(i*m1+j)*m2+m]*t);
@@ -452,14 +449,16 @@ public:
                 }
             }
         }
-        // else h = 0;
 
-        double output = h/maxh;
+        double output = h*level/maxh;
 
-        if (trig != 0) // if note is pressed, start counting time samples
+        nsamp += 1;
+        t = nsamp/sr; // t advancing one sample
+
+        if (t >= dur)
         {
-            t=nsamp/sr; // t advancing one sample
-            nsamp += 1;
+            trig = false;
+            clearCurrentNote();
         }
 
         return output;
@@ -529,17 +528,21 @@ public:
 
 
 private:
+    double sr = 44100;
+
+    // note parameters
     double level;
     double frequency;
-    int trig;
+
+    // time-related variables
+    bool trig;
     double t;
     int nsamp;
-    double sr = 44100;
-    int dur = 2*int(sr);
+    double dur = 5; // in seconds
 
     // drum model parameters
     float ftau;
-    float fomega = 1;
+    float fomega;
     float fp;
     float fd;
     float fa;
