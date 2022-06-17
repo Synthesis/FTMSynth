@@ -72,15 +72,6 @@ public:
         else if(dim3->load()==1){
             dim = 2;
         }
-
-        deff();
-        getf();
-
-        // need sigma, omega
-        getSigma();
-        getw();
-        getK();
-        findmax();
     }
 
 
@@ -373,8 +364,13 @@ public:
         //std::cout<<"midinote "<<midiNoteNumber<<"\n";
         fomega = frequency*8 * pow(2.0, -4.19/12.0);
 
+        deff();
+        getf();
+
+        getSigma();
         getw();
         getK();
+        findmax();
     };
 
     //==================================
