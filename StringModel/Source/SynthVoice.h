@@ -254,6 +254,9 @@ public:
             for(int i=0;i<m1;i++)
             {
                 k1d[i]=f1[i]*sin((i+1)*x1*M_PI/l1)/omega1d[i];
+                // remove aliasing by checking whether the mode frequency is above Nyquist
+                if ((omega1d[i]/(2*M_PI)) >= (sr/2.0))
+                    k1d[i]=0;
             }
         }
         // 2D
@@ -267,6 +270,9 @@ public:
                 for(int j=0;j<m2;j++)
                 {
                     k2d[i*m1+j]=f1[i]*f2[j]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)/omega2d[i*m1+j];
+                    // aliasing removal
+                    if ((omega2d[i*m1+j]/(2*M_PI)) >= (sr/2.0))
+                        k2d[i*m1+j]=0;
                 }
             }
         }
@@ -284,7 +290,10 @@ public:
                 {
                     for(int m=0;m<m3;m++)
                     {
+                        // aliasing removal
                         k3d[(i*m1+j)*m2+m]=f1[i]*f2[j]*f3[m]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)*sin((m+1)*x3*M_PI/l3)/omega3d[(i*m1+j)*m2+m];
+                        if ((omega3d[(i*m1+j)*m2+m]/(2*M_PI)) >= (sr/2.0))
+                            k3d[(i*m1+j)*m2+m]=0;
                     }
                 }
             }
