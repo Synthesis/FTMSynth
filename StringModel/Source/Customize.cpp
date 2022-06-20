@@ -131,15 +131,8 @@ processor(p),helpComp("help")
             r3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree,"r3",r3Slider));
         }
     }
-}
 
-Customize::~Customize()
-{
-}
-
-void Customize::paint(Graphics& g)
-{
-    //g.fillAll (Colours::white);
+    // custom look & feel for the knobs
     cusSlider* cusRotarySliderlook = new cusSlider();
     if(auto* newl = dynamic_cast<juce::LookAndFeel*> (cusRotarySliderlook))
     {
@@ -152,6 +145,15 @@ void Customize::paint(Graphics& g)
         r2Slider.setLookAndFeel(newl);
         r3Slider.setLookAndFeel(newl);
     }
+}
+
+Customize::~Customize()
+{
+}
+
+void Customize::paint(Graphics& g)
+{
+    //g.fillAll (Colours::white);
 }
 
 void Customize::resized()

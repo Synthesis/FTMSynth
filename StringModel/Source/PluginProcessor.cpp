@@ -13,8 +13,9 @@
 
 //==============================================================================
 StringModelAudioProcessor::StringModelAudioProcessor()
+    :
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
+    AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)
@@ -23,17 +24,17 @@ StringModelAudioProcessor::StringModelAudioProcessor()
                      #endif
                        ),
 #endif
-tree (*this,nullptr,"PARAMETERS",
-{   std::make_unique<AudioParameterFloat> ("sustain", "sustain", NormalisableRange<float> (0.01f,0.3f),0.07f),
-    std::make_unique<AudioParameterFloat> ("damp", "damp", NormalisableRange<float> (0.0f,0.35f),0.0f),
-    std::make_unique<AudioParameterFloat> ("dispersion", "dispersion", NormalisableRange<float> (0.0f,10.0f),0.06f),
-    std::make_unique<AudioParameterFloat> ("squareness", "squareness", NormalisableRange<float> (0.01f,1.0f),0.5f),
-    std::make_unique<AudioParameterFloat> ("cubeness", "cubeness", NormalisableRange<float> (0.01f,1.0f),0.5f),
-    std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.01f,0.99f), 0.5f),
-    std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.01f,0.99f), 0.5f),
-    std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.01f,0.99f), 0.5f),
-    std::make_unique<AudioParameterInt> ("dimensions", "dimensions", 1,3,2)
-})
+    tree (*this,nullptr,"PARAMETERS",
+    {   std::make_unique<AudioParameterFloat> ("sustain", "sustain", NormalisableRange<float> (0.01f,0.3f),0.07f),
+        std::make_unique<AudioParameterFloat> ("damp", "damp", NormalisableRange<float> (0.0f,0.35f),0.0f),
+        std::make_unique<AudioParameterFloat> ("dispersion", "dispersion", NormalisableRange<float> (0.0f,10.0f),0.06f),
+        std::make_unique<AudioParameterFloat> ("squareness", "squareness", NormalisableRange<float> (0.01f,1.0f),0.5f),
+        std::make_unique<AudioParameterFloat> ("cubeness", "cubeness", NormalisableRange<float> (0.01f,1.0f),0.5f),
+        std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.01f,0.99f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.01f,0.99f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.01f,0.99f), 0.5f),
+        std::make_unique<AudioParameterInt> ("dimensions", "dimensions", 1,3,2)
+    })
 {
     mySynth.clearVoices();
     for (int i=0;i<4;i++)

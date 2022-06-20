@@ -15,8 +15,6 @@
 #include "SynthVoice.h"
 
 //==============================================================================
-/**
-*/
 class StringModelAudioProcessor  : public AudioProcessor
 {
 public:
@@ -56,12 +54,14 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+
+    //==============================================================================
     AudioProcessorValueTreeState tree; //to link values from the slider to processor
-    
+
 private:
     Synthesiser mySynth;
     SynthVoice* myVoice;
-    
+
     double lastSampleRate;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StringModelAudioProcessor)

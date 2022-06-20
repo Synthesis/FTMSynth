@@ -44,7 +44,6 @@ private:
     Slider dimensionsSlider;
 
     Image background;
-    TabbedComponent mode;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimSelection;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StringModelAudioProcessorEditor)
 };

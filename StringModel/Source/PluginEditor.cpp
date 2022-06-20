@@ -13,16 +13,16 @@
 
 //==============================================================================
 StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAudioProcessor& p)
-    : AudioProcessorEditor (&p), processor (p),mode(TabbedButtonBar::Orientation::TabsAtRight),
-stringButton("string", DrawableButton::ButtonStyle::ImageStretched ),
-drumButton("drum", DrawableButton::ButtonStyle::ImageStretched ),
-boxButton("box", DrawableButton::ButtonStyle::ImageStretched ),
-dimensionsSlider("dimensions"),
-stringCUS(p,1), drumCUS(p,2), boxCUS(p,3)
+    : AudioProcessorEditor (&p), processor (p),
+    stringButton("string", DrawableButton::ButtonStyle::ImageStretched),
+    drumButton("drum", DrawableButton::ButtonStyle::ImageStretched),
+    boxButton("box", DrawableButton::ButtonStyle::ImageStretched),
+    dimensionsSlider("dimensions"),
+    stringCUS(p,1), drumCUS(p,2), boxCUS(p,3)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (520,500);
+    setSize (512, 470);
 
     std::unique_ptr<Drawable> buttonOff;
     std::unique_ptr<Drawable> buttonOn;
@@ -91,7 +91,7 @@ void StringModelAudioProcessorEditor::paint (Graphics& g)
     if (dimensionsSlider.getValue() == 1)
     {
         stringButton.setToggleState(true, NotificationType::dontSendNotification);
-        stringCUS.setBounds(0,0,496,479);
+        stringCUS.setBounds(0,0,496,470);
         drumCUS.setVisible(false);
         boxCUS.setVisible(false);
         stringCUS.setVisible(true);
@@ -99,7 +99,7 @@ void StringModelAudioProcessorEditor::paint (Graphics& g)
     else if (dimensionsSlider.getValue() == 2)
     {
         drumButton.setToggleState(true, NotificationType::dontSendNotification);
-        drumCUS.setBounds(0,0,496,479);
+        drumCUS.setBounds(0,0,496,470);
         stringCUS.setVisible(false);
         boxCUS.setVisible(false);
         drumCUS.setVisible(true);
@@ -107,7 +107,7 @@ void StringModelAudioProcessorEditor::paint (Graphics& g)
     else if (dimensionsSlider.getValue() == 3)
     {
         boxButton.setToggleState(true, NotificationType::dontSendNotification);
-        boxCUS.setBounds(0,0,496,479);
+        boxCUS.setBounds(0,0,496,470);
         drumCUS.setVisible(false);
         stringCUS.setVisible(false);
         boxCUS.setVisible(true);
@@ -142,7 +142,7 @@ void StringModelAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
-    setSize(512,470);
+    setSize(512, 470);
 
     stringButton.setBounds(249,10,122,122);
     drumButton.setBounds(249,169,122,122);
