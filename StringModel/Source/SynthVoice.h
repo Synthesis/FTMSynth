@@ -38,22 +38,30 @@ public:
         //std::cout<<"elsewhere "<<r1<<" "<<r2<<"\n";
     }
     
-    void getcusParam(float* tau,float* omega,float* p,float* dispersion,float* alpha1,float* alpha2,int dimtype,float* length,float* thickness)
+    void getcusParam(std::atomic<float>* tau,
+                     std::atomic<float>* omega,
+                     std::atomic<float>* p,
+                     std::atomic<float>* dispersion,
+                     std::atomic<float>* alpha1,
+                     std::atomic<float>* alpha2,
+                     int dimtype,
+                     std::atomic<float>* length,
+                     std::atomic<float>* thickness)
     {
         //this function fetch parameters from the customized GUI and calculate the corresponding parameters in order to synthesize the sound
         //for each dimension, different algorithms are called
         //std::cout<<"which dimension "<<dim<<"\n";
-        ftau=float(*tau);
-        fomega=float(*omega);
-        fp=float(*p);
-        fd=float(*dispersion);
-        fa=float(*alpha1);
-        fa2=float(*alpha2);
+        ftau=tau->load();
+        fomega=omega->load();
+        fp=p->load();
+        fd=dispersion->load();
+        fa=alpha1->load();
+        fa2=alpha2->load();
         dim=dimtype;
         //if(1-1/fp<0){lengthscale = 2*M_PI;}
         //else{lengthscale = M_PI/sqrt(1-1/fp);}
-        l1 = float(*length); //length is from 0.2 to 0.8, so it's setting l to be less than its max allowed value
-        fthick = float(*thickness);
+        l1 = length->load(); //length is from 0.2 to 0.8, so it's setting l to be less than its max allowed value
+        fthick = thickness->load();
 
         //std::cout<<"length "<<l1<<"\n";
         //2-D drum
