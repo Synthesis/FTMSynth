@@ -20,9 +20,9 @@
 #include <typeinfo>
 #include <iomanip>
 
-#define MAX_M1  5
-#define MAX_M2  5
-#define MAX_M3  5
+#define MAX_M1  10
+#define MAX_M2  10
+#define MAX_M3  10
 
 using namespace std;
 
@@ -46,6 +46,9 @@ public:
                      std::atomic<float>* x,
                      std::atomic<float>* y,
                      std::atomic<float>* z,
+                     std::atomic<float>* modesX,
+                     std::atomic<float>* modesY,
+                     std::atomic<float>* modesZ,
                      std::atomic<float>* dimensions)
     {
         // this function fetch parameters from the customized GUI and calculate the corresponding parameters in order to synthesize the sound
@@ -59,6 +62,10 @@ public:
         r1 = x->load();
         r2 = y->load();
         r3 = z->load();
+
+        nextm1 = int(modesX->load());
+        nextm2 = int(modesY->load());
+        nextm3 = int(modesZ->load());
 
         nextDim = int(dimensions->load()) - 1;
     }
@@ -290,8 +297,8 @@ public:
                 {
                     for(int m=0;m<m3;m++)
                     {
-                        // aliasing removal
                         k3d[(i*m1+j)*m2+m]=f1[i]*f2[j]*f3[m]*sin((i+1)*x1*M_PI/l1)*sin((j+1)*x2*M_PI/l2)*sin((m+1)*x3*M_PI/l3)/omega3d[(i*m1+j)*m2+m];
+                        // aliasing removal
                         if ((omega3d[(i*m1+j)*m2+m]/(2*M_PI)) >= (sr/2.0))
                             k3d[(i*m1+j)*m2+m]=0;
                     }
@@ -355,11 +362,14 @@ public:
         level = velocity;
         // map keyboard to frequency
         frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
-        //std::cout<<"midinote "<<midiNoteNumber<<"\n";
         fomega = frequency*8 * pow(2.0, -4.18/12.0);
         pitchBend = (currentPitchWheelPosition-8192)/8192.0;
 
         dur = 20.0*ftau; // computation duration depending on sustain
+
+        m1 = nextm1;
+        m2 = nextm2;
+        m3 = nextm3;
 
         deff();
         getf();
@@ -565,9 +575,12 @@ private:
     float f2[MAX_M2];
     float f3[MAX_M3];
 
-    int m1 = MAX_M1; // can't be bigger than MAX_M1
-    int m2 = MAX_M2; // can't be bigger than MAX_M2
-    int m3 = MAX_M3; // can't be bigger than MAX_M3
+    int m1 = 5; // can't be bigger than MAX_M1
+    int m2 = 5; // can't be bigger than MAX_M2
+    int m3 = 5; // can't be bigger than MAX_M3
+    int nextm1 = 5; // can't be bigger than MAX_M1
+    int nextm2 = 5; // can't be bigger than MAX_M2
+    int nextm3 = 5; // can't be bigger than MAX_M3
 
     // mode decay/damping factors
     float sigma1d[MAX_M1];

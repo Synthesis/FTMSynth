@@ -24,24 +24,31 @@ StringModelAudioProcessor::StringModelAudioProcessor()
                      #endif
                        ),
 #endif
-    tree (*this,nullptr,"PARAMETERS",
-    {   std::make_unique<AudioParameterFloat> ("sustain", "sustain", NormalisableRange<float> (0.01f,0.3f),0.07f),
-        std::make_unique<AudioParameterFloat> ("damp", "damp", NormalisableRange<float> (0.0f,0.35f),0.0f),
-        std::make_unique<AudioParameterFloat> ("dispersion", "dispersion", NormalisableRange<float> (0.0f,10.0f),0.06f),
-        std::make_unique<AudioParameterFloat> ("squareness", "squareness", NormalisableRange<float> (0.01f,1.0f),0.5f),
-        std::make_unique<AudioParameterFloat> ("cubeness", "cubeness", NormalisableRange<float> (0.01f,1.0f),0.5f),
-        std::make_unique<AudioParameterFloat> ("r1", "r1", NormalisableRange<float> (0.01f,0.99f), 0.5f),
-        std::make_unique<AudioParameterFloat> ("r2", "r2", NormalisableRange<float> (0.01f,0.99f), 0.5f),
-        std::make_unique<AudioParameterFloat> ("r3", "r3", NormalisableRange<float> (0.01f,0.99f), 0.5f),
-        std::make_unique<AudioParameterInt> ("dimensions", "dimensions", 1,3,2)
+    tree (*this, nullptr, "Parameters",
+    {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.3f), 0.07f),
+        std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f), 0.0f),
+        std::make_unique<AudioParameterFloat> ("dispersion", "Dispersion", NormalisableRange<float> (0.0f, 10.0f), 0.06f),
+        std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("cubeness", "Cubeness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r1", "Impulse X", NormalisableRange<float> (0.01f, 0.99f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r2", "Impulse Y", NormalisableRange<float> (0.01f, 0.99f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r3", "Impulse Z", NormalisableRange<float> (0.01f, 0.99f), 0.5f),
+        std::make_unique<AudioParameterInt> ("m1", "Modes X", 1, MAX_M1, 5),
+        std::make_unique<AudioParameterInt> ("m2", "Modes Y", 1, MAX_M2, 5),
+        std::make_unique<AudioParameterInt> ("m3", "Modes Z", 1, MAX_M3, 5),
+        std::make_unique<AudioParameterInt> ("dimensions", "Dimensions", 1, 3, 2),
+        std::make_unique<AudioParameterInt> ("voices", "Polyphony voices", 1, 6, 4)
     })
 {
+    // clear and add voices
     mySynth.clearVoices();
-    for (int i=0;i<4;i++)
+    int numVoices = int(tree.getRawParameterValue("voices")->load());
+    for (int i = 0; i < numVoices; i++)
     {
         mySynth.addVoice(new SynthVoice());
     }
-    //clear and add sounds
+
+    // clear and add sounds
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
 }
@@ -155,10 +162,26 @@ bool StringModelAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 
 void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-    for(int i=0;i<mySynth.getNumVoices();i++)
+    int deltaVoices = int(tree.getRawParameterValue("voices")->load());
+    deltaVoices -= mySynth.getNumVoices();
+    if (deltaVoices > 0)
+    {
+        for (int i = 0; i < deltaVoices; i++)
+            mySynth.addVoice(new SynthVoice());
+    }
+    else if (deltaVoices < 0)
+    {
+        mySynth.clearVoices();
+        for (int i = 0; i < mySynth.getNumVoices() + deltaVoices; i++)
+        {
+            mySynth.addVoice(new SynthVoice());
+        }
+    }
+
+    for (int i=0; i < mySynth.getNumVoices(); i++)
     {
         //a mechanism to get parameters from slider and pass to adsr
-        if((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
+        if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
         {
             //add my synthesizer, inputs are values from my new sliders
             myVoice->getcusParam(tree.getRawParameterValue("sustain"), //this is the actual step that gets value from the tree, which are linked with slider
@@ -169,6 +192,9 @@ void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
                                  tree.getRawParameterValue("r1"),
                                  tree.getRawParameterValue("r2"),
                                  tree.getRawParameterValue("r3"),
+                                 tree.getRawParameterValue("m1"),
+                                 tree.getRawParameterValue("m2"),
+                                 tree.getRawParameterValue("m3"),
                                  tree.getRawParameterValue("dimensions"));
         }
     }

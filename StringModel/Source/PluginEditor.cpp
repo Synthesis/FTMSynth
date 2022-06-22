@@ -88,6 +88,8 @@ void StringModelAudioProcessorEditor::paint (Graphics& g)
     RectanglePlacement backgroundRectanglePlacement(64);
     g.drawImageWithin(background,0,0,getWidth(),getHeight(),backgroundRectanglePlacement,false);
 
+    // FIXME: Moving the external parameter doesn't update the UI
+
     if (dimensionsSlider.getValue() == 1)
     {
         stringButton.setToggleState(true, NotificationType::dontSendNotification);
