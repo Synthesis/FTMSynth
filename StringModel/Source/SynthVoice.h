@@ -20,9 +20,11 @@
 #include <typeinfo>
 #include <iomanip>
 
-#define MAX_M1  10
-#define MAX_M2  10
-#define MAX_M3  10
+#define MAX_M1  16
+#define MAX_M2  16
+#define MAX_M3  16
+#define SIN_LUT_MODULO     65535
+#define SIN_LUT_RESOLUTION 65536
 
 using namespace std;
 
@@ -34,6 +36,14 @@ public:
     {
         // if succesfully cast sound into my own class, return true
         return dynamic_cast<SynthSound*>(sound)!=nullptr;
+    }
+
+    static void computeSinLUT()
+    {
+        for (int i = 0; i < SIN_LUT_RESOLUTION; i++)
+        {
+            sinLUT[i] = sin(i * 2.0 * M_PI / SIN_LUT_RESOLUTION);
+        }
     }
 
     //==================================
@@ -407,6 +417,7 @@ public:
         if (trig == false) return 0;
 
         float h=0;
+        float lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
 
         // 1D
         if (dim == 0)
@@ -420,7 +431,8 @@ public:
                     decayampn1[i]*=decayamp1[i];
                 }
                 
-                h+=k1d[i]*decayampn1[i]*sin(omega1d[i]*t);
+                // h+=k1d[i]*decayampn1[i]*sin(omega1d[i]*t);
+                h+=k1d[i]*decayampn1[i]*sinLUT[int(omega1d[i]*t*lutScale) & SIN_LUT_MODULO];
             }
         }
         // 2D
@@ -439,7 +451,8 @@ public:
                         decayampn2[i*m1+j]*=decayamp2[i*m1+j];
                     }
                     // synthesize the sound at time t
-                    h+=k2d[i*m1+j]*decayampn2[i*m1+j]*sin(omega2d[i*m1+j]*t);
+                    // h+=k2d[i*m1+j]*decayampn2[i*m1+j]*sin(omega2d[i*m1+j]*t);
+                    h+=k2d[i*m1+j]*decayampn2[i*m1+j]*sinLUT[int(omega2d[i*m1+j]*t*lutScale) & SIN_LUT_MODULO];
                 }
             }
         }
@@ -458,7 +471,8 @@ public:
                         else {
                             decayampn3[(i*m1+j)*m2+m]*=decayamp3[(i*m1+j)*m2+m];
                         }
-                        h+=k3d[(i*m1+j)*m2+m]*decayampn3[(i*m2+j)*m2+m]*sin(omega3d[(i*m1+j)*m2+m]*t);
+                        // h+=k3d[(i*m1+j)*m2+m]*decayampn3[(i*m2+j)*m2+m]*sin(omega3d[(i*m1+j)*m2+m]*t);
+                        h+=k3d[(i*m1+j)*m2+m]*decayampn3[(i*m2+j)*m2+m]*sinLUT[int(omega3d[(i*m1+j)*m2+m]*t*lutScale) & SIN_LUT_MODULO];
                     }
                 }
             }
@@ -606,4 +620,6 @@ private:
     float k3d[MAX_M1*MAX_M2*MAX_M3];
 
     float maxh = 1; //the max of h for each set of parameters
+
+    inline static double sinLUT[SIN_LUT_RESOLUTION];
 };

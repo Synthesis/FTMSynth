@@ -27,7 +27,7 @@ StringModelAudioProcessor::StringModelAudioProcessor()
     tree (*this, nullptr, "Parameters",
     {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.3f), 0.07f),
         std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f), 0.0f),
-        std::make_unique<AudioParameterFloat> ("dispersion", "Dispersion", NormalisableRange<float> (0.0f, 10.0f), 0.06f),
+        std::make_unique<AudioParameterFloat> ("dispersion", "Inharmonicity", NormalisableRange<float> (0.0f, 10.0f, 0.0f, 0.30103f), 0.06f),
         std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
         std::make_unique<AudioParameterFloat> ("cubeness", "Cubeness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
         std::make_unique<AudioParameterFloat> ("r1", "Impulse X", NormalisableRange<float> (0.01f, 0.99f), 0.5f),
@@ -37,7 +37,7 @@ StringModelAudioProcessor::StringModelAudioProcessor()
         std::make_unique<AudioParameterInt> ("m2", "Modes Y", 1, MAX_M2, 5),
         std::make_unique<AudioParameterInt> ("m3", "Modes Z", 1, MAX_M3, 5),
         std::make_unique<AudioParameterInt> ("dimensions", "Dimensions", 1, 3, 2),
-        std::make_unique<AudioParameterInt> ("voices", "Polyphony voices", 1, 6, 4)
+        std::make_unique<AudioParameterInt> ("voices", "Polyphony voices", 1, 16, 4)
     })
 {
     // clear and add voices
@@ -126,6 +126,7 @@ void StringModelAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     ignoreUnused(samplesPerBlock);
+    SynthVoice::computeSinLUT();
     lastSampleRate=sampleRate;
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
 }
