@@ -13,7 +13,6 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "PluginProcessor.h"
 #include "Customize.h"
-//#include "theString.h"
 
 //==============================================================================
 class StringModelAudioProcessorEditor  : public AudioProcessorEditor
