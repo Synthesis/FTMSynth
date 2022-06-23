@@ -26,6 +26,8 @@ StringModelAudioProcessor::StringModelAudioProcessor()
 #endif
     tree (*this, nullptr, "Parameters",
     {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.3f), 0.07f),
+        std::make_unique<AudioParameterBool> ("gate", "Gate", false),
+        std::make_unique<AudioParameterFloat> ("release", "Release", NormalisableRange<float> (0.01f, 0.3f), 0.07f),
         std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f), 0.0f),
         std::make_unique<AudioParameterFloat> ("dispersion", "Inharmonicity", NormalisableRange<float> (0.0f, 10.0f, 0.0f, 0.30103f), 0.06f),
         std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
@@ -163,29 +165,90 @@ bool StringModelAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 
 void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
+    // Change the number of voices if needed
     int deltaVoices = int(tree.getRawParameterValue("voices")->load());
     deltaVoices -= mySynth.getNumVoices();
+
     if (deltaVoices > 0)
     {
+        // Add new free voice
         for (int i = 0; i < deltaVoices; i++)
             mySynth.addVoice(new SynthVoice());
     }
     else if (deltaVoices < 0)
     {
-        mySynth.clearVoices();
-        for (int i = 0; i < mySynth.getNumVoices() + deltaVoices; i++)
+        // Remove all found inactive voices starting from the end
+        int removedVoices = 0;
+        int voice = mySynth.getNumVoices()-1;
+        while (voice > 0)
         {
-            mySynth.addVoice(new SynthVoice());
+            if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(voice))))
+            {
+                if (!myVoice->isVoiceActive())
+                {
+                    mySynth.removeVoice(voice);
+                    removedVoices++;
+                }
+            }
+            voice--;
+
+            if (removedVoices >= (-deltaVoices)) break;
+        }
+
+        // If after a first pass, not enough voices were removed
+        // then cut the least recent voices starting from the oldest
+        if (removedVoices < (-deltaVoices))
+        {
+            SynthesiserVoice* voiceToCompare;
+            int oldest;
+
+            int leftToRemove = -deltaVoices;
+            while (leftToRemove > 0)
+            {
+                oldest = -1;
+                int voiceCount = mySynth.getNumVoices();
+
+                for (int i = 0; i < voiceCount; i++)
+                {
+                    myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
+                    bool isOldest = true; // until proven otherwise
+
+                    for (int j = 0; j < voiceCount; j++)
+                    {
+                        if (i != j)
+                        {
+                            voiceToCompare = mySynth.getVoice(j);
+
+                            if (myVoice)
+                            {
+                                if (!myVoice->wasStartedBefore(*voiceToCompare))
+                                    isOldest = false;
+                            }
+                        }
+                    }
+                    if (isOldest)
+                    {
+                        oldest = i;
+                    }
+                }
+                if (oldest != -1)
+                {
+                    mySynth.removeVoice(oldest);
+                    leftToRemove--;
+                }
+            }
         }
     }
 
+    // Retrieve parameters from sliders and pass them to the model
     for (int i=0; i < mySynth.getNumVoices(); i++)
     {
-        //a mechanism to get parameters from slider and pass to adsr
         if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
         {
-            //add my synthesizer, inputs are values from my new sliders
-            myVoice->getcusParam(tree.getRawParameterValue("sustain"), //this is the actual step that gets value from the tree, which are linked with slider
+            // this is the actual step that gets values from the tree, which are linked to the sliders
+            myVoice->getcusParam(tree.getRawParameterValue("sustain"),
+                                 tree.getRawParameterValue("gate"),
+                                 tree.getRawParameterValue("release"),
                                  tree.getRawParameterValue("damp"),
                                  tree.getRawParameterValue("dispersion"),
                                  tree.getRawParameterValue("squareness"),
@@ -201,13 +264,8 @@ void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
     }
 
     buffer.clear();
-    MidiBuffer processedMidi;//can modify this processMidi and swap with the original midi
-    //MidiBuffer processedMidi;//can modify this processMidi and swap with the original midi
 
-    MidiMessage m;
-    //MidiMessage m;
-
-    mySynth.renderNextBlock(buffer, midiMessages , 0, buffer.getNumSamples());//which is the callback function
+    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples()); // which is the callback function
 }
 
 //==============================================================================
