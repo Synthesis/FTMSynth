@@ -13,8 +13,9 @@
 
 //==============================================================================
 StringModelAudioProcessor::StringModelAudioProcessor()
+    :
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
+    AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  AudioChannelSet::stereo(), true)
@@ -23,29 +24,37 @@ StringModelAudioProcessor::StringModelAudioProcessor()
                      #endif
                        ),
 #endif
-tree (*this,nullptr,"PARAMETERS",
-{   std::make_unique<AudioParameterFloat> ("tau", "tau", NormalisableRange<float> (0.01f,0.2f),0.07f),
-    std::make_unique<AudioParameterFloat> ("omega", "omega", NormalisableRange<float> (1256.0f,7539.0f),3509.0f),
-    std::make_unique<AudioParameterFloat> ("p", "p", NormalisableRange<float> (0.0001f,1.0f),0.0001f),
-    std::make_unique<AudioParameterFloat> ("dispersion", "dispersion", NormalisableRange<float> (0.0001f,0.9f),0.06f),
-    std::make_unique<AudioParameterFloat> ("alpha1", "alpha1", NormalisableRange<float> (0.1f,1.0f),0.5f),
-    std::make_unique<AudioParameterFloat> ("alpha2", "alpha2", NormalisableRange<float> (0.0001f,1.0f),1.13f),
-    std::make_unique<AudioParameterInt> ("dimtype", "dimtype", 0,2,1),
-    std::make_unique<AudioParameterFloat> ("length", "length", NormalisableRange<float> (M_PI/2,2*M_PI),M_PI),
-    std::make_unique<AudioParameterFloat> ("thickness", "thickness", NormalisableRange<float> (0.5,3),1)
-    
-})
+    tree (*this, nullptr, "Parameters",
+    {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.5f), 0.07f),
+        std::make_unique<AudioParameterBool> ("gate", "Gate", false),
+        std::make_unique<AudioParameterFloat> ("release", "Release", NormalisableRange<float> (0.01f, 0.5f), 0.07f),
+        std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f, 0.0f, 0.430677f), 0.0f),
+        std::make_unique<AudioParameterFloat> ("dispersion", "Inharmonicity", NormalisableRange<float> (0.0f, 10.0f, 0.0f, 0.30103f), 0.06f),
+        std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("cubeness", "Cubeness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r1", "Impulse X", NormalisableRange<float> (0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r2", "Impulse Y", NormalisableRange<float> (0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r3", "Impulse Z", NormalisableRange<float> (0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterInt> ("m1", "Modes X", 1, MAX_M1, 5),
+        std::make_unique<AudioParameterInt> ("m2", "Modes Y", 1, MAX_M2, 5),
+        std::make_unique<AudioParameterInt> ("m3", "Modes Z", 1, MAX_M3, 5),
+        std::make_unique<AudioParameterInt> ("dimensions", "Dimensions", 1, 3, 2),
+        std::make_unique<AudioParameterInt> ("voices", "Polyphony voices", 1, 16, 4)
+    })
 {
+    // clear and add voices
     mySynth.clearVoices();
-    for(int i=0;i<1;i++){
-        
+    int numVoices = int(tree.getRawParameterValue("voices")->load());
+    for (int i = 0; i < numVoices; i++)
+    {
         mySynth.addVoice(new SynthVoice());
     }
-    //clear and add sounds
+
+    // clear and add sounds
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
-    
 }
+
 
 StringModelAudioProcessor::~StringModelAudioProcessor()
 {
@@ -119,6 +128,7 @@ void StringModelAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     ignoreUnused(samplesPerBlock);
+    SynthVoice::computeSinLUT();
     lastSampleRate=sampleRate;
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
 }
@@ -155,34 +165,107 @@ bool StringModelAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 
 void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
-    for(int i=0;i<mySynth.getNumVoices();i++)
+    // Change the number of voices if needed
+    int deltaVoices = int(tree.getRawParameterValue("voices")->load());
+    deltaVoices -= mySynth.getNumVoices();
+
+    if (deltaVoices > 0)
     {
-        //a mechanism to get parameters from slider and pass to adsr
-        if((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
-        {
-            //add my synthesizer, inputs are values from my new sliders
-            myVoice->getcusParam(tree.getRawParameterValue("tau"),//this is the actual step that gets value from the tree, which are linked with slider
-                                 tree.getRawParameterValue("omega"),
-                                 tree.getRawParameterValue("p"),
-                                 tree.getRawParameterValue("dispersion"),
-                                 tree.getRawParameterValue("alpha1"),
-                                 tree.getRawParameterValue("alpha2"),
-                                 dim,
-                                 tree.getRawParameterValue("length"),
-                                 tree.getRawParameterValue("thickness"));
-                                 //tree.getRawParameterValue("dimtype"));
-            
-            
-        }
-        
+        // Add new free voice
+        for (int i = 0; i < deltaVoices; i++)
+            mySynth.addVoice(new SynthVoice());
     }
-    
+    else if (deltaVoices < 0)
+    {
+        // Remove all found inactive voices starting from the end
+        int removedVoices = 0;
+        int voice = mySynth.getNumVoices()-1;
+        while (voice > 0)
+        {
+            if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(voice))))
+            {
+                if (!myVoice->isVoiceActive())
+                {
+                    mySynth.removeVoice(voice);
+                    removedVoices++;
+                }
+            }
+            voice--;
+
+            if (removedVoices >= (-deltaVoices)) break;
+        }
+
+        // If after a first pass, not enough voices were removed
+        // then cut the least recent voices starting from the oldest
+        if (removedVoices < (-deltaVoices))
+        {
+            SynthesiserVoice* voiceToCompare;
+            int oldest;
+
+            int leftToRemove = -deltaVoices;
+            while (leftToRemove > 0)
+            {
+                oldest = -1;
+                int voiceCount = mySynth.getNumVoices();
+
+                for (int i = 0; i < voiceCount; i++)
+                {
+                    myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
+                    bool isOldest = true; // until proven otherwise
+
+                    for (int j = 0; j < voiceCount; j++)
+                    {
+                        if (i != j)
+                        {
+                            voiceToCompare = mySynth.getVoice(j);
+
+                            if (myVoice)
+                            {
+                                if (!myVoice->wasStartedBefore(*voiceToCompare))
+                                    isOldest = false;
+                            }
+                        }
+                    }
+                    if (isOldest)
+                    {
+                        oldest = i;
+                    }
+                }
+                if (oldest != -1)
+                {
+                    mySynth.removeVoice(oldest);
+                    leftToRemove--;
+                }
+            }
+        }
+    }
+
+    // Retrieve parameters from sliders and pass them to the model
+    for (int i=0; i < mySynth.getNumVoices(); i++)
+    {
+        if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
+        {
+            // this is the actual step that gets values from the tree, which are linked to the sliders
+            myVoice->getcusParam(tree.getParameterAsValue("sustain").getValue(),
+                                 tree.getParameterAsValue("gate").getValue(),
+                                 tree.getParameterAsValue("release").getValue(),
+                                 tree.getParameterAsValue("damp").getValue(),
+                                 tree.getParameterAsValue("dispersion").getValue(),
+                                 tree.getParameterAsValue("squareness").getValue(),
+                                 tree.getParameterAsValue("cubeness").getValue(),
+                                 tree.getParameterAsValue("r1").getValue(),
+                                 tree.getParameterAsValue("r2").getValue(),
+                                 tree.getParameterAsValue("r3").getValue(),
+                                 tree.getParameterAsValue("m1").getValue(),
+                                 tree.getParameterAsValue("m2").getValue(),
+                                 tree.getParameterAsValue("m3").getValue(),
+                                 tree.getParameterAsValue("dimensions").getValue());
+        }
+    }
+
     buffer.clear();
-    MidiBuffer processedMidi;//can modify this processMidi and swap with the original midi
-    
-    MidiMessage m;
-    
-    mySynth.renderNextBlock(buffer, midiMessages , 0, buffer.getNumSamples());//which is the callback function
+
+    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples()); // which is the callback function
 }
 
 //==============================================================================
@@ -202,12 +285,19 @@ void StringModelAudioProcessor::getStateInformation (MemoryBlock& destData)
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
+    auto state = tree.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void StringModelAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(tree.state.getType()))
+            tree.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
