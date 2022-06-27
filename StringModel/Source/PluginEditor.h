@@ -96,8 +96,8 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> voicesTree;
 
     // Help tooltip
-    ImageComponent helpComp;
-    SharedResourcePointer<TooltipWindow> help;
+    ImageButton helpButton;
+    SharedResourcePointer<TooltipWindow> tooltip;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StringModelAudioProcessorEditor)
 };

@@ -25,34 +25,16 @@ StringModelAudioProcessor::StringModelAudioProcessor()
                        ),
 #endif
     tree (*this, nullptr, "Parameters",
-    {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.5f), 0.07f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
+    {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.5f), 0.07f),
         std::make_unique<AudioParameterBool> ("gate", "Gate", false),
-        std::make_unique<AudioParameterFloat> ("release", "Release", NormalisableRange<float> (0.01f, 0.5f), 0.07f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
-        std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f, 0.0f, 0.430677f), 0.0f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
-        std::make_unique<AudioParameterFloat> ("dispersion", "Inharmonicity", NormalisableRange<float> (0.0f, 10.0f, 0.0f, 0.30103f), 0.06f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 4); })),
-        std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
-        std::make_unique<AudioParameterFloat> ("cubeness", "Cubeness", NormalisableRange<float> (0.01f, 1.0f), 0.5f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
-        std::make_unique<AudioParameterFloat> ("r1", "Impulse X", NormalisableRange<float> (0.01f, 0.99f), 0.5f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
-        std::make_unique<AudioParameterFloat> ("r2", "Impulse Y", NormalisableRange<float> (0.01f, 0.99f), 0.5f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
-        std::make_unique<AudioParameterFloat> ("r3", "Impulse Z", NormalisableRange<float> (0.01f, 0.99f), 0.5f,
-                                               AudioParameterFloatAttributes().withStringFromValueFunction (
-                                               [](float value, int) { return String(value, 3); })),
+        std::make_unique<AudioParameterFloat> ("release", "Release", NormalisableRange<float> (0.01f, 0.5f), 0.07f),
+        std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f, 0.0f, 0.430677f), 0.0f),
+        std::make_unique<AudioParameterFloat> ("dispersion", "Inharmonicity", NormalisableRange<float> (0.0f, 10.0f, 0.0f, 0.30103f), 0.06f),
+        std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("cubeness", "Cubeness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r1", "Impulse X", NormalisableRange<float> (0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r2", "Impulse Y", NormalisableRange<float> (0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterFloat> ("r3", "Impulse Z", NormalisableRange<float> (0.005f, 0.995f), 0.5f),
         std::make_unique<AudioParameterInt> ("m1", "Modes X", 1, MAX_M1, 5),
         std::make_unique<AudioParameterInt> ("m2", "Modes Y", 1, MAX_M2, 5),
         std::make_unique<AudioParameterInt> ("m3", "Modes Z", 1, MAX_M3, 5),
@@ -264,20 +246,20 @@ void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
         if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
         {
             // this is the actual step that gets values from the tree, which are linked to the sliders
-            myVoice->getcusParam(tree.getRawParameterValue("sustain"),
-                                 tree.getRawParameterValue("gate"),
-                                 tree.getRawParameterValue("release"),
-                                 tree.getRawParameterValue("damp"),
-                                 tree.getRawParameterValue("dispersion"),
-                                 tree.getRawParameterValue("squareness"),
-                                 tree.getRawParameterValue("cubeness"),
-                                 tree.getRawParameterValue("r1"),
-                                 tree.getRawParameterValue("r2"),
-                                 tree.getRawParameterValue("r3"),
-                                 tree.getRawParameterValue("m1"),
-                                 tree.getRawParameterValue("m2"),
-                                 tree.getRawParameterValue("m3"),
-                                 tree.getRawParameterValue("dimensions"));
+            myVoice->getcusParam(tree.getParameterAsValue("sustain").getValue(),
+                                 tree.getParameterAsValue("gate").getValue(),
+                                 tree.getParameterAsValue("release").getValue(),
+                                 tree.getParameterAsValue("damp").getValue(),
+                                 tree.getParameterAsValue("dispersion").getValue(),
+                                 tree.getParameterAsValue("squareness").getValue(),
+                                 tree.getParameterAsValue("cubeness").getValue(),
+                                 tree.getParameterAsValue("r1").getValue(),
+                                 tree.getParameterAsValue("r2").getValue(),
+                                 tree.getParameterAsValue("r3").getValue(),
+                                 tree.getParameterAsValue("m1").getValue(),
+                                 tree.getParameterAsValue("m2").getValue(),
+                                 tree.getParameterAsValue("m3").getValue(),
+                                 tree.getParameterAsValue("dimensions").getValue());
         }
     }
 

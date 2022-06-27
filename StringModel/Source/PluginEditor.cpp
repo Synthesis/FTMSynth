@@ -18,12 +18,14 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     stringButton("string"), drumButton("drum"), boxButton("box"), gateButton("GATE"),
     mainControls(112, 8, 512, 158), xyzControls(400, 176, 208, 216),
     stringView(p, 1), drumView(p, 2), boxView(p, 3),
-    helpComp("help")
+    helpButton("help")
 {
     setSize (640, 400);
 
     // Custom look and feel
-    setLookAndFeel(new CustomLookAndFeel());
+    CustomLookAndFeel* customLookAndFeel = new CustomLookAndFeel();
+    setLookAndFeel(customLookAndFeel);
+    tooltip->setLookAndFeel(customLookAndFeel);
 
 
     // Dimension selector
@@ -33,11 +35,12 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     Image buttonHovered = buttons.getClippedImage(Rectangle<int> (0, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
     Image buttonOn = buttons.getClippedImage(Rectangle<int> (0, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
     stringButton.setClickingTogglesState(true);
-    stringButton.setImages(true, true, true,
+    stringButton.setImages(false, true, true,
                            buttonOff, 1.0f, Colours::transparentBlack,
                            buttonHovered, 1.0f, Colours::transparentBlack,
                            buttonOn, 1.0f, Colours::transparentBlack,
                            0.0f);
+    stringButton.setTooltip("1D model (string)");
     stringButton.onClick = [this] { setDimensions(1, true); };
     stringButton.setRadioGroupId(1);
     addAndMakeVisible(stringButton);
@@ -46,11 +49,12 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     buttonHovered = buttons.getClippedImage(Rectangle<int> (buttons.getWidth()/3, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
     buttonOn = buttons.getClippedImage(Rectangle<int> (buttons.getWidth()/3, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
     drumButton.setClickingTogglesState(true);
-    drumButton.setImages(true, true, true,
-                           buttonOff, 1.0f, Colours::transparentBlack,
-                           buttonHovered, 1.0f, Colours::transparentBlack,
-                           buttonOn, 1.0f, Colours::transparentBlack,
-                           0.0f);
+    drumButton.setImages(false, true, true,
+                         buttonOff, 1.0f, Colours::transparentBlack,
+                         buttonHovered, 1.0f, Colours::transparentBlack,
+                         buttonOn, 1.0f, Colours::transparentBlack,
+                         0.0f);
+    drumButton.setTooltip("2D model (drum)");
     drumButton.onClick = [this] { setDimensions(2, true); };
     drumButton.setRadioGroupId(1);
     addAndMakeVisible(drumButton);
@@ -59,11 +63,12 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     buttonHovered = buttons.getClippedImage(Rectangle<int> (buttons.getWidth()*2/3, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
     buttonOn = buttons.getClippedImage(Rectangle<int> (buttons.getWidth()*2/3, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
     boxButton.setClickingTogglesState(true);
-    boxButton.setImages(true, true, true,
-                           buttonOff, 1.0f, Colours::transparentBlack,
-                           buttonHovered, 1.0f, Colours::transparentBlack,
-                           buttonOn, 1.0f, Colours::transparentBlack,
-                           0.0f);
+    boxButton.setImages(false, true, true,
+                        buttonOff, 1.0f, Colours::transparentBlack,
+                        buttonHovered, 1.0f, Colours::transparentBlack,
+                        buttonOn, 1.0f, Colours::transparentBlack,
+                        0.0f);
+    boxButton.setTooltip("3D model (cuboid)");
     boxButton.onClick = [this] { setDimensions(3, true); };
     boxButton.setRadioGroupId(1);
     addAndMakeVisible(boxButton);
@@ -75,23 +80,28 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     tauSlider.setPopupDisplayEnabled(true, true, this);
     // This class maintains a connection between slider and parameter in AudioProcessorValueTreeState
     tauTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "sustain", tauSlider));
+    tauSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(tauSlider);
     tauLabel.setText("SUSTAIN", dontSendNotification);
     tauLabel.setJustificationType(Justification(Justification::centred));
+    tauLabel.setTooltip("Duration of the resonance");
     addAndMakeVisible(tauLabel);
 
     relSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     relSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     relSlider.setPopupDisplayEnabled(true, true, this);
     relTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "release", relSlider));
+    relSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(relSlider);
     relLabel.setText("RELEASE", dontSendNotification);
     relLabel.setJustificationType(Justification(Justification::centred));
+    relLabel.setTooltip("Duration of the resonance after the key is released");
     addAndMakeVisible(relLabel);
 
     gateButton.setToggleable(true);
     gateButton.onStateChange = [this] { relSlider.setAlpha(gateButton.getToggleState() ? 1.0 : alphaOff); };
     gateTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "gate", gateButton));
+    gateButton.setTooltip("Defines whether the volume envelope\nswitches to Release when the key is released");
     relSlider.setAlpha(gateButton.getToggleState() ? 1.0 : alphaOff);
     addAndMakeVisible(gateButton);
 
@@ -99,9 +109,11 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     pSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     pSlider.setPopupDisplayEnabled(true, true, this);
     pTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "damp", pSlider));
+    pSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(pSlider);
     pLabel.setText("DAMP", dontSendNotification);
     pLabel.setJustificationType(Justification(Justification::centred));
+    pLabel.setTooltip("Damping of the harmonics\n(from resonating to muffled)");
     addAndMakeVisible(pLabel);
 
     dSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -109,9 +121,11 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     dSlider.setPopupDisplayEnabled(true, true, this);
     dSlider.onValueChange = [this] { updateVisualizations(2); }; // 2D view
     dTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "dispersion", dSlider));
+    dSlider.textFromValueFunction = [] (double value) { return String(value, 4); };
     addAndMakeVisible(dSlider);
     dLabel.setText("INHARMONICITY", dontSendNotification);
     dLabel.setJustificationType(Justification(Justification::centred));
+    dLabel.setTooltip("Dispersion of the sound waves\n(from harmonic to inharmonic partials)");
     addAndMakeVisible(dLabel);
 
     alpha1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -119,9 +133,11 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     alpha1Slider.setPopupDisplayEnabled(true, true, this);
     alpha1Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
     alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "squareness", alpha1Slider));
+    alpha1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha1Slider);
     alpha1Label.setText("SQUARENESS", dontSendNotification);
     alpha1Label.setJustificationType(Justification(Justification::centred));
+    alpha1Label.setTooltip("Shape ratio of the 2D drum\n(thin to square)");
     addAndMakeVisible(alpha1Label);
 
     alpha2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -129,9 +145,11 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     alpha2Slider.setPopupDisplayEnabled(true, true, this);
     alpha2Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
     alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "cubeness", alpha2Slider));
+    alpha2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha2Slider);
     alpha2Label.setText("CUBENESS", dontSendNotification);
     alpha2Label.setJustificationType(Justification(Justification::centred));
+    alpha2Label.setTooltip("Shape ratio of the 3D drum\n(thin to cubic)");
     addAndMakeVisible(alpha2Label);
 
 
@@ -141,6 +159,7 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     r1Slider.setPopupDisplayEnabled(true, true, this);
     r1Slider.onValueChange = [this] { updateVisualizations(7); }; // 1D + 2D + 3D view
     r1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r1", r1Slider));
+    r1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r1Slider);
 
     r2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -148,6 +167,7 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     r2Slider.setPopupDisplayEnabled(true, true, this);
     r2Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
     r2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r2", r2Slider));
+    r2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r2Slider);
 
     r3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -155,10 +175,12 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     r3Slider.setPopupDisplayEnabled(true, true, this);
     r3Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
     r3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r3", r3Slider));
+    r3Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r3Slider);
 
     rLabel.setText("IMPULSE", dontSendNotification);
     rLabel.setJustificationType(Justification(Justification::centred));
+    rLabel.setTooltip("Location of the impulse on the string/drum surface/cuboid");
     addAndMakeVisible(rLabel);
 
     m1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -181,6 +203,7 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
 
     mLabel.setText("MODES", dontSendNotification);
     mLabel.setJustificationType(Justification(Justification::centred));
+    mLabel.setTooltip("Number of modes (partials) per dimension");
     addAndMakeVisible(mLabel);
 
     xLabel.setText("X", dontSendNotification);
@@ -213,9 +236,15 @@ StringModelAudioProcessorEditor::StringModelAudioProcessorEditor (StringModelAud
     addAndMakeVisible(voicesLabel);
 
     Image helpImg = ImageCache::getFromMemory(BinaryData::question_png, BinaryData::question_pngSize);
-    helpComp.setImage(helpImg);
-    helpComp.setTooltip("Information\n This is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\nSustain - short to long\nGate - switches to Release on note release\nRelease - short to long\nDamp - resonating to soft\nInharmonicity - harmonic to inharmonic\nSquareness - elongated to square drum\nCubeness - flat to cubic box\n\nYou can also change the playback parameters:\nImpulse X Y Z - the location of the impulse on the string/drum surface/in the box\nModes X Y Z - The number of modes per dimension");
-    addAndMakeVisible(&helpComp);
+    Image helpOff = helpImg.getClippedImage(Rectangle<int> (0, 0, helpImg.getWidth()/2, helpImg.getHeight()));
+    Image helpHovered = helpImg.getClippedImage(Rectangle<int> (helpImg.getWidth()/2, 0, helpImg.getWidth()/2, helpImg.getHeight()));
+    helpButton.setImages(false, true, true,
+                         helpOff, 1.0f, Colours::transparentBlack,
+                         helpHovered, 1.0f, Colours::transparentBlack,
+                         helpHovered, 1.0f, Colours::transparentBlack,
+                         0.8f);
+    helpButton.setTooltip("Information\n\nThis is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\n(Hover the mouse over the knob labels for more informations)");
+    addAndMakeVisible(&helpButton);
 
 
     // Hidden dimension controller
@@ -397,5 +426,5 @@ void StringModelAudioProcessorEditor::resized()
     boxView.setBounds(   32, 176, 352, 216);
     stringView.setBounds(32, 176, 352, 216);
 
-    helpComp.setBounds(32, 344, 48, 48);
+    helpButton.setBounds(32, 344, 48, 48);
 }

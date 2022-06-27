@@ -55,8 +55,6 @@ public:
     {
         g.setFont(standardFont);
         LookAndFeel_V4::drawToggleButton(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
-        // g.drawFittedText(button.getButtonText(), 0, 0, button.getWidth(), button.getHeight(),
-        //                  Justification::centred, 1);
     }
 
     void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
@@ -109,6 +107,7 @@ public:
     {
         return BorderSize<int>(0, 0, 0, 0);
     }
+
 
 protected:
     Font standardFont;
