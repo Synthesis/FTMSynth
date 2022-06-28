@@ -60,8 +60,6 @@ public:
 
 private:
     Synthesiser mySynth;
-private:
-   std::unique_ptr<MidiOutput> midiOutput;
     SynthVoice* myVoice;
 
     double lastSampleRate;

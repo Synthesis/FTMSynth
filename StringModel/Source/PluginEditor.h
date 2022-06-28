@@ -24,8 +24,7 @@ public:
     //==============================================================================
     void paint (Graphics&) override;
     void resized() override;
-    TabbedComponent tabmode;
-    SharedResourcePointer <TooltipWindow> help;
+
 private:
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
