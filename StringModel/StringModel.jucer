@@ -5,16 +5,6 @@
               pluginFormats="buildStandalone,buildAU,buildVST3" companyName="THESIS"
               pluginVST3Category="Drum,Instrument,Synth" cppLanguageStandard="latest">
   <MAINGROUP id="RvdlOT" name="StringModel">
-    <GROUP id="{AE508F71-1310-BC3A-3C99-8B01504ECB48}" name="Assets">
-      <FILE id="cN9lkK" name="question2.png" compile="0" resource="1" file="Assets/question2.png"/>
-      <FILE id="LaIU50" name="ButtonOn.png" compile="0" resource="1" file="Assets/ButtonOn.png"/>
-      <FILE id="d2KT5M" name="ButtonOff.png" compile="0" resource="1" file="Assets/ButtonOff.png"/>
-      <FILE id="bpaZ0F" name="drumface.png" compile="0" resource="1" file="Assets/drumface.png"/>
-      <FILE id="v4UOYl" name="Ubuntu_L.ttf" compile="0" resource="1" file="Assets/Ubuntu_L.ttf"/>
-      <FILE id="ozGNwY" name="Reey_Regular.otf" compile="0" resource="1"
-            file="Assets/Reey_Regular.otf"/>
-      <FILE id="fCLqGD" name="Amagro_bold.ttf" compile="0" resource="1" file="Assets/Amagro_bold.ttf"/>
-    </GROUP>
     <GROUP id="{1E368382-AFE3-B851-6460-B81F306FAB88}" name="Source">
       <FILE id="Jqe2qa" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
