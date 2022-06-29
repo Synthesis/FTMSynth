@@ -1,6 +1,6 @@
 /*
   ==============================================================================
- 
+
     SynthVoice.h
     Created: 10 Oct 2018 3:46:36pm
     Authors: Lily H, Loïc J
@@ -27,9 +27,21 @@ public:
     static void computeSinLUT();
 
     //==================================
-    void getcusParam(float sustain, bool gate, float release, float damp, float dispersion,
-            float alpha1, float alpha2, float x, float y, float z,
-            int modesX, int modesY, int modesZ, int dimensions);
+    void getcusParam(std::atomic<float>* _tau,
+                     std::atomic<float>* gate,
+                     std::atomic<float>* rel,
+                     std::atomic<float>* p,
+                     std::atomic<float>* dispersion,
+                     std::atomic<float>* alpha1,
+                     std::atomic<float>* alpha2,
+                     std::atomic<float>* x,
+                     std::atomic<float>* y,
+                     std::atomic<float>* z,
+                     std::atomic<float>* modesX,
+                     std::atomic<float>* modesY,
+                     std::atomic<float>* modesZ,
+                     std::atomic<float>* dimensions);
+
 
     void deff();
     void getf();
@@ -40,7 +52,6 @@ public:
     void findmax();
 
     double finaloutput(int sample);
-
 
     //==================================
     void startNote (int midiNoteNumber, float velocity, SynthesiserSound *sound, int
@@ -61,6 +72,7 @@ public:
     double getSampleRate();
     bool isPlayingButReleased();
     bool wasStartedBefore(const SynthesiserVoice& other);
+
 
 private:
     double sr = 44100;

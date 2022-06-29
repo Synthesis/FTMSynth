@@ -37,31 +37,45 @@ void SynthVoice::computeSinLUT()
 
 //==================================
 // some function that grabs value from the slider, and then either returns or set the signal of my synthesized drum sound
-void SynthVoice::getcusParam(float sustain, bool gate, float release, float damp, float dispersion,
-                             float alpha1, float alpha2, float x, float y, float z,
-                             int modesX, int modesY, int modesZ, int dimensions)
+// IMPORTANT NOTE: the parameters need to be passed as std::atomic<float>*, from tree.getRawParameterValue("name"),
+//                 otherwise they'll be applied AFTER the next note press, instead of before, which means the
+//                 parameters will be updated one hit too late, which is what we *don't* want.
+void SynthVoice::getcusParam(std::atomic<float>* _tau,
+                             std::atomic<float>* gate,
+                             std::atomic<float>* rel,
+                             std::atomic<float>* p,
+                             std::atomic<float>* dispersion,
+                             std::atomic<float>* alpha1,
+                             std::atomic<float>* alpha2,
+                             std::atomic<float>* x,
+                             std::atomic<float>* y,
+                             std::atomic<float>* z,
+                             std::atomic<float>* modesX,
+                             std::atomic<float>* modesY,
+                             std::atomic<float>* modesZ,
+                             std::atomic<float>* dimensions)
 {
     // this function fetches parameters from the customized GUI and calculates the
     // corresponding parameters in order to synthesize the sound
 
     // for each dimension, different algorithms are called
-    ftau = sustain;
-    bgate = gate;
-    frel = release;
-    fp = damp;
-    fd = dispersion;
-    fa = alpha1;
-    fa2 = alpha2;
+    ftau = _tau->load();
+    bgate = (gate->load() >= 0.5f);
+    frel = rel->load();
+    fp = p->load();
+    fd = dispersion->load();
+    fa = alpha1->load();
+    fa2 = alpha2->load();
 
-    r1 = x;
-    r2 = y;
-    r3 = z;
+    r1 = x->load();
+    r2 = y->load();
+    r3 = z->load();
 
-    nextm1 = modesX;
-    nextm2 = modesY;
-    nextm3 = modesZ;
+    nextm1 = int(modesX->load());
+    nextm2 = int(modesY->load());
+    nextm3 = int(modesZ->load());
 
-    nextDim = dimensions - 1;
+    nextDim = int(dimensions->load()) - 1;
 }
 
 

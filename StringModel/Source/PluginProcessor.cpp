@@ -246,20 +246,24 @@ void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
         if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
         {
             // this is the actual step that gets values from the tree, which are linked to the sliders
-            myVoice->getcusParam(tree.getParameterAsValue("sustain").getValue(),
-                                 tree.getParameterAsValue("gate").getValue(),
-                                 tree.getParameterAsValue("release").getValue(),
-                                 tree.getParameterAsValue("damp").getValue(),
-                                 tree.getParameterAsValue("dispersion").getValue(),
-                                 tree.getParameterAsValue("squareness").getValue(),
-                                 tree.getParameterAsValue("cubeness").getValue(),
-                                 tree.getParameterAsValue("r1").getValue(),
-                                 tree.getParameterAsValue("r2").getValue(),
-                                 tree.getParameterAsValue("r3").getValue(),
-                                 tree.getParameterAsValue("m1").getValue(),
-                                 tree.getParameterAsValue("m2").getValue(),
-                                 tree.getParameterAsValue("m3").getValue(),
-                                 tree.getParameterAsValue("dimensions").getValue());
+            // IMPORTANT NOTE: the parameters need to be passed from tree.getRawParameterValue("name"),
+            //                 and NOT tree.getParameterAsValue("name").getValue(), otherwise they'll be
+            //                 applied AFTER the next note press, instead of before, which means the
+            //                 parameters will be updated one hit too late, which is what we *don't* want.
+            myVoice->getcusParam(tree.getRawParameterValue("sustain"),
+                                 tree.getRawParameterValue("gate"),
+                                 tree.getRawParameterValue("release"),
+                                 tree.getRawParameterValue("damp"),
+                                 tree.getRawParameterValue("dispersion"),
+                                 tree.getRawParameterValue("squareness"),
+                                 tree.getRawParameterValue("cubeness"),
+                                 tree.getRawParameterValue("r1"),
+                                 tree.getRawParameterValue("r2"),
+                                 tree.getRawParameterValue("r3"),
+                                 tree.getRawParameterValue("m1"),
+                                 tree.getRawParameterValue("m2"),
+                                 tree.getRawParameterValue("m3"),
+                                 tree.getRawParameterValue("dimensions"));
         }
     }
 
