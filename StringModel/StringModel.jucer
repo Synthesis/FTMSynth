@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="ez6eyY" name="StringModel" projectType="audioplug" jucerFormatVersion="1"
-              pluginName="Stringmodel" pluginManufacturer="THESIS" pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
-              pluginFormats="buildStandalone,buildAU,buildVST3" companyName="THESIS"
-              pluginVST3Category="Drum,Instrument,Synth" cppLanguageStandard="latest">
+<JUCERPROJECT id="ez6eyY" projectType="audioplug" jucerFormatVersion="1" name="StringModel"
+              companyName="LS2N" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
+              pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginAUMainType="'aumu'" pluginVST3Category="Drum,Instrument,Synth"
+              cppLanguageStandard="20">
   <MAINGROUP id="RvdlOT" name="StringModel">
     <GROUP id="{1E368382-AFE3-B851-6460-B81F306FAB88}" name="Source">
       <FILE id="Jqe2qa" name="PluginProcessor.cpp" compile="1" resource="0"
@@ -47,7 +48,6 @@
         <MODULEPATH id="juce_audio_processors" path="../Documents/music_tech/JUCE/modules"/>
         <MODULEPATH id="juce_audio_utils" path="../Documents/music_tech/JUCE/modules"/>
         <MODULEPATH id="juce_core" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_cryptography" path="../Documents/music_tech/JUCE/modules"/>
         <MODULEPATH id="juce_data_structures" path="../Documents/music_tech/JUCE/modules"/>
         <MODULEPATH id="juce_events" path="../Documents/music_tech/JUCE/modules"/>
         <MODULEPATH id="juce_graphics" path="../Documents/music_tech/JUCE/modules"/>
@@ -72,7 +72,6 @@
         <MODULEPATH id="juce_audio_processors" path="../../juce"/>
         <MODULEPATH id="juce_audio_utils" path="../../juce"/>
         <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_cryptography" path="../../juce"/>
         <MODULEPATH id="juce_data_structures" path="../../juce"/>
         <MODULEPATH id="juce_events" path="../../juce"/>
         <MODULEPATH id="juce_graphics" path="../../juce"/>
@@ -91,7 +90,6 @@
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
-    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -102,5 +100,7 @@
   <LIVE_SETTINGS>
     <OSX/>
   </LIVE_SETTINGS>
-  <JUCEOPTIONS JUCE_VST3_CAN_REPLACE_VST2="0" JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_USE_CURL="0" JUCE_WEB_BROWSER="0"
+               JUCE_USE_FLAC="0" JUCE_USE_OGGVORBIS="0" JUCE_USE_MP3AUDIOFORMAT="0"
+               JUCE_USE_LAME_AUDIO_FORMAT="0" JUCE_USE_WINDOWS_MEDIA_FORMAT="0"/>
 </JUCERPROJECT>

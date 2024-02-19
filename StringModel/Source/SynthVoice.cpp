@@ -446,8 +446,8 @@ double SynthVoice::finaloutput(int sample)
 
 //==================================
 //==================================
-void SynthVoice::startNote (int midiNoteNumber, float velocity, SynthesiserSound *sound, int
-                            currentPitchWheelPosition)
+void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound *sound, int
+                           currentPitchWheelPosition)
 {
     // the keyboard-voice activation interface, should write different excitation signals here.
     dim = nextDim;
@@ -456,7 +456,7 @@ void SynthVoice::startNote (int midiNoteNumber, float velocity, SynthesiserSound
     // map keyboard to frequency
     frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
     fomega = frequency*8 * pow(2.0, -4.18/12.0);
-    pitchBend = (currentPitchWheelPosition-8192)/8192.0;
+    pitchBend = (currentPitchWheelPosition - 8192) / 8192.0;
 
     dur = 20.0*ftau; // computation duration depending on sustain
 
@@ -479,7 +479,7 @@ void SynthVoice::startNote (int midiNoteNumber, float velocity, SynthesiserSound
 }
 
 //==================================
-void SynthVoice::stopNote (float velocity, bool allowTailOff)
+void SynthVoice::stopNote(float velocity, bool allowTailOff)
 {
     if (!allowTailOff)
     {
@@ -508,24 +508,24 @@ bool SynthVoice::isVoiceActive() const
 }
 
 //==================================
-void SynthVoice::pitchWheelMoved (int newPitchWheelValue)
+void SynthVoice::pitchWheelMoved(int newPitchWheelValue)
 {
     pitchBend = (newPitchWheelValue-8192)/8192.0;
 }
 //==================================
-void SynthVoice::controllerMoved (int controllerNumber, int newControllerValue)
+void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
 {
 }
 //==================================
-void SynthVoice::aftertouchChanged (int newAftertouchValue)
+void SynthVoice::aftertouchChanged(int newAftertouchValue)
 {
 }
 //==================================
-void SynthVoice::channelPressureChanged (int newChannelPressureValue)
+void SynthVoice::channelPressureChanged(int newChannelPressureValue)
 {
 }
 //==================================
-void SynthVoice::renderNextBlock (AudioBuffer< float > &outputBuffer, int startSample, int numSamples)
+void SynthVoice::renderNextBlock(AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
     // callback function
 
@@ -542,27 +542,29 @@ void SynthVoice::renderNextBlock (AudioBuffer< float > &outputBuffer, int startS
 }
 
 //==================================
-void SynthVoice::renderNextBlock (AudioBuffer< double > &outputBuffer, int startSample, int numSamples)
+void SynthVoice::renderNextBlock(AudioBuffer<double> &outputBuffer, int startSample, int numSamples)
 {
 }
+
 //==================================
-void SynthVoice::setCurrentPlaybackSampleRate (double newRate)
+void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
 {
     sr = newRate;
     getSigma(((!bgate) || isKeyDown()) ? ftau : frel);
 }
 //==================================
-double SynthVoice::getSampleRate()
+double SynthVoice::getSampleRate() const
 {
     return sr;
 }
+
 //==================================
-bool SynthVoice::isPlayingButReleased()
+bool SynthVoice::isPlayingButReleased() const
 {
     return (trig && !isKeyDown());
 }
 //==================================
-bool SynthVoice::wasStartedBefore(const SynthesiserVoice& other)
+bool SynthVoice::wasStartedBefore(const SynthesiserVoice& other) const
 {
     SynthesiserVoice& otherRef = const_cast<SynthesiserVoice&> (other);
     try

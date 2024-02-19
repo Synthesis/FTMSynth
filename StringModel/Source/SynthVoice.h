@@ -69,9 +69,9 @@ public:
     void renderNextBlock (AudioBuffer< double > &outputBuffer, int startSample, int numSamples);
 
     void setCurrentPlaybackSampleRate (double newRate) override;
-    double getSampleRate();
-    bool isPlayingButReleased();
-    bool wasStartedBefore(const SynthesiserVoice& other);
+    double getSampleRate() const;
+    bool isPlayingButReleased() const;
+    bool wasStartedBefore(const SynthesiserVoice& other) const;
 
 
 private:
@@ -103,21 +103,21 @@ private:
     bool bgate;
     float frel;
 
-    int tau=300;
+    int tau = 300;
 
-    float fx1[301]; //tau
+    float fx1[301]; // tau
     float fx2[301];
     float fx3[301];
     float f1[MAX_M1];
     float f2[MAX_M2];
     float f3[MAX_M3];
 
-    int m1 = 5; // can't be bigger than MAX_M1
-    int m2 = 5; // can't be bigger than MAX_M2
-    int m3 = 5; // can't be bigger than MAX_M3
-    int nextm1 = 5; // can't be bigger than MAX_M1
-    int nextm2 = 5; // can't be bigger than MAX_M2
-    int nextm3 = 5; // can't be bigger than MAX_M3
+    int m1 = 5; // shouldn't be bigger than MAX_M1
+    int m2 = 5; // shouldn't be bigger than MAX_M2
+    int m3 = 5; // shouldn't be bigger than MAX_M3
+    int nextm1 = 5; // shouldn't be bigger than MAX_M1
+    int nextm2 = 5; // shouldn't be bigger than MAX_M2
+    int nextm3 = 5; // shouldn't be bigger than MAX_M3
 
     // mode decay/damping factors
     float sigma1d[MAX_M1];

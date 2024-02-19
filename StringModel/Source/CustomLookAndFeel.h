@@ -61,7 +61,6 @@ public:
                           const float rotaryStartAngle, const float rotaryEndAngle, Slider& slider) override
     {
         float diameter = jmin(width, height);
-        float radius = diameter / 2;
         float centerX = x + width / 2;
         float centerY = y + height / 2;
         float angle = rotaryStartAngle + (sliderPos * (rotaryEndAngle - rotaryStartAngle));
