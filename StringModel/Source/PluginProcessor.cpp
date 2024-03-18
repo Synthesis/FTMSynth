@@ -25,10 +25,15 @@ StringModelAudioProcessor::StringModelAudioProcessor()
                        ),
 #endif
     tree (*this, nullptr, "Parameters",
-    {   std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.5f), 0.07f),
-        std::make_unique<AudioParameterBool> ("gate", "Gate", false),
-        std::make_unique<AudioParameterFloat> ("release", "Release", NormalisableRange<float> (0.01f, 0.5f), 0.07f),
-        std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.35f, 0.0f, 0.430677f), 0.0f),
+    {
+        std::make_unique<AudioParameterFloat> ("pitch", "Pitch", NormalisableRange<float> (-24.0f, 24.0f), 0.0f), // in semitones
+        std::make_unique<AudioParameterBool> ("kbTrack", "Keyboard Tracking", true),
+        std::make_unique<AudioParameterFloat> ("sustain", "Sustain", NormalisableRange<float> (0.01f, 0.8f, 0.0f, 0.4864166f), 0.07f),
+        std::make_unique<AudioParameterBool> ("susGate", "Sustain Gate", false),
+        std::make_unique<AudioParameterFloat> ("release", "Release", NormalisableRange<float> (0.01f, 0.8f, 0.0f, 0.4864166f), 0.07f),
+        std::make_unique<AudioParameterFloat> ("damp", "Damp", NormalisableRange<float> (0.0f, 0.5f, 0.0f, 0.430677f), 0.0f),
+        std::make_unique<AudioParameterBool> ("dampGate", "Damp Gate", false),
+        std::make_unique<AudioParameterFloat> ("ring", "Ring", NormalisableRange<float> (0.0f, 0.5f, 0.0f, 0.430677f), 0.0f),
         std::make_unique<AudioParameterFloat> ("dispersion", "Inharmonicity", NormalisableRange<float> (0.0f, 10.0f, 0.0f, 0.30103f), 0.06f),
         std::make_unique<AudioParameterFloat> ("squareness", "Squareness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
         std::make_unique<AudioParameterFloat> ("cubeness", "Cubeness", NormalisableRange<float> (0.01f, 1.0f), 0.5f),
@@ -109,21 +114,21 @@ int StringModelAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void StringModelAudioProcessor::setCurrentProgram (int index)
+void StringModelAudioProcessor::setCurrentProgram(int /*index*/)
 {
 }
 
-const String StringModelAudioProcessor::getProgramName (int index)
+const String StringModelAudioProcessor::getProgramName(int /*index*/)
 {
     return {};
 }
 
-void StringModelAudioProcessor::changeProgramName (int index, const String& newName)
+void StringModelAudioProcessor::changeProgramName(int /*index*/, const String& /*newName*/)
 {
 }
 
 //==============================================================================
-void StringModelAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void StringModelAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -140,7 +145,7 @@ void StringModelAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool StringModelAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool StringModelAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     ignoreUnused (layouts);
@@ -163,7 +168,7 @@ bool StringModelAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 }
 #endif
 
-void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+void StringModelAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
     // Change the number of voices if needed
     int deltaVoices = int(tree.getRawParameterValue("voices")->load());
@@ -243,17 +248,22 @@ void StringModelAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
     // Retrieve parameters from sliders and pass them to the model
     for (int i=0; i < mySynth.getNumVoices(); i++)
     {
-        if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))))
+        myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
+        if (myVoice != nullptr)
         {
             // this is the actual step that gets values from the tree, which are linked to the sliders
             // IMPORTANT NOTE: the parameters need to be passed from tree.getRawParameterValue("name"),
             //                 and NOT tree.getParameterAsValue("name").getValue(), otherwise they'll be
             //                 applied AFTER the next note press, instead of before, which means the
             //                 parameters will be updated one hit too late, which is what we *don't* want.
-            myVoice->getcusParam(tree.getRawParameterValue("sustain"),
-                                 tree.getRawParameterValue("gate"),
+            myVoice->getcusParam(tree.getRawParameterValue("pitch"),
+                                 tree.getRawParameterValue("kbTrack"),
+                                 tree.getRawParameterValue("sustain"),
+                                 tree.getRawParameterValue("susGate"),
                                  tree.getRawParameterValue("release"),
                                  tree.getRawParameterValue("damp"),
+                                 tree.getRawParameterValue("dampGate"),
+                                 tree.getRawParameterValue("ring"),
                                  tree.getRawParameterValue("dispersion"),
                                  tree.getRawParameterValue("squareness"),
                                  tree.getRawParameterValue("cubeness"),
@@ -280,11 +290,11 @@ bool StringModelAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* StringModelAudioProcessor::createEditor()
 {
-    return new StringModelAudioProcessorEditor (*this);
+    return new StringModelAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void StringModelAudioProcessor::getStateInformation (MemoryBlock& destData)
+void StringModelAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
@@ -294,7 +304,7 @@ void StringModelAudioProcessor::getStateInformation (MemoryBlock& destData)
     copyXmlToBinary(*xml, destData);
 }
 
-void StringModelAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void StringModelAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.

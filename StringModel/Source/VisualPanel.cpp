@@ -28,7 +28,7 @@ VisualPanel::VisualPanel(StringModelAudioProcessor& p, int dim)
     String objStr ("");
     if (dimensions == 1) objStr += "string.";
     else if (dimensions == 2) objStr += "drum.";
-    else if (dimensions == 3) objStr += "box.";
+    else if (dimensions == 3) objStr += "cuboid.";
 
     nameLabel.setText(objStr, dontSendNotification);
     nameLabel.setJustificationType(Justification(Justification::topLeft));

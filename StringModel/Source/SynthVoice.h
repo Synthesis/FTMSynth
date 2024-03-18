@@ -27,10 +27,14 @@ public:
     static void computeSinLUT();
 
     //==================================
-    void getcusParam(std::atomic<float>* _tau,
+    void getcusParam(std::atomic<float>* pitch,
+                     std::atomic<float>* kbTrack,
+                     std::atomic<float>* _tau,
                      std::atomic<float>* gate,
                      std::atomic<float>* rel,
                      std::atomic<float>* p,
+                     std::atomic<float>* pGate,
+                     std::atomic<float>* ring,
                      std::atomic<float>* dispersion,
                      std::atomic<float>* alpha1,
                      std::atomic<float>* alpha2,
@@ -45,8 +49,8 @@ public:
 
     void deff();
     void getf();
-    void getSigma(float _tau);
-    void getw();
+    void getSigma(float _tau, float p);
+    void getw(float p);
     void getK();
 
     void findmax();
@@ -80,7 +84,9 @@ private:
     // note parameters
     double level;
     double frequency;
-    double pitchBend;
+    bool bkbTrack;
+    double fpitch; // in semitones
+    double pitchBend; // in octaves
 
     // time-related variables
     bool trig;
@@ -92,7 +98,8 @@ private:
     float ftau;
     float fomega;
     float fp;
-    float fd;
+    float fd = 0;
+    float nextd;
     float fa;
     float fa2;
     float r1;
@@ -102,6 +109,8 @@ private:
     int nextDim;
     bool bgate;
     float frel;
+    bool bpGate;
+    float fring;
 
     int tau = 300;
 

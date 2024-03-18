@@ -42,10 +42,14 @@ private:
 
     float alphaOff;
 
+    Slider pitchSlider;
+    ToggleButton kbTrackButton;
     Slider tauSlider;
-    ToggleButton gateButton;
+    ToggleButton tauGateButton;
     Slider relSlider;
     Slider pSlider;
+    ToggleButton pGateButton;
+    Slider ringSlider;
     Slider dSlider;
     Slider alpha1Slider;
     Slider alpha2Slider;
@@ -62,8 +66,8 @@ private:
     VisualPanel boxView;
 
     // Labels
+    Label pitchLabel;
     Label tauLabel;
-    Label relLabel;
     Label pLabel;
     Label dLabel;
     Label alpha1Label;
@@ -80,10 +84,14 @@ private:
 
     // Attachments from model to components
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> pitchTree;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> kbTrackTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> tauTree;
-    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> gateTree;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> tauGateTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> relTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> pTree;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> pGateTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> ringTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> alpha1Tree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> alpha2Tree;

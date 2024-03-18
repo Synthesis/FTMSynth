@@ -24,7 +24,7 @@ using namespace std;
 bool SynthVoice::canPlaySound(SynthesiserSound* sound)
 {
     // if succesfully cast sound into my own class, return true
-    return dynamic_cast<SynthSound*>(sound)!=nullptr;
+    return dynamic_cast<SynthSound*>(sound) != nullptr;
 }
 
 void SynthVoice::computeSinLUT()
@@ -40,10 +40,14 @@ void SynthVoice::computeSinLUT()
 // IMPORTANT NOTE: the parameters need to be passed as std::atomic<float>*, from tree.getRawParameterValue("name"),
 //                 otherwise they'll be applied AFTER the next note press, instead of before, which means the
 //                 parameters will be updated one hit too late, which is what we *don't* want.
-void SynthVoice::getcusParam(std::atomic<float>* _tau,
+void SynthVoice::getcusParam(std::atomic<float>* pitch,
+                             std::atomic<float>* kbTrack,
+                             std::atomic<float>* _tau,
                              std::atomic<float>* gate,
                              std::atomic<float>* rel,
                              std::atomic<float>* p,
+                             std::atomic<float>* pGate,
+                             std::atomic<float>* ring,
                              std::atomic<float>* dispersion,
                              std::atomic<float>* alpha1,
                              std::atomic<float>* alpha2,
@@ -57,13 +61,15 @@ void SynthVoice::getcusParam(std::atomic<float>* _tau,
 {
     // this function fetches parameters from the customized GUI and calculates the
     // corresponding parameters in order to synthesize the sound
-
-    // for each dimension, different algorithms are called
+    fpitch = pitch->load();
+    bkbTrack = (kbTrack->load() >= 0.5f);
     ftau = _tau->load();
     bgate = (gate->load() >= 0.5f);
     frel = rel->load();
     fp = p->load();
-    fd = dispersion->load();
+    bpGate = (pGate->load() >= 0.5f);
+    fring = ring->load();
+    nextd = dispersion->load();
     fa = alpha1->load();
     fa2 = alpha2->load();
 
@@ -165,7 +171,7 @@ void SynthVoice::getf()
 
 // intermediate variables
 // sigma
-void SynthVoice::getSigma(float _tau)
+void SynthVoice::getSigma(float _tau, float p)
 {
     float sigma1=-1/_tau;
 
@@ -174,7 +180,7 @@ void SynthVoice::getSigma(float _tau)
     {
         for(int i=0;i<m1;i++)
         {
-            sigma1d[i]=sigma1*(1+fp*(pow(i+1,2)-1));
+            sigma1d[i]=sigma1*(1+p*(pow(i+1,2)-1));
             decayamp1[i]=exp(sigma1d[i]/sr);
         }
     }
@@ -186,7 +192,7 @@ void SynthVoice::getSigma(float _tau)
         {
             for(int j=0;j<m2;j++)
             {
-                sigma2d[i*m1+j]=sigma1*(1+fp*(pow(i+1,2)*fa+pow(j+1,2)/fa-beta));
+                sigma2d[i*m1+j]=sigma1*(1+p*(pow(i+1,2)*fa+pow(j+1,2)/fa-beta));
                 decayamp2[i*m1+j]=exp(sigma2d[i*m1+j]/sr);
             }
         }
@@ -201,7 +207,7 @@ void SynthVoice::getSigma(float _tau)
             {
                 for(int m=0;m<m3;m++)
                 {
-                    sigma3d[(i*m1+j)*m2+m]=(sigma1*(1+fp*(pow(i+1,2)*fa*fa2+pow(j+1,2)*fa2/fa+pow(m+1,2)*fa/fa2-beta)));
+                    sigma3d[(i*m1+j)*m2+m]=(sigma1*(1+p*(pow(i+1,2)*fa*fa2+pow(j+1,2)*fa2/fa+pow(m+1,2)*fa/fa2-beta)));
                     decayamp3[(i*m1+j)*m2+m]=exp(sigma3d[(i*m1+j)*m2+m]/sr);
                 }
             }
@@ -211,7 +217,7 @@ void SynthVoice::getSigma(float _tau)
 
 
 // get coefficient omega for the impulse response
-void SynthVoice::getw()
+void SynthVoice::getw(float p)
 {
     // 1D
     if (dim == 0)
@@ -220,7 +226,7 @@ void SynthVoice::getw()
         for(int i=0;i<m1;i++)
         {
             float interm=pow(i+1,2);//M^2
-            omega1d[i] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-fp), 2) + pow(fomega,2)*(1-pow(fd, 2))) - pow(sigma*(1-fp), 2));
+            omega1d[i] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p), 2) + pow(fomega,2)*(1-pow(fd, 2))) - pow(sigma*(1-p), 2));
         }
     }
     // 2D
@@ -233,7 +239,7 @@ void SynthVoice::getw()
             for(int j=0;j<m2;j++)
             {
                 float interm=pow(i+1,2)*fa+pow(j+1,2)/fa;
-                omega2d[i*m1+j] = sqrt(pow(fd*fomega*interm,2) + interm * (pow(sigma*(1-fp*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-fp*beta), 2));
+                omega2d[i*m1+j] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-p*beta), 2));
             }
         }
     }
@@ -249,7 +255,7 @@ void SynthVoice::getw()
                 for(int m=0;m<m3;m++)
                 {
                     float interm=pow(i+1,2)*fa*fa2+pow(j+1,2)*fa2/fa+pow(m+1,2)*fa/fa2;
-                    omega3d[(i*m1+j)*m2+m] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-fp*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-fp*beta), 2));
+                    omega3d[(i*m1+j)*m2+m] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-p*beta), 2));
                 }
             }
         }
@@ -453,12 +459,22 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     dim = nextDim;
 
     level = velocity;
-    // map keyboard to frequency
-    frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
-    fomega = frequency*8 * pow(2.0, -4.18/12.0);
+    // TODO Keyboard tracking and pitch calculations go here
+    if (bkbTrack)
+    {
+        // map keyboard to frequency
+        frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
+        fomega = frequency * 8 * pow(2.0, (fpitch - 4.18)/12.0);
+    }
+    else
+    {
+        fomega = 440 * pow(2.0, (fpitch - 13.18)/12.0) * 8;
+    }
     pitchBend = (currentPitchWheelPosition - 8192) / 8192.0;
 
     dur = 20.0*ftau; // computation duration depending on sustain
+
+    fd = nextd;
 
     m1 = nextm1;
     m2 = nextm2;
@@ -467,8 +483,8 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     deff();
     getf();
 
-    getSigma(ftau);
-    getw();
+    getSigma(ftau, fp);
+    getw(fp);
     getK();
     findmax();
 
@@ -495,7 +511,13 @@ void SynthVoice::stopNote(float velocity, bool allowTailOff)
             float remaining = 1.0 - elapsed; // percentage of the remaining duration
             float newDur = 20.0*frel;
             dur = dur*elapsed + newDur*remaining;
-            getSigma(frel);
+        }
+        if (bgate || bpGate)
+        {
+            float t = (bgate ? frel : ftau);
+            float p = (bpGate ? fring : fp);
+            getSigma(t, p);
+            getw(p);
         }
         setKeyDown(false);
     }
@@ -550,7 +572,9 @@ void SynthVoice::renderNextBlock(AudioBuffer<double> &outputBuffer, int startSam
 void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
 {
     sr = newRate;
-    getSigma(((!bgate) || isKeyDown()) ? ftau : frel);
+    float p = (((!bpGate) || isKeyDown()) ? fp : fring);
+    getSigma(((!bgate) || isKeyDown()) ? ftau : frel, p);
+    getw(p);
 }
 //==================================
 double SynthVoice::getSampleRate() const

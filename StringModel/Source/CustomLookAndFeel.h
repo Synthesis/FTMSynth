@@ -33,8 +33,6 @@ public:
         setColour(ComboBox::outlineColourId, Colour(0x00000000));
 
         setColour(Slider::backgroundColourId, Colour(0x00CBBB92));
-        setColour(Slider::textBoxTextColourId, Colour(0xFF000000));
-        setColour(Slider::textBoxOutlineColourId, Colour(0xFF000000));
 
         setColour(BubbleComponent::backgroundColourId, Colour(0xFF8F815B));
         setColour(BubbleComponent::outlineColourId, Colour(0xFF8F815B));
@@ -69,6 +67,8 @@ public:
         Rectangle<int> knobArea (0, 0, myKnob.getWidth()/3, myKnob.getHeight());
         Rectangle<int> indicatorArea (myKnob.getWidth()/3, 0, myKnob.getWidth()/3, myKnob.getHeight());
         Rectangle<int> shadowArea (myKnob.getWidth()*2/3, 0, myKnob.getWidth()/3, myKnob.getHeight());
+        float imgCenterX = myKnob.getWidth() / 6;
+        float imgCenterY = myKnob.getHeight() / 2;
         Image knob = myKnob.getClippedImage(knobArea);
         Image indicator = myKnob.getClippedImage(indicatorArea);
         Image shadow = myKnob.getClippedImage(shadowArea);
@@ -76,25 +76,39 @@ public:
         float scale = jmax(myKnob.getWidth()/3, myKnob.getHeight());
         scale = diameter/scale;
 
-        // g.setImageResamplingQuality(Graphics::highResamplingQuality);
+        g.setImageResamplingQuality(Graphics::highResamplingQuality);
 
         // draw knob
-        g.drawImageTransformed(knob, AffineTransform::scale(scale, scale));
-        // draw indicator
-        g.drawImageTransformed(indicator, AffineTransform::
-            scale(scale, scale)
-            .translated(-centerX, -centerY)
-            .rotated(angle)
+        g.drawImageTransformed(knob, AffineTransform::
+            translation(-imgCenterX, -imgCenterY)
+            .scaled(scale, scale)
             .translated(centerX, centerY));
+        // draw indicator
+        NamedValueSet properties = slider.getProperties();
+        if (properties.contains("colour"))
+            g.setColour(Colour(int(properties["colour"])));
+        g.drawImageTransformed(indicator, AffineTransform::
+            translation(-imgCenterX, -imgCenterY)
+            .scaled(scale, scale)
+            .rotated(angle)
+            .translated(centerX, centerY),
+            properties.contains("colour"));
+        g.setColour(Colours::white);
         // draw shadow
-        g.setOpacity(0.75f);
-        g.drawImageTransformed(shadow, AffineTransform::scale(scale, scale));
+        g.setOpacity(0.5f);
+        g.drawImageTransformed(shadow, AffineTransform::
+            translation(-imgCenterX, -imgCenterY)
+            .scaled(scale, scale)
+            .translated(centerX, centerY));
         g.setOpacity(1.0f);
     }
 
     int getSliderPopupPlacement(Slider& slider) override
     {
-        return 0;
+        if (slider.getY() < 32)
+            return BubbleComponent::below;
+        else
+            return BubbleComponent::above;
     }
 
     Font getLabelFont(Label&) override
@@ -113,6 +127,49 @@ protected:
 };
 
 
+class WithTextBox : public CustomLookAndFeel
+{
+public:
+    WithTextBox()
+    {
+        setColour(Label::backgroundColourId, Colour(0x10FFFFFF));
+        setColour(Label::textColourId, Colour(0xFF000000));
+        setColour(Label::outlineColourId, Colour(0x80FFFFFF));
+        setColour(Label::backgroundWhenEditingColourId, Colours::transparentBlack);
+        setColour(Label::textWhenEditingColourId, Colour(0xFFFFFFFF));
+        setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
+    }
+
+    void drawLabel(Graphics& g, Label& label)
+    {
+        g.fillAll(findColour(Label::backgroundColourId));
+
+        if (!label.isBeingEdited())
+        {
+            auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+            const Font font(getLabelFont(label));
+
+            g.setColour(findColour(Label::textColourId).withMultipliedAlpha(alpha));
+            g.setFont(font);
+
+            auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
+
+            g.drawFittedText(label.getText(), textArea, label.getJustificationType(),
+                            jmax(1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                            label.getMinimumHorizontalScale());
+
+            g.setColour(findColour(Label::outlineColourId).withMultipliedAlpha(alpha));
+        }
+        else if (label.isEnabled())
+        {
+            g.setColour(findColour(Label::outlineColourId));
+        }
+
+        g.drawRoundedRectangle(label.getLocalBounds().toFloat(), 6.0f, 1.0f);
+    }
+};
+
+
 class DraggableBox : public CustomLookAndFeel
 {
 public:
@@ -127,6 +184,7 @@ public:
         g.drawFittedText(String(int(slider.getValue())), x, y, width, height, Justification::centred, 1);
     }
 };
+
 
 class FunnyFont : public CustomLookAndFeel
 {
