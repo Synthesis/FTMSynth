@@ -86,7 +86,7 @@ public:
         // draw indicator
         NamedValueSet properties = slider.getProperties();
         if (properties.contains("colour"))
-            g.setColour(Colour(int(properties["colour"])));
+            g.setColour(Colours::white.overlaidWith(Colour(int(properties["colour"]))));
         g.drawImageTransformed(indicator, AffineTransform::
             translation(-imgCenterX, -imgCenterY)
             .scaled(scale, scale)

@@ -98,7 +98,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     tauSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     tauSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     tauSlider.setPopupDisplayEnabled(true, true, this);
-    tauSlider.getProperties().set("colour", var(int(0xFFFFE600)));
+    tauSlider.getProperties().set("colour", var(int(0x80FFE600)));
     tauTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "sustain", tauSlider));
     tauSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(tauSlider);
@@ -110,7 +110,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     relSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     relSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     relSlider.setPopupDisplayEnabled(true, true, this);
-    relSlider.getProperties().set("colour", var(int(0xFFCC8B00)));
+    relSlider.getProperties().set("colour", var(int(0x80CC8B00)));
     relTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "release", relSlider));
     relSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(relSlider);
@@ -125,7 +125,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     pSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     pSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     pSlider.setPopupDisplayEnabled(true, true, this);
-    pSlider.getProperties().set("colour", var(int(0xFFFF6B00)));
+    pSlider.getProperties().set("colour", var(int(0x80FF6B00)));
     pTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "damp", pSlider));
     pSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(pSlider);
@@ -137,7 +137,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     ringSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     ringSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     ringSlider.setPopupDisplayEnabled(true, true, this);
-    ringSlider.getProperties().set("colour", var(int(0xFFFF6B00)));
+    ringSlider.getProperties().set("colour", var(int(0x80FF6B00)));
     ringTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "ring", ringSlider));
     ringSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(ringSlider);
@@ -152,7 +152,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     dSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     dSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     dSlider.setPopupDisplayEnabled(true, true, this);
-    dSlider.getProperties().set("colour", var(int(0xFF00EAFF)));
+    dSlider.getProperties().set("colour", var(int(0x8000EAFF)));
     dSlider.onValueChange = [this] { updateVisualizations(2); }; // 2D view
     dTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "dispersion", dSlider));
     dSlider.textFromValueFunction = [] (double value) { return String(value, 4); };
@@ -165,7 +165,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     alpha1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     alpha1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     alpha1Slider.setPopupDisplayEnabled(true, true, this);
-    alpha1Slider.getProperties().set("colour", var(int(0xFF00FF44)));
+    alpha1Slider.getProperties().set("colour", var(int(0x8000FF44)));
     alpha1Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
     alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "squareness", alpha1Slider));
     alpha1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
@@ -178,7 +178,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     alpha2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     alpha2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     alpha2Slider.setPopupDisplayEnabled(true, true, this);
-    alpha2Slider.getProperties().set("colour", var(int(0xFF67FF00)));
+    alpha2Slider.getProperties().set("colour", var(int(0x8067FF00)));
     alpha2Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
     alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "cubeness", alpha2Slider));
     alpha2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
