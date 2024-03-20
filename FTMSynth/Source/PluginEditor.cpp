@@ -1,0 +1,478 @@
+/*
+  ==============================================================================
+
+    PluginEditor.cpp
+    Created: 10 Oct 2019 10:03:03am
+    Authors: Lily H, Loïc J
+
+  ==============================================================================
+*/
+
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+#include "CustomLookAndFeel.h"
+
+//==============================================================================
+FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor& p)
+    : AudioProcessorEditor(&p), processor(p), alphaOff(0.125f),
+    stringButton("string"), drumButton("drum"), boxButton("box"),
+    kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
+    mainControls(112, 8, 512, 158), xyzControls(400, 176, 208, 216),
+    stringView(p, 1), drumView(p, 2), boxView(p, 3),
+    helpButton("help")
+{
+    setSize(640, 400);
+
+    // Custom look and feel
+    CustomLookAndFeel* customLookAndFeel = new CustomLookAndFeel();
+    setLookAndFeel(customLookAndFeel);
+    tooltip->setLookAndFeel(customLookAndFeel);
+
+
+    // Dimension selector
+    Image buttons = ImageCache::getFromMemory(BinaryData::dimensions_png, BinaryData::dimensions_pngSize);
+
+    Image buttonOff = buttons.getClippedImage(Rectangle<int>(0, 0, buttons.getWidth()/3, buttons.getHeight()/3));
+    Image buttonHovered = buttons.getClippedImage(Rectangle<int>(0, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
+    Image buttonOn = buttons.getClippedImage(Rectangle<int>(0, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
+    stringButton.setClickingTogglesState(true);
+    stringButton.setImages(false, true, true,
+                           buttonOff, 1.0f, Colours::transparentBlack,
+                           buttonHovered, 1.0f, Colours::transparentBlack,
+                           buttonOn, 1.0f, Colours::transparentBlack,
+                           0.0f);
+    stringButton.setTooltip("1D model (string)");
+    stringButton.onClick = [this] { setDimensions(1, true); };
+    stringButton.setRadioGroupId(1);
+    addAndMakeVisible(stringButton);
+
+    buttonOff = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()/3, 0, buttons.getWidth()/3, buttons.getHeight()/3));
+    buttonHovered = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()/3, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
+    buttonOn = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()/3, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
+    drumButton.setClickingTogglesState(true);
+    drumButton.setImages(false, true, true,
+                         buttonOff, 1.0f, Colours::transparentBlack,
+                         buttonHovered, 1.0f, Colours::transparentBlack,
+                         buttonOn, 1.0f, Colours::transparentBlack,
+                         0.0f);
+    drumButton.setTooltip("2D model (drum)");
+    drumButton.onClick = [this] { setDimensions(2, true); };
+    drumButton.setRadioGroupId(1);
+    addAndMakeVisible(drumButton);
+
+    buttonOff = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()*2/3, 0, buttons.getWidth()/3, buttons.getHeight()/3));
+    buttonHovered = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()*2/3, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
+    buttonOn = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()*2/3, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
+    boxButton.setClickingTogglesState(true);
+    boxButton.setImages(false, true, true,
+                        buttonOff, 1.0f, Colours::transparentBlack,
+                        buttonHovered, 1.0f, Colours::transparentBlack,
+                        buttonOn, 1.0f, Colours::transparentBlack,
+                        0.0f);
+    boxButton.setTooltip("3D model (cuboid)");
+    boxButton.onClick = [this] { setDimensions(3, true); };
+    boxButton.setRadioGroupId(1);
+    addAndMakeVisible(boxButton);
+
+
+    // Knobs and buttons in the top panel
+    pitchSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    pitchSlider.setMouseDragSensitivity(1000); // default is 250
+    pitchSlider.setTextBoxStyle(Slider::TextBoxAbove, false, 66, 16);
+    pitchSlider.setPopupDisplayEnabled(false, false, this);
+    pitchSlider.setLookAndFeel(new WithTextBox());
+    // This class maintains a connection between slider and parameter in AudioProcessorValueTreeState
+    pitchTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "pitch", pitchSlider));
+    pitchSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(pitchSlider);
+    pitchLabel.setText("PITCH", dontSendNotification);
+    pitchLabel.setJustificationType(Justification(Justification::centred));
+    pitchLabel.setTooltip("Note pitch");
+    addAndMakeVisible(pitchLabel);
+
+    kbTrackButton.setToggleable(true);
+    kbTrackTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "kbTrack", kbTrackButton));
+    kbTrackButton.setTooltip("Toggles keyboard tracking for note pitch");
+    addAndMakeVisible(kbTrackButton);
+
+    tauSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    tauSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    tauSlider.setPopupDisplayEnabled(true, true, this);
+    tauSlider.getProperties().set("colour", var(int(0xFFFFE600)));
+    tauTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "sustain", tauSlider));
+    tauSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(tauSlider);
+    tauLabel.setText("SUSTAIN", dontSendNotification);
+    tauLabel.setJustificationType(Justification(Justification::centred));
+    tauLabel.setTooltip("Duration of the resonance");
+    addAndMakeVisible(tauLabel);
+
+    relSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    relSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    relSlider.setPopupDisplayEnabled(true, true, this);
+    relSlider.getProperties().set("colour", var(int(0xFFCC8B00)));
+    relTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "release", relSlider));
+    relSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(relSlider);
+
+    tauGateButton.setToggleable(true);
+    tauGateButton.onStateChange = [this] { relSlider.setAlpha(tauGateButton.getToggleState() ? 1.0 : alphaOff); };
+    tauGateTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "susGate", tauGateButton));
+    tauGateButton.setTooltip("Defines whether the volume envelope\nswitches to Release when the key is released");
+    relSlider.setAlpha(tauGateButton.getToggleState() ? 1.0 : alphaOff);
+    addAndMakeVisible(tauGateButton);
+
+    pSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    pSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    pSlider.setPopupDisplayEnabled(true, true, this);
+    pSlider.getProperties().set("colour", var(int(0xFFFF6B00)));
+    pTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "damp", pSlider));
+    pSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(pSlider);
+    pLabel.setText("DAMP", dontSendNotification);
+    pLabel.setJustificationType(Justification(Justification::centred));
+    pLabel.setTooltip("Damping of the harmonics\n(from resonating to muffled)");
+    addAndMakeVisible(pLabel);
+
+    ringSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    ringSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    ringSlider.setPopupDisplayEnabled(true, true, this);
+    ringSlider.getProperties().set("colour", var(int(0xFFFF6B00)));
+    ringTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "ring", ringSlider));
+    ringSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(ringSlider);
+
+    pGateButton.setToggleable(true);
+    pGateButton.onStateChange = [this] { ringSlider.setAlpha(pGateButton.getToggleState() ? 1.0 : alphaOff); };
+    pGateTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "dampGate", pGateButton));
+    pGateButton.setTooltip("Defines whether the damping\nswitches to Ring after the key is released");
+    ringSlider.setAlpha(pGateButton.getToggleState() ? 1.0 : alphaOff);
+    addAndMakeVisible(pGateButton);
+
+    dSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    dSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    dSlider.setPopupDisplayEnabled(true, true, this);
+    dSlider.getProperties().set("colour", var(int(0xFF00EAFF)));
+    dSlider.onValueChange = [this] { updateVisualizations(2); }; // 2D view
+    dTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "dispersion", dSlider));
+    dSlider.textFromValueFunction = [] (double value) { return String(value, 4); };
+    addAndMakeVisible(dSlider);
+    dLabel.setText("INHARMONICITY", dontSendNotification);
+    dLabel.setJustificationType(Justification(Justification::centred));
+    dLabel.setTooltip("Dispersion of the sound waves\n(from harmonic to inharmonic partials)");
+    addAndMakeVisible(dLabel);
+
+    alpha1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    alpha1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    alpha1Slider.setPopupDisplayEnabled(true, true, this);
+    alpha1Slider.getProperties().set("colour", var(int(0xFF00FF44)));
+    alpha1Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
+    alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "squareness", alpha1Slider));
+    alpha1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(alpha1Slider);
+    alpha1Label.setText("SQUARENESS", dontSendNotification);
+    alpha1Label.setJustificationType(Justification(Justification::centred));
+    alpha1Label.setTooltip("Shape ratio of the 2D drum\n(thin to square)");
+    addAndMakeVisible(alpha1Label);
+
+    alpha2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    alpha2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    alpha2Slider.setPopupDisplayEnabled(true, true, this);
+    alpha2Slider.getProperties().set("colour", var(int(0xFF67FF00)));
+    alpha2Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
+    alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "cubeness", alpha2Slider));
+    alpha2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(alpha2Slider);
+    alpha2Label.setText("CUBENESS", dontSendNotification);
+    alpha2Label.setJustificationType(Justification(Justification::centred));
+    alpha2Label.setTooltip("Shape ratio of the 3D drum\n(thin to cubic)");
+    addAndMakeVisible(alpha2Label);
+
+
+    // Knobs in the bottom right panel
+    r1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    r1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    r1Slider.setPopupDisplayEnabled(true, true, this);
+    r1Slider.onValueChange = [this] { updateVisualizations(7); }; // 1D + 2D + 3D view
+    r1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r1", r1Slider));
+    r1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(r1Slider);
+
+    r2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    r2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    r2Slider.setPopupDisplayEnabled(true, true, this);
+    r2Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
+    r2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r2", r2Slider));
+    r2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(r2Slider);
+
+    r3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    r3Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    r3Slider.setPopupDisplayEnabled(true, true, this);
+    r3Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
+    r3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r3", r3Slider));
+    r3Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
+    addAndMakeVisible(r3Slider);
+
+    rLabel.setText("IMPULSE", dontSendNotification);
+    rLabel.setJustificationType(Justification(Justification::centred));
+    rLabel.setTooltip("Location of the impulse on the string/drum surface/cuboid");
+    addAndMakeVisible(rLabel);
+
+    m1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    m1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    m1Slider.setPopupDisplayEnabled(true, true, this);
+    m1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "m1", m1Slider));
+    addAndMakeVisible(m1Slider);
+
+    m2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    m2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    m2Slider.setPopupDisplayEnabled(true, true, this);
+    m2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "m2", m2Slider));
+    addAndMakeVisible(m2Slider);
+
+    m3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    m3Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    m3Slider.setPopupDisplayEnabled(true, true, this);
+    m3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "m3", m3Slider));
+    addAndMakeVisible(m3Slider);
+
+    mLabel.setText("MODES", dontSendNotification);
+    mLabel.setJustificationType(Justification(Justification::centred));
+    mLabel.setTooltip("Number of modes (partials) per dimension");
+    addAndMakeVisible(mLabel);
+
+    xLabel.setText("X", dontSendNotification);
+    xLabel.setJustificationType(Justification(Justification::centred));
+    addAndMakeVisible(xLabel);
+
+    yLabel.setText("Y", dontSendNotification);
+    yLabel.setJustificationType(Justification(Justification::centred));
+    addAndMakeVisible(yLabel);
+
+    zLabel.setText("Z", dontSendNotification);
+    zLabel.setJustificationType(Justification(Justification::centred));
+    addAndMakeVisible(zLabel);
+
+
+    // View panels
+    addChildComponent(stringView);
+    addChildComponent(drumView);
+    addChildComponent(boxView);
+
+
+    // Misc components
+    voicesSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
+    voicesSlider.setLookAndFeel(new DraggableBox());
+    voicesSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    voicesTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "voices", voicesSlider));
+    addAndMakeVisible(voicesSlider);
+    voicesLabel.setText("POLY VOICES", dontSendNotification);
+    voicesLabel.setJustificationType(Justification(Justification::centred));
+    addAndMakeVisible(voicesLabel);
+
+    Image helpImg = ImageCache::getFromMemory(BinaryData::question_png, BinaryData::question_pngSize);
+    Image helpOff = helpImg.getClippedImage(Rectangle<int>(0, 0, helpImg.getWidth()/2, helpImg.getHeight()));
+    Image helpHovered = helpImg.getClippedImage(Rectangle<int>(helpImg.getWidth()/2, 0, helpImg.getWidth()/2, helpImg.getHeight()));
+    helpButton.setImages(false, true, true,
+                         helpOff, 1.0f, Colours::transparentBlack,
+                         helpHovered, 1.0f, Colours::transparentBlack,
+                         helpHovered, 1.0f, Colours::transparentBlack,
+                         0.8f);
+    helpButton.setTooltip("Information\n\nThis is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\n(Hover the mouse over the knob labels for more informations)");
+    addAndMakeVisible(&helpButton);
+
+
+    // Hidden dimension controller
+    dimensionsSlider.onValueChange = [this] { setDimensions(dimensionsSlider.getValue(), false); };
+    dimTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "dimensions", dimensionsSlider));
+    addChildComponent(dimensionsSlider);
+
+    setDimensions(processor.tree.getParameterAsValue("dimensions").getValue(), false);
+}
+
+FTMSynthAudioProcessorEditor::~FTMSynthAudioProcessorEditor()
+{
+}
+
+
+void FTMSynthAudioProcessorEditor::setDimensions(int dimensions, bool btnToSlider)
+{
+    if (btnToSlider)
+    {
+        dimensionsSlider.setValue(dimensions);
+    }
+    else
+    {
+        if (dimensions == 1)
+        {
+            stringButton.setToggleState(true, dontSendNotification);
+        }
+        else if (dimensions == 2)
+        {
+            drumButton.setToggleState(true, dontSendNotification);
+        }
+        else if (dimensions == 3)
+        {
+            boxButton.setToggleState(true, dontSendNotification);
+        }
+        updateDimensionComponents();
+    }
+}
+
+void FTMSynthAudioProcessorEditor::updateDimensionComponents()
+{
+    int dimensions = dimensionsSlider.getValue();
+
+    if (dimensions == 1)
+    {
+        alpha1Slider.setAlpha(alphaOff);
+        alpha2Slider.setAlpha(alphaOff);
+        r2Slider.setAlpha(alphaOff);
+        r3Slider.setAlpha(alphaOff);
+        m2Slider.setAlpha(alphaOff);
+        m3Slider.setAlpha(alphaOff);
+
+        alpha1Label.setAlpha(alphaOff);
+        alpha2Label.setAlpha(alphaOff);
+        yLabel.setAlpha(alphaOff);
+        zLabel.setAlpha(alphaOff);
+
+        drumView.setVisible(false);
+        boxView.setVisible(false);
+        stringView.setVisible(true);
+    }
+    else if (dimensions == 2)
+    {
+        alpha1Slider.setAlpha(1);
+        alpha2Slider.setAlpha(alphaOff);
+        r2Slider.setAlpha(1);
+        r3Slider.setAlpha(alphaOff);
+        m2Slider.setAlpha(1);
+        m3Slider.setAlpha(alphaOff);
+
+        alpha1Label.setAlpha(1);
+        alpha2Label.setAlpha(alphaOff);
+        yLabel.setAlpha(1);
+        zLabel.setAlpha(alphaOff);
+
+        stringView.setVisible(false);
+        boxView.setVisible(false);
+        drumView.setVisible(true);
+    }
+    else if (dimensions == 3)
+    {
+        alpha1Slider.setAlpha(1);
+        alpha2Slider.setAlpha(1);
+        r2Slider.setAlpha(1);
+        r3Slider.setAlpha(1);
+        m2Slider.setAlpha(1);
+        m3Slider.setAlpha(1);
+
+        alpha1Label.setAlpha(1);
+        alpha2Label.setAlpha(1);
+        yLabel.setAlpha(1);
+        zLabel.setAlpha(1);
+
+        stringView.setVisible(false);
+        drumView.setVisible(false);
+        boxView.setVisible(true);
+    }
+}
+
+void FTMSynthAudioProcessorEditor::updateVisualizations(int dimensionFlags)
+{
+    int dimensions = dimensionsSlider.getValue();
+
+    if ((dimensions == 1) && (dimensionFlags & 1))
+    {
+        stringView.repaint();
+    }
+    if ((dimensions == 2) && (dimensionFlags & 2))
+    {
+        drumView.repaint();
+    }
+    if ((dimensions == 3) && (dimensionFlags & 4))
+    {
+        boxView.repaint();
+    }
+}
+
+
+//==============================================================================
+void FTMSynthAudioProcessorEditor::paint(Graphics& g)
+{
+    // (Our component is opaque, so we must completely fill the background with a solid colour)
+    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+
+    Image background = ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
+    g.drawImage(background, Rectangle<float>(0, 0, 640, 400), RectanglePlacement::stretchToFit);
+
+    // g.setColour(getLookAndFeel().findColour(ResizableWindow::backgroundColourId)/*.withAlpha(0.5f)*/);
+    // g.fillRoundedRectangle(mainControls.getX(), mainControls.getY(), mainControls.getWidth(), mainControls.getHeight(), 4);
+    // g.fillRoundedRectangle(xyzControls.getX(), xyzControls.getY(), xyzControls.getWidth(), xyzControls.getHeight(), 4);
+    // g.setColour(Colours::black);
+
+    updateDimensionComponents();
+}
+
+void FTMSynthAudioProcessorEditor::resized()
+{
+    // This is generally where you'll want to lay out the positions of any
+    // subcomponents in your editor..
+    setSize(640, 400);
+
+    // UI components
+    // dimensionsSlider.setBounds(0, 0, 128, 16);
+    int btnOffY = 16;
+    int knobOffY = 72;
+    int toggleOffY = 52;
+    int knob2OffY = 4;
+    int lblOffY = knobOffY + 68;
+
+    stringButton.setBounds( mainControls.getX() + 266, mainControls.getY() +    btnOffY, 64, 40);
+    drumButton.setBounds(   mainControls.getX() + 350, mainControls.getY() +    btnOffY, 64, 40);
+    boxButton.setBounds(    mainControls.getX() + 434, mainControls.getY() +    btnOffY, 64, 40);
+
+    pitchSlider.setBounds(  mainControls.getX() +  14, mainControls.getY() +   knobOffY-16, 64, 64+16);
+    pitchLabel.setBounds(   mainControls.getX() +  10, mainControls.getY() +    lblOffY, 72, 14);
+    kbTrackButton.setBounds(mainControls.getX() +  10, mainControls.getY() + toggleOffY-24, 72, 24);
+
+    tauSlider.setBounds(    mainControls.getX() +  98, mainControls.getY() +   knobOffY, 64, 64);
+    tauLabel.setBounds(     mainControls.getX() +  94, mainControls.getY() +    lblOffY, 72, 14);
+    tauGateButton.setBounds(mainControls.getX() +  98, mainControls.getY() + toggleOffY, 64, 24);
+    relSlider.setBounds(    mainControls.getX() + 106, mainControls.getY() +  knob2OffY, 48, 48);
+    pSlider.setBounds(      mainControls.getX() + 182, mainControls.getY() +   knobOffY, 64, 64);
+    pLabel.setBounds(       mainControls.getX() + 178, mainControls.getY() +    lblOffY, 72, 14);
+    pGateButton.setBounds(  mainControls.getX() + 182, mainControls.getY() + toggleOffY, 64, 24);
+    ringSlider.setBounds(   mainControls.getX() + 190, mainControls.getY() +  knob2OffY, 48, 48);
+
+    dSlider.setBounds(      mainControls.getX() + 266, mainControls.getY() +   knobOffY, 64, 64);
+    dLabel.setBounds(       mainControls.getX() + 258, mainControls.getY() +    lblOffY, 80, 14);
+    alpha1Slider.setBounds( mainControls.getX() + 350, mainControls.getY() +   knobOffY, 64, 64);
+    alpha1Label.setBounds(  mainControls.getX() + 346, mainControls.getY() +    lblOffY, 72, 14);
+    alpha2Slider.setBounds( mainControls.getX() + 434, mainControls.getY() +   knobOffY, 64, 64);
+    alpha2Label.setBounds(  mainControls.getX() + 430, mainControls.getY() +    lblOffY, 72, 14);
+
+    r1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() +  40, 48, 48);
+    r2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  40, 48, 48);
+    r3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() +  40, 48, 48);
+    rLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() +  16, 48, 14);
+    m1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() + 128, 48, 48);
+    m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 128, 48, 48);
+    m3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() + 128, 48, 48);
+    mLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() + 184, 48, 14);
+    xLabel.setBounds(  xyzControls.getX() +  22, xyzControls.getY() + 101, 24, 14);
+    yLabel.setBounds(  xyzControls.getX() +  94, xyzControls.getY() + 101, 24, 14);
+    zLabel.setBounds(  xyzControls.getX() + 166, xyzControls.getY() + 101, 24, 14);
+
+    voicesSlider.setBounds(16, 16, 76, 24);
+    voicesLabel.setBounds( 16, 48, 76, 14);
+
+    // View panels
+    drumView.setBounds(  32, 176, 352, 216);
+    boxView.setBounds(   32, 176, 352, 216);
+    stringView.setBounds(32, 176, 352, 216);
+
+    helpButton.setBounds(32, 344, 48, 48);
+}

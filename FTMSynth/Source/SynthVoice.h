@@ -4,7 +4,7 @@
     SynthVoice.h
     Created: 10 Oct 2018 3:46:36pm
     Authors: Lily H, Loïc J
- 
+
   ==============================================================================
 */
 
@@ -19,7 +19,7 @@
 #define SIN_LUT_RESOLUTION 65536
 
 
-class SynthVoice: public SynthesiserVoice
+class SynthVoice : public SynthesiserVoice
 {
 public:
     bool canPlaySound(SynthesiserSound* sound);
@@ -58,21 +58,21 @@ public:
     double finaloutput(int sample);
 
     //==================================
-    void startNote (int midiNoteNumber, float velocity, SynthesiserSound *sound, int
-                    currentPitchWheelPosition) override;
-    void stopNote (float velocity, bool allowTailOff) override;
+    void startNote(int midiNoteNumber, float velocity, SynthesiserSound *sound, int
+                   currentPitchWheelPosition) override;
+    void stopNote(float velocity, bool allowTailOff) override;
 
     bool isVoiceActive() const override;
 
-    void pitchWheelMoved (int newPitchWheelValue) override;
-    void controllerMoved (int controllerNumber, int newControllerValue) override;
-    void aftertouchChanged (int newAftertouchValue) override;
-    void channelPressureChanged (int newChannelPressureValue) override;
+    void pitchWheelMoved(int newPitchWheelValue) override;
+    void controllerMoved(int controllerNumber, int newControllerValue) override;
+    void aftertouchChanged(int newAftertouchValue) override;
+    void channelPressureChanged(int newChannelPressureValue) override;
 
-    void renderNextBlock (AudioBuffer< float > &outputBuffer, int startSample, int numSamples) override;
-    void renderNextBlock (AudioBuffer< double > &outputBuffer, int startSample, int numSamples);
+    void renderNextBlock(AudioBuffer< float > &outputBuffer, int startSample, int numSamples) override;
+    void renderNextBlock(AudioBuffer< double > &outputBuffer, int startSample, int numSamples);
 
-    void setCurrentPlaybackSampleRate (double newRate) override;
+    void setCurrentPlaybackSampleRate(double newRate) override;
     double getSampleRate() const;
     bool isPlayingButReleased() const;
     bool wasStartedBefore(const SynthesiserVoice& other) const;
