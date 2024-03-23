@@ -11,12 +11,15 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./SynthSound.h"
+#include <algorithm>
 
 #define MAX_M1  16
 #define MAX_M2  16
 #define MAX_M3  16
 #define SIN_LUT_MODULO     65535
 #define SIN_LUT_RESOLUTION 65536
+
+using namespace std;
 
 
 class SynthVoice : public SynthesiserVoice
@@ -46,13 +49,7 @@ public:
                      std::atomic<float>* modesZ,
                      std::atomic<float>* dimensions);
 
-
-    void deff();
-    void getf();
-    void getSigma(float _tau, float p);
-    void getw(float p);
-    void getK();
-
+    void getParams(float _tau, float p);
     void findmax();
 
     double finaloutput(int sample);
@@ -83,10 +80,9 @@ private:
 
     // note parameters
     double level;
-    double frequency;
     bool bkbTrack;
-    double fpitch; // in semitones
-    double pitchBend; // in octaves
+    double fpitch; // in semitones (plugin's pitch knob)
+    double pitchBend; // in octaves (pitch bend MIDI CC)
 
     // time-related variables
     bool trig;
@@ -94,32 +90,16 @@ private:
     double nsamp;
     double dur; // in seconds
 
-    // drum model parameters
-    float ftau;
-    float fomega;
-    float fp;
-    float fd = 0;
-    float nextd;
-    float fa;
-    float fa2;
-    float r1;
-    float r2;
-    float r3;
-    int dim;
-    int nextDim;
+    // FTM model parameters
+    float fomega;        // frequency
+    float ftau, frel;    // sustain
     bool bgate;
-    float frel;
+    float fp, fring;     // damping
     bool bpGate;
-    float fring;
+    float fd = 0, nextd; // inharmonicity
+    float fa, fa2;       // squareness/cubeness
 
-    int tau = 300;
-
-    float fx1[301]; // tau
-    float fx2[301];
-    float fx3[301];
-    float f1[MAX_M1];
-    float f2[MAX_M2];
-    float f3[MAX_M3];
+    float r1, r2, r3;    // coordinates
 
     int m1 = 5; // shouldn't be bigger than MAX_M1
     int m2 = 5; // shouldn't be bigger than MAX_M2
@@ -128,30 +108,24 @@ private:
     int nextm2 = 5; // shouldn't be bigger than MAX_M2
     int nextm3 = 5; // shouldn't be bigger than MAX_M3
 
-    // mode decay/damping factors
-    float sigma1d[MAX_M1];
-    float sigma2d[MAX_M1*MAX_M2];
-    float sigma3d[MAX_M1*MAX_M2*MAX_M3];
+    int dim, nextDim;
 
-    // and their sample-rate-dependant counterparts
-    float decayamp1[MAX_M1];
-    float decayampn1[MAX_M1];
-    float decayamp2[MAX_M1*MAX_M2];
-    float decayampn2[MAX_M1*MAX_M2];
-    float decayamp3[MAX_M1*MAX_M2*MAX_M3];
-    float decayampn3[MAX_M1*MAX_M2*MAX_M3];
+    // ===== excitation algorithm parameters
 
-    // mode frequencies
-    float omega1d[MAX_M1];
-    float omega2d[MAX_M1*MAX_M2];
-    float omega3d[MAX_M1*MAX_M2*MAX_M3];
+    // ===== displacement & release algorithm parameters
 
-    // mode magnitudes
-    float k1d[MAX_M1];
-    float k2d[MAX_M1*MAX_M2];
-    float k3d[MAX_M1*MAX_M2*MAX_M3];
+    float n2d[max({MAX_M1, MAX_M2, MAX_M3})];
+    float n2d2[max({MAX_M1, MAX_M2, MAX_M3})];
+    float k2d[max({MAX_M1, MAX_M2, MAX_M3})];
+    float alpha2d[max({MAX_M1, MAX_M2, MAX_M3})];
+    float beta2d[max({MAX_M1, MAX_M2, MAX_M3})];
+    float omega2d[max({MAX_M1, MAX_M2, MAX_M3})];
+    float fn2d;
+    int modeCorr;
+    float yi2d[max({MAX_M1, MAX_M2, MAX_M3})];
+    float decayampn2[max({MAX_M1, MAX_M2, MAX_M3})];
 
-    float maxh = 1; //the max of h for each set of parameters
+    float maxh = 1; // the max of h for each set of parameters
 
     inline static double sinLUT[SIN_LUT_RESOLUTION];
 };
