@@ -11,15 +11,12 @@
 #pragma once
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "./SynthSound.h"
-#include <algorithm>
 
 #define MAX_M1  16
 #define MAX_M2  16
 #define MAX_M3  16
 #define SIN_LUT_MODULO     65535
 #define SIN_LUT_RESOLUTION 65536
-
-using namespace std;
 
 
 class SynthVoice : public SynthesiserVoice
@@ -49,7 +46,7 @@ public:
                      std::atomic<float>* modesZ,
                      std::atomic<float>* dimensions);
 
-    void getParams(float _tau, float p);
+    void initialize();
     void findmax();
 
     double finaloutput(int sample);
@@ -92,10 +89,8 @@ private:
 
     // FTM model parameters
     float fomega;        // frequency
-    float ftau, frel;    // sustain
-    bool bgate;
-    float fp, fring;     // damping
-    bool bpGate;
+    float ftau;          // sustain
+    float fp;            // damping
     float fd = 0, nextd; // inharmonicity
     float fa, fa2;       // squareness/cubeness
 
@@ -114,16 +109,38 @@ private:
 
     // ===== displacement & release algorithm parameters
 
-    float n2d[max({MAX_M1, MAX_M2, MAX_M3})];
-    float n2d2[max({MAX_M1, MAX_M2, MAX_M3})];
-    float k2d[max({MAX_M1, MAX_M2, MAX_M3})];
-    float alpha2d[max({MAX_M1, MAX_M2, MAX_M3})];
-    float beta2d[max({MAX_M1, MAX_M2, MAX_M3})];
-    float omega2d[max({MAX_M1, MAX_M2, MAX_M3})];
-    float fn2d;
-    int modeCorr;
-    float yi2d[max({MAX_M1, MAX_M2, MAX_M3})];
-    float decayampn2[max({MAX_M1, MAX_M2, MAX_M3})];
+    float n1d[MAX_M1];
+    float n2d[MAX_M1*MAX_M2];
+    float n3d[MAX_M1*MAX_M2*MAX_M3];
+    float n1d2[MAX_M1];
+    float n2d2[MAX_M1*MAX_M2];
+    float n3d2[MAX_M1*MAX_M2*MAX_M3];
+
+    float k1d[MAX_M1];
+    float k2d[MAX_M1*MAX_M2];
+    float k3d[MAX_M1*MAX_M2*MAX_M3];
+
+    float alpha1d[MAX_M1];
+    float alpha2d[MAX_M1*MAX_M2];
+    float alpha3d[MAX_M1*MAX_M2*MAX_M3];
+    float beta1d[MAX_M1];
+    float beta2d[MAX_M1*MAX_M2];
+    float beta3d[MAX_M1*MAX_M2*MAX_M3];
+    float omega1d[MAX_M1];
+    float omega2d[MAX_M1*MAX_M2];
+    float omega3d[MAX_M1*MAX_M2*MAX_M3];
+
+    bool mode_rejected1d[MAX_M1];
+    bool mode_rejected2d[MAX_M1*MAX_M2];
+    bool mode_rejected3d[MAX_M1*MAX_M2*MAX_M3];
+
+    float fN1d;
+    float fN2d;
+    float fN3d;
+
+    float yi1d[MAX_M1];
+    float yi2d[MAX_M1*MAX_M2];
+    float yi3d[MAX_M1*MAX_M2*MAX_M3];
 
     float maxh = 1; // the max of h for each set of parameters
 

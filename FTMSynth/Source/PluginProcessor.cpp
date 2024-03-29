@@ -47,6 +47,8 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
         std::make_unique<AudioParameterInt>("voices", "Polyphony voices", 1, 16, 4)
     })
 {
+    SynthVoice::computeSinLUT();
+
     // clear and add voices
     mySynth.clearVoices();
     int numVoices = int(tree.getRawParameterValue("voices")->load());
@@ -133,7 +135,6 @@ void FTMSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     ignoreUnused(samplesPerBlock);
-    SynthVoice::computeSinLUT();
     lastSampleRate=sampleRate;
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
 }

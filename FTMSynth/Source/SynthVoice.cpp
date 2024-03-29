@@ -12,6 +12,7 @@
 
 #include <math.h>
 #include <cmath>
+#include <algorithm>
 #include <array>
 #include <complex>
 #include <typeinfo>
@@ -45,11 +46,11 @@ void SynthVoice::computeSinLUT()
 void SynthVoice::getcusParam(std::atomic<float>* pitch,
                              std::atomic<float>* kbTrack,
                              std::atomic<float>* _tau,
-                             std::atomic<float>* gate,
-                             std::atomic<float>* rel,
+                             std::atomic<float>* /*gate*/,
+                             std::atomic<float>* /*rel*/,
                              std::atomic<float>* p,
-                             std::atomic<float>* pGate,
-                             std::atomic<float>* ring,
+                             std::atomic<float>* /*pGate*/,
+                             std::atomic<float>* /*ring*/,
                              std::atomic<float>* dispersion,
                              std::atomic<float>* alpha1,
                              std::atomic<float>* alpha2,
@@ -66,11 +67,7 @@ void SynthVoice::getcusParam(std::atomic<float>* pitch,
     fpitch = pitch->load();
     bkbTrack = (kbTrack->load() >= 0.5f);
     ftau = _tau->load();
-    bgate = (gate->load() >= 0.5f);
-    frel = rel->load();
     fp = p->load();
-    bpGate = (pGate->load() >= 0.5f);
-    fring = ring->load();
     nextd = dispersion->load();
     fa = alpha1->load();
     fa2 = alpha2->load();
@@ -87,48 +84,129 @@ void SynthVoice::getcusParam(std::atomic<float>* pitch,
 }
 
 
-void SynthVoice::getParams(float _tau, float p)
+void SynthVoice::initialize()
 {
     float l0 = M_PI; // constant
-    float l2 = l0*fa;
 
-    float beta = fa + 1/fa;
-
-    float S = l0/M_PI * pow(pow(fd*fomega*fa, 2) + pow(p*fa/_tau, 2), 0.25);
-
-    float T = (
-        fa * (1/beta - p*p*beta) / _tau*_tau
-        + fa * fomega*fomega * (1/beta - fd*fd * beta)
-    ) * pow(l0/M_PI, 2);
-
-    float d1 = 2 * (1 - p*beta) / _tau;
-    float d3 = -2 * p * fa / _tau * pow(l0/M_PI, 2);
-
-    float EI = pow(S, 4);
-
-    for (int i=0; i<min(m1, m2); i++)
+    if (dim == 0)
     {
-        n2d[i] = pow((i+1)*M_PI/l0, 2) + pow((i+1)*M_PI/l2, 2);
-        n2d2[i] = n2d[i]*n2d[i];
+        float S = pow(pow(fd*fomega, 2) + pow(fp/ftau, 2), 0.25);
+        float T = ((1 - fp*fp) / ftau*ftau + fomega*fomega * (1 - fd*fd));
 
-        k2d[i] = sin((i+1)*M_PI*r1) * sin((i+1)*M_PI*r2);
+        float d1 = 2 * (1 - fp) / ftau;
+        float d3 = -2 * fp / ftau;
 
-        beta2d[i] = EI * n2d2[i] + T * n2d[i];
-        alpha2d[i] = (d1 - d3 * n2d[i]) / 2;
-        omega2d[i] = sqrt(abs(beta2d[i] - alpha2d[i]*alpha2d[i]));
+        float EI = pow(S, 4);
+
+        for (int i=0; i<m1; i++)
+        {
+            n1d[i] = pow(i+1, 2);
+            n1d2[i] = n1d[i]*n1d[i];
+
+            k1d[i] = sin((i+1)*M_PI*r1);
+
+            beta1d[i] = EI * n1d2[i] + T * n1d[i];
+            alpha1d[i] = (d1 - d3 * n1d[i]) / 2;
+            omega1d[i] = sqrt(abs(beta1d[i] - alpha1d[i]*alpha1d[i]));
+
+            mode_rejected1d[i] = ((omega1d[i] / (2*M_PI)) > (sr / 2));
+        }
+
+        fN1d = M_PI / 4;
+
+        for (int i=0; i<m1; i++)
+        {
+            yi1d[i] = level * sin((i+1)*M_PI*r1) / omega1d[i];
+        }
     }
-
-    modeCorr = 0;
-    for (int i=0; i<min(m1, m2); i++)
+    else if (dim == 1)
     {
-        if (omega2d[i]/2/M_PI <= sr/2) modeCorr++;
+        float l2 = M_PI*fa;
+        float beta = fa + 1/fa;
+
+        float S = pow(pow(fd*fomega*fa, 2) + pow(fp*fa/ftau, 2), 0.25);
+        float T = (fa * (1/beta - fp*fp*beta) / ftau*ftau
+                + fa * fomega*fomega * (1/beta - fd*fd * beta));
+
+        float d1 = 2 * (1 - fp*beta) / ftau;
+        float d3 = -2 * fp * fa / ftau;
+
+        float EI = pow(S, 4);
+
+        for (int j=0; j<m2; j++)
+        {
+            for (int i=0; i<m1; i++)
+            {
+                n2d[i+m1*j] = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2);
+                n2d2[i+m1*j] = n2d[i+m1*j]*n2d[i+m1*j];
+
+                k2d[i+m1*j] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2);
+
+                beta2d[i+m1*j] = EI * n2d2[i+m1*j] + T * n2d[i+m1*j];
+                alpha2d[i+m1*j] = (d1 - d3 * n2d[i+m1*j]) / 2;
+                omega2d[i+m1*j] = sqrt(abs(beta2d[i+m1*j] - alpha2d[i+m1*j]*alpha2d[i+m1*j]));
+
+                mode_rejected2d[i+m1*j] = ((omega2d[i+m1*j] / (2*M_PI)) > (sr / 2));
+            }
+        }
+
+        fN2d = M_PI * l2 / 4;
+
+        for (int j=0; j<m2; j++)
+        {
+            for (int i=0; i<m1; i++)
+            {
+                yi2d[i+m1*j] = level * sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) / omega2d[i+m1*j];
+            }
+        }
     }
-
-    fn2d = l0 * l2 / 4;
-
-    for (int i=0; i<modeCorr; i++)
+    else if (dim == 2)
     {
-        yi2d[i] = level * sin((i+1)*M_PI*r1) * sin((i+1)*M_PI*r2) / omega2d[i];
+        float l2 = M_PI*fa;
+        float l3 = M_PI*fa2;
+        float beta = fa*fa2 + fa/fa2 + fa2/fa;
+
+        float S = pow(pow(fd*fomega*fa, 2) + pow(fp*fa/ftau, 2), 0.25);
+        float T = (fa*fa2 * (1/beta - fp*fp*beta) / ftau*ftau
+                + fa*fa2 * fomega*fomega * (1/beta - fd*fd * beta));
+
+        float d1 = 2 * (1 - fp*beta) / ftau;
+        float d3 = -2 * fp * fa*fa2 / ftau;
+
+        float EI = pow(S, 4);
+
+        for (int k=0; k<m3; k++)
+        {
+            for (int j=0; j<m2; j++)
+            {
+                for (int i=0; i<m1; i++)
+                {
+                    n3d[i+m1*(j+m2*k)] = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2) + pow((k+1)*M_PI/l3, 2);
+                    n3d2[i+m1*(j+m2*k)] = n3d[i+m1*(j+m2*k)]*n3d[i+m1*(j+m2*k)];
+
+                    k3d[i+m1*(j+m2*k)] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) * sin((k+1)*M_PI*r3);
+
+                    beta3d[i+m1*(j+m2*k)] = EI * n3d2[i+m1*(j+m2*k)] + T * n3d[i+m1*(j+m2*k)];
+                    alpha3d[i+m1*(j+m2*k)] = (d1 - d3 * n3d[i+m1*(j+m2*k)]) / 2;
+                    omega3d[i+m1*(j+m2*k)] = sqrt(abs(beta3d[i+m1*(j+m2*k)] - alpha3d[i+m1*(j+m2*k)]*alpha3d[i+m1*(j+m2*k)]));
+
+                    mode_rejected3d[i+m1*(j+m2*k)] = ((omega3d[i+m1*(j+m2*k)] / (2*M_PI)) > (sr / 2));
+                }
+            }
+        }
+
+        fN3d = M_PI * l2 * l3 / 8;
+
+        for (int k=0; k<m3; k++)
+        {
+            for (int j=0; j<m2; j++)
+            {
+                for (int i=0; i<m1; i++)
+                {
+                    yi3d[i+m1*(j+m2*k)] = level * sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) * sin((k+1)*M_PI*r3) / omega3d[i+m1*(j+m2*k)];
+                }
+            }
+        }
     }
 }
 
@@ -136,7 +214,51 @@ void SynthVoice::getParams(float _tau, float p)
 // findmax functions find value of first sample and scale everything else based on this value
 void SynthVoice::findmax()
 {
-    maxh = (1688.6741/fomega)/fa/2000;
+    float h = 0;
+
+    // 1D
+    if (dim == 0)
+    {
+        for (int i=0; i<m1; i++)
+        {
+            h += (yi1d[i]/level) * k1d[i] * exp(-alpha1d[i]*M_PI_2 / omega1d[i]);
+        }
+        h /= fN1d;
+    }
+    // 2D
+    else if (dim == 1)
+    {
+        for (int j=0; j<m2; j++)
+        {
+            for (int i=0; i<m1; i++)
+            {
+                h += (yi2d[i+m1*j]/level) * k2d[i+m1*j] * exp(-alpha2d[i+m1*j]*M_PI_2 / omega2d[i+m1*j]);
+            }
+        }
+        h /= fN2d;
+    }
+    // 3D
+    else if (dim == 2)
+    {
+        for (int k=0; k<m3; k++)
+        {
+            for (int j=0; j<m2; j++)
+            {
+                for (int i=0; i<m1; i++)
+                {
+                    h += (yi3d[i+m1*(j+m2*k)]/level) * k3d[i+m1*(j+m2*k)] * exp(-alpha3d[i+m1*(j+m2*k)]*M_PI_2 / omega3d[i+m1*(j+m2*k)]);
+                }
+            }
+        }
+        h /= fN3d;
+    }
+    //
+    else
+    {
+        h = 1;
+    }
+
+    maxh = h;
 }
 
 
@@ -148,14 +270,64 @@ double SynthVoice::finaloutput(int sample)
     float h = 0;
     float lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
 
-    for (int i=0; i<modeCorr; i++)
+    // synthesize the sound at time t
+    if (dim == 0)
     {
-        // synthesize the sound at time t
-        decayampn2[i] = exp(-alpha2d[i]*t) * sin(omega2d[i]*t);
-        h +=  (yi2d[i] * decayampn2[i]) * k2d[i] / fn2d;
+        float decayamp;
+
+        for (int i=0; i<m1; i++)
+        {
+            if (!mode_rejected1d[i])
+            {
+                decayamp = exp(-alpha1d[i]*t) * fastSin(omega1d[i]*t);
+                h += (yi1d[i] * decayamp) * k1d[i];
+            }
+        }
+        h /= fN1d;
+    }
+    else if (dim == 1)
+    {
+        float decayamp;
+        int index = 0;
+
+        for (int j=0; j<m2; j++)
+        {
+            for (int i=0; i<m1; i++)
+            {
+                index = i+m1*j;
+                if (!mode_rejected2d[index])
+                {
+                    decayamp = exp(-alpha2d[index]*t) * fastSin(omega2d[index]*t);
+                    h += (yi2d[index] * decayamp) * k2d[index];
+                }
+            }
+        }
+        h /= fN2d;
+    }
+    else if (dim == 2)
+    {
+        float decayamp;
+        int index = 0;
+
+        for (int k=0; k<m3; k++)
+        {
+            for (int j=0; j<m2; j++)
+            {
+                for (int i=0; i<m1; i++)
+                {
+                    index = i+m1*(j+m2*k);
+                    if (!mode_rejected3d[index])
+                    {
+                        decayamp = exp(-alpha3d[index]*t) * fastSin(omega3d[index]*t);
+                        h += (yi3d[index] * decayamp) * k3d[index];
+                    }
+                }
+            }
+        }
+        h /= fN3d;
     }
 
-    double output = h / (maxh * 2); // maxh*2 to leave some headroom
+    double output = h / (maxh*2); // maxh*2 to leave some headroom
 
     nsamp += pow(2, pitchBend);
     t = nsamp/sr; // t advancing one sample
@@ -178,21 +350,21 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     dim = nextDim;
 
     level = velocity;
-    // TODO Keyboard tracking and pitch calculations go here
     float ratio = 1.0f;
     if (bkbTrack)
     {
         // map keyboard to frequency
         float frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
-        fomega = frequency * 8 * pow(2.0, (fpitch - 3.716214)/12.0);
+        fomega = frequency * 2 * M_PI * pow(2.0, fpitch/12.0);
     }
     else
     {
-        fomega = 440 * 8 * pow(2.0, (fpitch - 12.716214)/12.0);
+        fomega = 440 * 2 * M_PI * pow(2.0, (fpitch - 9.0)/12.0);
     }
     pitchBend = (currentPitchWheelPosition - 8192) / 8192.0;
 
-    dur = 20.0*ftau; // computation duration depending on sustain
+    // sound duration depending on sustain, tau = 0.075 means a 1-second output
+    dur = log(1-ftau) / log(1-0.075);
 
     fd = nextd;
 
@@ -200,7 +372,7 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     m2 = nextm2;
     m3 = nextm3;
 
-    getParams(ftau, fp);
+    initialize();
     findmax();
 
     t = 0;
@@ -220,19 +392,6 @@ void SynthVoice::stopNote(float velocity, bool allowTailOff)
     }
     else
     {
-        if (bgate)
-        {
-            float elapsed = t/dur; // percentage of the elapsed duration
-            float remaining = 1.0 - elapsed; // percentage of the remaining duration
-            float newDur = 20.0*frel;
-            dur = dur*elapsed + newDur*remaining;
-        }
-        if (bgate || bpGate)
-        {
-            float _tau = (bgate ? frel : ftau);
-            float p = (bpGate ? fring : fp);
-            getParams(_tau, p);
-        }
         setKeyDown(false);
     }
 }
@@ -285,8 +444,7 @@ void SynthVoice::renderNextBlock(AudioBuffer<double> &outputBuffer, int startSam
 void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
 {
     sr = newRate;
-    float p = (((!bpGate) || isKeyDown()) ? fp : fring);
-    getParams(ftau, p);
+    initialize();
 }
 //==================================
 double SynthVoice::getSampleRate() const
