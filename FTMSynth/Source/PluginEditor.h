@@ -30,6 +30,8 @@ private:
     void updateDimensionComponents();
     void updateVisualizations(int dimensionFlags);
 
+    void updateAlgoComponents();
+
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FTMSynthAudioProcessor& processor;
@@ -42,6 +44,7 @@ private:
 
     float alphaOff;
 
+    Slider volumeSlider;
     Slider pitchSlider;
     ToggleButton kbTrackButton;
     Slider tauSlider;
@@ -60,12 +63,14 @@ private:
     Slider m2Slider;
     Slider m3Slider;
     Slider voicesSlider;
+    ComboBox algoComboBox;
 
     VisualPanel stringView;
     VisualPanel drumView;
     VisualPanel boxView;
 
     // Labels
+    Label volumeLabel;
     Label pitchLabel;
     Label tauLabel;
     Label pLabel;
@@ -78,12 +83,14 @@ private:
     Label yLabel;
     Label zLabel;
     Label voicesLabel;
+    Label algoLabel;
 
     Rectangle<int> mainControls;
     Rectangle<int> xyzControls;
 
     // Attachments from model to components
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> volumeTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> pitchTree;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> kbTrackTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> tauTree;
@@ -102,6 +109,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m2Tree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m3Tree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> voicesTree;
+    std::unique_ptr<AudioProcessorValueTreeState::ComboBoxAttachment> algoTree;
 
     // Help tooltip
     ImageButton helpButton;

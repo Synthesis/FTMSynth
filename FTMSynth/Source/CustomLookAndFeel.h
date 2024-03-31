@@ -23,16 +23,22 @@ public:
         standardFont.setHorizontalScale(1.0625f);
         standardFont.setExtraKerningFactor(1.0f/32.0f);
 
-        setColour(ResizableWindow::backgroundColourId, Colour(0xFFCBBB92));
+        setColour(ResizableWindow::backgroundColourId, Colour(0xFFD6C59A));
 
-        setColour(TextButton::buttonColourId, Colour(0x00CBBB92));
+        setColour(TextButton::buttonColourId, Colour(0x00D6C59A));
         setColour(ToggleButton::textColourId, Colour(0xFF000000));
         setColour(ToggleButton::tickColourId, Colour(0xFF000000));
-        setColour(DrawableButton::backgroundColourId, Colour(0x00CBBB92));
-        setColour(DrawableButton::backgroundOnColourId, Colour(0x00CBBB92));
-        setColour(ComboBox::outlineColourId, Colour(0x00000000));
+        setColour(DrawableButton::backgroundColourId, Colour(0x00D6C59A));
+        setColour(DrawableButton::backgroundOnColourId, Colour(0x00D6C59A));
 
-        setColour(Slider::backgroundColourId, Colour(0x00CBBB92));
+        setColour(Slider::backgroundColourId, Colour(0x00D6C59A));
+
+        setColour(ComboBox::backgroundColourId, Colour(0xFFD6C59A));
+        setColour(ComboBox::textColourId, Colour(0xFF000000));
+        setColour(ComboBox::arrowColourId, Colour(0xFF000000));
+        setColour(ComboBox::outlineColourId, Colour(0x80000000));
+        setColour(PopupMenu::backgroundColourId, Colour(0xFF8F815B));
+        setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xFF50462B));
 
         setColour(BubbleComponent::backgroundColourId, Colour(0xFF8F815B));
         setColour(BubbleComponent::outlineColourId, Colour(0xFF8F815B));
@@ -140,7 +146,7 @@ public:
         setColour(Label::outlineWhenEditingColourId, Colours::transparentBlack);
     }
 
-    void drawLabel(Graphics& g, Label& label)
+    void drawLabel(Graphics& g, Label& label) override
     {
         g.fillAll(findColour(Label::backgroundColourId));
 
@@ -176,12 +182,56 @@ public:
     void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
                           const float rotaryStartAngle, const float rotaryEndAngle, Slider& slider) override
     {
+        Rectangle<int> boxBounds(x, y, width, height);
+
         g.setFont(standardFont);
-        g.setColour(findColour(Slider::backgroundColourId).withAlpha(1.0f));
-        g.fillRoundedRectangle(x, y, width, height, 6);
-        g.setColour(Colours::black);
-        g.drawRoundedRectangle(x, y, width, height, 6, 1);
+        g.setColour(slider.findColour(Slider::backgroundColourId).withAlpha(1.0f));
+        g.fillRoundedRectangle(boxBounds.toFloat(), 6.0f);
+        g.setColour(slider.findColour(Slider::rotarySliderOutlineColourId).withAlpha(0.5f));
+        g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 6.0f, 1.0f);
+        g.setColour(slider.findColour(Label::textColourId));
         g.drawFittedText(String(int(slider.getValue())), x, y, width, height, Justification::centred, 1);
+    }
+};
+
+
+class CustomComboBox : public CustomLookAndFeel
+{
+public:
+    void drawComboBox(Graphics& g, int width, int height, bool isButtonDown, int, int, int, int,
+        ComboBox& comboBox) override
+    {
+        Rectangle<int> boxBounds(0, 0, width, height);
+
+        g.setColour(comboBox.findColour(ComboBox::backgroundColourId));
+        g.fillRoundedRectangle(boxBounds.toFloat(), 6.0f);
+
+        g.setColour(comboBox.findColour(ComboBox::outlineColourId).withAlpha(0.5f));
+        g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 6.0f, 1.0f);
+
+        Rectangle<int> arrowZone(width - 30, 0, 20, height);
+        Path path;
+        path.startNewSubPath(float(arrowZone.getX()) + 3.0f, float(arrowZone.getCentreY()) - 2.0f);
+        path.lineTo(float(arrowZone.getCentreX()), float(arrowZone.getCentreY()) + 3.0f);
+        path.lineTo(float(arrowZone.getRight()) - 3.0f, float(arrowZone.getCentreY()) - 2.0f);
+
+        g.setColour(comboBox.findColour(ComboBox::arrowColourId).withAlpha(comboBox.isEnabled() ? 0.9f : 0.2f));
+        g.strokePath(path, PathStrokeType(2.0f));
+    }
+
+    void drawLabel(Graphics& g, Label& label) override
+    {
+        float alpha = (label.isEnabled() ? 1.0f : 0.5f);
+        const Font font(getLabelFont(label));
+
+        g.setColour(findColour(ComboBox::textColourId).withMultipliedAlpha(alpha));
+        g.setFont(font);
+
+        Rectangle<int> textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds()).reduced(8, 0);
+
+        g.drawFittedText(label.getText(), textArea, label.getJustificationType(),
+                        jmax(1, int(float(textArea.getHeight()) / font.getHeight())),
+                        label.getMinimumHorizontalScale());
     }
 };
 

@@ -76,14 +76,25 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
 
 
     // Knobs and buttons in the top panel
+    volumeSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    volumeSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    volumeSlider.setPopupDisplayEnabled(true, true, this);
+    // This class maintains a connection between slider and parameter in AudioProcessorValueTreeState
+    volumeTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "volume", volumeSlider));
+    volumeSlider.textFromValueFunction = [] (double value) { return String(int(value*100)); };
+    volumeSlider.setTextValueSuffix(" %");
+    addAndMakeVisible(volumeSlider);
+    volumeLabel.setText("VOLUME", dontSendNotification);
+    volumeLabel.setJustificationType(Justification(Justification::centred));
+    volumeLabel.setTooltip("Main volume");
+    addAndMakeVisible(volumeLabel);
+
     pitchSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     pitchSlider.setMouseDragSensitivity(1000); // default is 250
     pitchSlider.setTextBoxStyle(Slider::TextBoxAbove, false, 66, 16);
     pitchSlider.setPopupDisplayEnabled(false, false, this);
     pitchSlider.setLookAndFeel(new WithTextBox());
-    // This class maintains a connection between slider and parameter in AudioProcessorValueTreeState
     pitchTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "pitch", pitchSlider));
-    pitchSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(pitchSlider);
     pitchLabel.setText("PITCH", dontSendNotification);
     pitchLabel.setJustificationType(Justification(Justification::centred));
@@ -263,13 +274,23 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
 
     // Misc components
     voicesSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
-    voicesSlider.setLookAndFeel(new DraggableBox());
     voicesSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    voicesSlider.setLookAndFeel(new DraggableBox());
     voicesTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "voices", voicesSlider));
     addAndMakeVisible(voicesSlider);
     voicesLabel.setText("POLY VOICES", dontSendNotification);
     voicesLabel.setJustificationType(Justification(Justification::centred));
     addAndMakeVisible(voicesLabel);
+
+    algoComboBox.addItemList(StringArray{"IVAN", "RABENSTEIN"}, 1);
+    algoComboBox.setEditableText(false);
+    algoComboBox.setLookAndFeel(new CustomComboBox());
+    algoComboBox.onChange = [this] { updateAlgoComponents(); };
+    algoTree.reset(new AudioProcessorValueTreeState::ComboBoxAttachment(processor.tree, "algorithm", algoComboBox));
+    addAndMakeVisible(algoComboBox);
+    algoLabel.setText("METHOD", dontSendNotification);
+    algoLabel.setJustificationType(Justification(Justification::centred));
+    addAndMakeVisible(algoLabel);
 
     Image helpImg = ImageCache::getFromMemory(BinaryData::question_png, BinaryData::question_pngSize);
     Image helpOff = helpImg.getClippedImage(Rectangle<int>(0, 0, helpImg.getWidth()/2, helpImg.getHeight()));
@@ -399,6 +420,27 @@ void FTMSynthAudioProcessorEditor::updateVisualizations(int dimensionFlags)
 }
 
 
+void FTMSynthAudioProcessorEditor::updateAlgoComponents()
+{
+    int choice = algoComboBox.getSelectedItemIndex();
+
+    if (choice == 1)
+    {
+        tauGateButton.setVisible(false);
+        relSlider.setVisible(false);
+        pGateButton.setVisible(false);
+        ringSlider.setVisible(false);
+    }
+    else
+    {
+        if (!tauGateButton.isVisible()) tauGateButton.setVisible(true);
+        if (!relSlider.isVisible()) relSlider.setVisible(true);
+        if (!pGateButton.isVisible()) pGateButton.setVisible(true);
+        if (!ringSlider.isVisible()) ringSlider.setVisible(true);
+    }
+}
+
+
 //==============================================================================
 void FTMSynthAudioProcessorEditor::paint(Graphics& g)
 {
@@ -434,6 +476,9 @@ void FTMSynthAudioProcessorEditor::resized()
     drumButton.setBounds(   mainControls.getX() + 350, mainControls.getY() +    btnOffY, 64, 40);
     boxButton.setBounds(    mainControls.getX() + 434, mainControls.getY() +    btnOffY, 64, 40);
 
+    volumeSlider.setBounds( mainControls.getX() -  90, mainControls.getY() +   knobOffY, 64, 64);
+    volumeLabel.setBounds(  mainControls.getX() -  92, mainControls.getY() +    lblOffY, 72, 14);
+
     pitchSlider.setBounds(  mainControls.getX() +  14, mainControls.getY() +   knobOffY-16, 64, 64+16);
     pitchLabel.setBounds(   mainControls.getX() +  10, mainControls.getY() +    lblOffY, 72, 14);
     kbTrackButton.setBounds(mainControls.getX() +  10, mainControls.getY() + toggleOffY-24, 72, 24);
@@ -454,25 +499,28 @@ void FTMSynthAudioProcessorEditor::resized()
     alpha2Slider.setBounds( mainControls.getX() + 434, mainControls.getY() +   knobOffY, 64, 64);
     alpha2Label.setBounds(  mainControls.getX() + 430, mainControls.getY() +    lblOffY, 72, 14);
 
-    r1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() +  40, 48, 48);
-    r2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  40, 48, 48);
-    r3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() +  40, 48, 48);
+    r1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() +  34, 48, 48);
+    r2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
+    r3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() +  34, 48, 48);
     rLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() +  16, 48, 14);
-    m1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() + 128, 48, 48);
-    m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 128, 48, 48);
-    m3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() + 128, 48, 48);
-    mLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() + 184, 48, 14);
-    xLabel.setBounds(  xyzControls.getX() +  22, xyzControls.getY() + 101, 24, 14);
-    yLabel.setBounds(  xyzControls.getX() +  94, xyzControls.getY() + 101, 24, 14);
-    zLabel.setBounds(  xyzControls.getX() + 166, xyzControls.getY() + 101, 24, 14);
+    m1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() + 110, 48, 48);
+    m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
+    m3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() + 110, 48, 48);
+    mLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() + 164, 48, 14);
+    xLabel.setBounds(  xyzControls.getX() +  22, xyzControls.getY() +  89, 24, 14);
+    yLabel.setBounds(  xyzControls.getX() +  94, xyzControls.getY() +  89, 24, 14);
+    zLabel.setBounds(  xyzControls.getX() + 166, xyzControls.getY() +  89, 24, 14);
 
     voicesSlider.setBounds(16, 16, 76, 24);
     voicesLabel.setBounds( 16, 48, 76, 14);
 
     // View panels
-    drumView.setBounds(  32, 176, 352, 216);
-    boxView.setBounds(   32, 176, 352, 216);
-    stringView.setBounds(32, 176, 352, 216);
+    drumView.setBounds(  32, 180, 352, 212);
+    boxView.setBounds(   32, 180, 352, 212);
+    stringView.setBounds(32, 180, 352, 212);
 
     helpButton.setBounds(32, 344, 48, 48);
+
+    algoComboBox.setBounds(464, 368, 144, 24);
+    algoLabel.setBounds(   400, 368,  56, 24);
 }

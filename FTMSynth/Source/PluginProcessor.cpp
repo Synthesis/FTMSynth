@@ -26,7 +26,10 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
 #endif
     tree(*this, nullptr, "Parameters",
     {
-        std::make_unique<AudioParameterFloat>("pitch", "Pitch", NormalisableRange<float>(-24.0f, 24.0f), 0.0f), // in semitones
+        std::make_unique<AudioParameterChoice>("algorithm", "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
+        std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
+        std::make_unique<AudioParameterFloat>("pitch", "Pitch", NormalisableRange<float>(-24.0f, 24.0f, 0.001f), 0.0f,  // in semitones
+                                              AudioParameterFloatAttributes().withStringFromValueFunction([] (auto value, auto) { return String(value, 3); })),
         std::make_unique<AudioParameterBool>("kbTrack", "Keyboard Tracking", true),
         std::make_unique<AudioParameterFloat>("sustain", "Sustain", NormalisableRange<float>(0.01f, 0.8f, 0.0f, 0.4864166f), 0.07f),
         std::make_unique<AudioParameterBool>("susGate", "Sustain Gate", false),
@@ -188,7 +191,8 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         int voice = mySynth.getNumVoices()-1;
         while (voice > 0)
         {
-            if ((myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(voice))))
+            myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(voice));
+            if (myVoice != nullptr)
             {
                 if (!myVoice->isVoiceActive())
                 {
@@ -225,7 +229,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
                         {
                             voiceToCompare = mySynth.getVoice(j);
 
-                            if (myVoice)
+                            if (myVoice != nullptr)
                             {
                                 if (!myVoice->wasStartedBefore(*voiceToCompare))
                                     isOldest = false;
@@ -257,7 +261,9 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             //                 and NOT tree.getParameterAsValue("name").getValue(), otherwise they'll be
             //                 applied AFTER the next note press, instead of before, which means the
             //                 parameters will be updated one hit too late, which is what we *don't* want.
-            myVoice->getcusParam(tree.getRawParameterValue("pitch"),
+            myVoice->getcusParam(tree.getRawParameterValue("algorithm"),
+                                 tree.getRawParameterValue("volume"),
+                                 tree.getRawParameterValue("pitch"),
                                  tree.getRawParameterValue("kbTrack"),
                                  tree.getRawParameterValue("sustain"),
                                  tree.getRawParameterValue("susGate"),

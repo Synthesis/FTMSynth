@@ -182,7 +182,7 @@ void VisualPanel::paint(juce::Graphics& g)
 void VisualPanel::resized()
 {
     int offsetX = 16;
-    int offsetY = 8;
+    int offsetY = 12;
 
     thisIsALabel.setBounds(offsetX, offsetY, 256, 96);
     nameLabel.setBounds(offsetX + 20, offsetY + 28, 240, 48);
