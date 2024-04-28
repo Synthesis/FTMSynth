@@ -127,10 +127,10 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     addAndMakeVisible(relSlider);
 
     tauGateButton.setToggleable(true);
-    tauGateButton.onStateChange = [this] { relSlider.setAlpha(tauGateButton.getToggleState() ? 1.0 : alphaOff); };
+    tauGateButton.onStateChange = [this] { relSlider.setAlpha(tauGateButton.getToggleState() ? 1.0f : alphaOff); };
     tauGateTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "susGate", tauGateButton));
     tauGateButton.setTooltip("Defines whether the volume envelope\nswitches to Release when the key is released");
-    relSlider.setAlpha(tauGateButton.getToggleState() ? 1.0 : alphaOff);
+    relSlider.setAlpha(tauGateButton.getToggleState() ? 1.0f : alphaOff);
     addAndMakeVisible(tauGateButton);
 
     pSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -154,10 +154,10 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     addAndMakeVisible(ringSlider);
 
     pGateButton.setToggleable(true);
-    pGateButton.onStateChange = [this] { ringSlider.setAlpha(pGateButton.getToggleState() ? 1.0 : alphaOff); };
+    pGateButton.onStateChange = [this] { ringSlider.setAlpha(pGateButton.getToggleState() ? 1.0f : alphaOff); };
     pGateTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "dampGate", pGateButton));
     pGateButton.setTooltip("Defines whether the damping\nswitches to Ring after the key is released");
-    ringSlider.setAlpha(pGateButton.getToggleState() ? 1.0 : alphaOff);
+    ringSlider.setAlpha(pGateButton.getToggleState() ? 1.0f : alphaOff);
     addAndMakeVisible(pGateButton);
 
     dSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
@@ -305,7 +305,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
 
 
     // Hidden dimension controller
-    dimensionsSlider.onValueChange = [this] { setDimensions(dimensionsSlider.getValue(), false); };
+    dimensionsSlider.onValueChange = [this] { setDimensions(int(dimensionsSlider.getValue()), false); };
     dimTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "dimensions", dimensionsSlider));
     addChildComponent(dimensionsSlider);
 
@@ -343,7 +343,7 @@ void FTMSynthAudioProcessorEditor::setDimensions(int dimensions, bool btnToSlide
 
 void FTMSynthAudioProcessorEditor::updateDimensionComponents()
 {
-    int dimensions = dimensionsSlider.getValue();
+    int dimensions = int(dimensionsSlider.getValue());
 
     if (dimensions == 1)
     {
@@ -403,7 +403,7 @@ void FTMSynthAudioProcessorEditor::updateDimensionComponents()
 
 void FTMSynthAudioProcessorEditor::updateVisualizations(int dimensionFlags)
 {
-    int dimensions = dimensionsSlider.getValue();
+    int dimensions = int(dimensionsSlider.getValue());
 
     if ((dimensions == 1) && (dimensionFlags & 1))
     {

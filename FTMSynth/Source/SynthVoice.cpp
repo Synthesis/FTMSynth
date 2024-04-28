@@ -91,10 +91,10 @@ void SynthVoice::getcusParam(std::atomic<float>* algo,
 // define f(x) as a gaussian distribution with mean at the middle point l/2
 void SynthVoice::ivan_deff()
 {
-    float s=0.4; // standard deviation
+    double s = 0.4; // standard deviation
     if (dim >= 0)
     {
-        float h = M_PI/tau;
+        double h = M_PI/tau;
         for (int i = 0; i < tau+1; i++)
         {
             fx1[i] = (1 / (s * sqrt(2*M_PI))) * exp(-0.5 * pow((i*h - M_PI*r1) / s, 2.0));
@@ -102,7 +102,7 @@ void SynthVoice::ivan_deff()
     }
     if (dim >= 1)
     {
-        float h = fa*M_PI/tau;
+        double h = fa*M_PI/tau;
         for (int i = 0; i < tau+1; i++)
         {
             fx2[i] = (1 / (s * sqrt(2*M_PI))) * exp(-0.5 * pow((i*h - fa*M_PI*r2) / s, 2.0));
@@ -110,7 +110,7 @@ void SynthVoice::ivan_deff()
     }
     if (dim >= 2)
     {
-        float h = fa2*M_PI/tau;
+        double h = fa2*M_PI/tau;
         for (int i = 0; i < tau+1; i++)
         {
             fx3[i] = (1 / (s * sqrt(2*M_PI))) * exp(-0.5 * pow((i*h - fa2*M_PI*r3) / s, 2.0));
@@ -122,13 +122,13 @@ void SynthVoice::ivan_deff()
 void SynthVoice::ivan_getf()
 {
     // integrate f(x)sin(mpix/l)dx from 0 to l using trapezoid rule
-    float integ;
+    double integ;
 
     if (dim >= 0)
     {
-        float l = M_PI;
+        double l = M_PI;
         int m = m1;
-        float h = l / tau;
+        double h = l / tau;
         for (int j=0; j<m; j++)
         {
             integ=0;
@@ -141,9 +141,9 @@ void SynthVoice::ivan_getf()
     }
     if (dim >= 1)
     {
-        float l = fa*M_PI;
+        double l = fa*M_PI;
         int m = m2;
-        float h = l / tau;
+        double h = l / tau;
         for (int j=0; j<m; j++)
         {
             integ=0;
@@ -156,9 +156,9 @@ void SynthVoice::ivan_getf()
     }
     if (dim >= 2)
     {
-        float l = fa2*M_PI;
+        double l = fa2*M_PI;
         int m = m3;
-        float h = l / tau;
+        double h = l / tau;
         for (int j=0; j<m; j++)
         {
             integ=0;
@@ -174,9 +174,9 @@ void SynthVoice::ivan_getf()
 
 // intermediate variables
 // sigma
-void SynthVoice::ivan_getSigma(float _tau, float p)
+void SynthVoice::ivan_getSigma(double _tau, double p)
 {
-    float sigma1 = -1/_tau;
+    double sigma1 = -1/_tau;
 
     // 1D
     if (dim == 0)
@@ -190,7 +190,7 @@ void SynthVoice::ivan_getSigma(float _tau, float p)
     // 2D
     else if (dim == 1)
     {
-        float beta = fa + 1/fa;
+        double beta = fa + 1/fa;
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
@@ -203,7 +203,7 @@ void SynthVoice::ivan_getSigma(float _tau, float p)
     // 3D
     else if (dim == 2)
     {
-        float beta = fa*fa2 + fa/fa2 + fa2/fa;
+        double beta = fa*fa2 + fa/fa2 + fa2/fa;
         for (int k=0; k<m3; k++)
         {
             for (int j=0; j<m2; j++)
@@ -220,28 +220,28 @@ void SynthVoice::ivan_getSigma(float _tau, float p)
 
 
 // get coefficient omega for the impulse response
-void SynthVoice::ivan_getw(float p)
+void SynthVoice::ivan_getw(double p)
 {
     // 1D
     if (dim == 0)
     {
-        float sigma = -1/ftau;
+        double sigma = -1/ftau;
         for (int i=0; i<m1; i++)
         {
-            float interm = pow(i+1,2);//M^2
+            double interm = pow(i+1,2);//M^2
             omega1d[i] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p), 2) + pow(fomega,2)*(1-pow(fd, 2))) - pow(sigma*(1-p), 2));
         }
     }
     // 2D
     else if (dim == 1)
     {
-        float beta = fa + 1/fa;
-        float sigma = -1/ftau;
+        double beta = fa + 1/fa;
+        double sigma = -1/ftau;
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
             {
-                float interm = pow(i+1,2)*fa + pow(j+1,2)/fa;
+                double interm = pow(i+1,2)*fa + pow(j+1,2)/fa;
                 omega2d[i+m1*j] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-p*beta), 2));
             }
         }
@@ -249,15 +249,15 @@ void SynthVoice::ivan_getw(float p)
     // 3D
     else if (dim == 2)
     {
-        float beta = fa*fa2 + fa/fa2 + fa2/fa;
-        float sigma = -1/ftau;
+        double beta = fa*fa2 + fa/fa2 + fa2/fa;
+        double sigma = -1/ftau;
         for (int k=0; k<m3; k++)
         {
             for (int j=0; j<m2; j++)
             {
                 for (int i=0; i<m1; i++)
                 {
-                    float interm = pow(i+1,2)*fa*fa2 + pow(j+1,2)*fa2/fa + pow(k+1,2)*fa/fa2;
+                    double interm = pow(i+1,2)*fa*fa2 + pow(j+1,2)*fa2/fa + pow(k+1,2)*fa/fa2;
                     omega3d[i+m1*(j+m2*k)] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-p*beta), 2));
                 }
             }
@@ -269,8 +269,8 @@ void SynthVoice::ivan_getw(float p)
 // get coefficient k for the impulse response
 void SynthVoice::ivan_getK()
 {
-    float l1 = M_PI;
-    float x1 = l1*r1;
+    double l1 = M_PI;
+    double x1 = l1*r1;
 
     // 1D
     if (dim == 0)
@@ -287,8 +287,8 @@ void SynthVoice::ivan_getK()
     // 2D
     else if (dim == 1)
     {
-        float l2 = fa*M_PI;
-        float x2 = l2*r2;
+        double l2 = fa*M_PI;
+        double x2 = l2*r2;
 
         for (int j=0; j<m2; j++)
         {
@@ -305,10 +305,10 @@ void SynthVoice::ivan_getK()
     // 3D
     else if (dim == 2)
     {
-        float l2 = fa*M_PI;
-        float l3 = fa2*M_PI;
-        float x2 = l2*r2;
-        float x3 = l3*r3;
+        double l2 = fa*M_PI;
+        double l3 = fa2*M_PI;
+        double x2 = l2*r2;
+        double x3 = l3*r3;
 
         for (int k=0; k<m3; k++)
         {
@@ -330,17 +330,17 @@ void SynthVoice::ivan_getK()
 
 void SynthVoice::rabenstein_initialize()
 {
-    float l0 = M_PI; // constant
+    double l0 = M_PI; // constant
 
     if (dim == 0)
     {
-        float S = pow(pow(fd*fomega, 2) + pow(fp/ftau, 2), 0.25);
-        float T = ((1 - fp*fp) / ftau*ftau + fomega*fomega * (1 - fd*fd));
+        double S = pow(pow(fd*fomega, 2) + pow(fp/ftau, 2), 0.25);
+        double T = ((1 - fp*fp) / ftau*ftau + fomega*fomega * (1 - fd*fd));
 
-        float d1 = 2 * (1 - fp) / ftau;
-        float d3 = -2 * fp / ftau;
+        double d1 = 2 * (1 - fp) / ftau;
+        double d3 = -2 * fp / ftau;
 
-        float EI = pow(S, 4);
+        double EI = pow(S, 4);
 
         for (int i=0; i<m1; i++)
         {
@@ -365,17 +365,17 @@ void SynthVoice::rabenstein_initialize()
     }
     else if (dim == 1)
     {
-        float l2 = M_PI*fa;
-        float beta = fa + 1/fa;
+        double l2 = M_PI*fa;
+        double beta = fa + 1/fa;
 
-        float S = pow(pow(fd*fomega*fa, 2) + pow(fp*fa/ftau, 2), 0.25);
-        float T = (fa * (1/beta - fp*fp*beta) / ftau*ftau
+        double S = pow(pow(fd*fomega*fa, 2) + pow(fp*fa/ftau, 2), 0.25);
+        double T = (fa * (1/beta - fp*fp*beta) / ftau*ftau
                 + fa * fomega*fomega * (1/beta - fd*fd * beta));
 
-        float d1 = 2 * (1 - fp*beta) / ftau;
-        float d3 = -2 * fp * fa / ftau;
+        double d1 = 2 * (1 - fp*beta) / ftau;
+        double d3 = -2 * fp * fa / ftau;
 
-        float EI = pow(S, 4);
+        double EI = pow(S, 4);
 
         for (int j=0; j<m2; j++)
         {
@@ -406,18 +406,18 @@ void SynthVoice::rabenstein_initialize()
     }
     else if (dim == 2)
     {
-        float l2 = M_PI*fa;
-        float l3 = M_PI*fa2;
-        float beta = fa*fa2 + fa/fa2 + fa2/fa;
+        double l2 = M_PI*fa;
+        double l3 = M_PI*fa2;
+        double beta = fa*fa2 + fa/fa2 + fa2/fa;
 
-        float S = pow(pow(fd*fomega*fa*fa2, 2) + pow(fp*fa*fa2/ftau, 2), 0.25);
-        float T = (fa*fa2 * (1/beta - fp*fp*beta) / ftau*ftau
+        double S = pow(pow(fd*fomega*fa*fa2, 2) + pow(fp*fa*fa2/ftau, 2), 0.25);
+        double T = (fa*fa2 * (1/beta - fp*fp*beta) / ftau*ftau
                 + fa*fa2 * fomega*fomega * (1/beta - fd*fd * beta));
 
-        float d1 = 2 * (1 - fp*beta) / ftau;
-        float d3 = -2 * fp * fa*fa2 / ftau;
+        double d1 = 2 * (1 - fp*beta) / ftau;
+        double d3 = -2 * fp * fa*fa2 / ftau;
 
-        float EI = pow(S, 4);
+        double EI = pow(S, 4);
 
         for (int k=0; k<m3; k++)
         {
@@ -458,12 +458,12 @@ void SynthVoice::rabenstein_initialize()
 // findmax functions find value of first sample and scale everything else based on this value
 void SynthVoice::findmax()
 {
-    float h = 0;
+    double h = 0;
 
     // 1D
     if (dim == 0)
     {
-        float coef, decay;
+        double coef, decay;
         for (int i=0; i<m1; i++)
         {
             coef = 1;
@@ -484,7 +484,7 @@ void SynthVoice::findmax()
     // 2D
     else if (dim == 1)
     {
-        float coef, decay;
+        double coef, decay;
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
@@ -508,7 +508,7 @@ void SynthVoice::findmax()
     // 3D
     else if (dim == 2)
     {
-        float coef, decay;
+        double coef, decay;
         for (int k=0; k<m3; k++)
         {
             for (int j=0; j<m2; j++)
@@ -547,8 +547,8 @@ double SynthVoice::ivan_finaloutput()
 {
     if (trig == false) return 0;
 
-    float h = 0;
-    float lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
+    double h = 0;
+    double lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
 
     // 1D
     if (dim == 0)
@@ -626,14 +626,14 @@ double SynthVoice::rabenstein_finaloutput()
 {
     if (trig == false) return 0;
 
-    float h = 0;
-    float lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
+    double h = 0;
+    double lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
 
     // synthesize the sound at time t
     // 1D
     if (dim == 0)
     {
-        float decayamp;
+        double decayamp;
 
         for (int i=0; i<m1; i++)
         {
@@ -648,7 +648,7 @@ double SynthVoice::rabenstein_finaloutput()
     // 2D
     else if (dim == 1)
     {
-        float decayamp;
+        double decayamp;
         int index = 0;
 
         for (int j=0; j<m2; j++)
@@ -668,7 +668,7 @@ double SynthVoice::rabenstein_finaloutput()
     // 3D
     else if (dim == 2)
     {
-        float decayamp;
+        double decayamp;
         int index = 0;
 
         for (int k=0; k<m3; k++)
@@ -717,7 +717,7 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     if (bkbTrack)
     {
         // map keyboard to frequency
-        float frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
+        double frequency = MidiMessage::getMidiNoteInHertz(midiNoteNumber, 440);
         fomega = frequency * 2 * M_PI * pow(2.0, fpitch/12.0);
     }
     else
@@ -771,15 +771,15 @@ void SynthVoice::stopNote(float /*velocity*/, bool allowTailOff)
         {
             if (bgate)
             {
-                float elapsed = t/dur; // percentage of the elapsed duration
-                float remaining = 1.0 - elapsed; // percentage of the remaining duration
-                float newDur = log(1-frel) / log(1-0.075);
+                double elapsed = t/dur; // percentage of the elapsed duration
+                double remaining = 1.0 - elapsed; // percentage of the remaining duration
+                double newDur = log(1-frel) / log(1-0.075);
                 dur = dur*elapsed + newDur*remaining;
             }
             if (bgate || bpGate)
             {
-                float _tau = (bgate ? frel : ftau);
-                float p = (bpGate ? fring : fp);
+                double _tau = (bgate ? frel : ftau);
+                double p = (bpGate ? fring : fp);
                 ivan_getSigma(_tau, p);
                 ivan_getw(p);
             }
@@ -819,7 +819,7 @@ void SynthVoice::renderNextBlock(AudioBuffer<float> &outputBuffer, int startSamp
     {
         for (int sample=0; sample<numSamples; sample++)
         {
-            double drumSound = ivan_finaloutput();
+            float drumSound = float(ivan_finaloutput());
             for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
             {
                 outputBuffer.addSample(channel, startSample+sample, drumSound);
@@ -830,7 +830,7 @@ void SynthVoice::renderNextBlock(AudioBuffer<float> &outputBuffer, int startSamp
     {
         for (int sample=0; sample<numSamples; sample++)
         {
-            double drumSound = rabenstein_finaloutput();
+            float drumSound = float(rabenstein_finaloutput());
             for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
             {
                 outputBuffer.addSample(channel, startSample+sample, drumSound);
@@ -838,7 +838,6 @@ void SynthVoice::renderNextBlock(AudioBuffer<float> &outputBuffer, int startSamp
         }
     }
 }
-
 //==================================
 void SynthVoice::renderNextBlock(AudioBuffer<double> &outputBuffer, int startSample, int numSamples)
 {
@@ -872,7 +871,7 @@ void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
     sr = newRate;
     if (currentAlgorithm == Algorithm::ivan)
     {
-        float p = (((!bpGate) || isKeyDown()) ? fp : fring);
+        double p = (((!bpGate) || isKeyDown()) ? fp : fring);
         ivan_getSigma(((!bgate) || isKeyDown()) ? ftau : frel, p);
         ivan_getw(p);
     }

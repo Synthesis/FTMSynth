@@ -55,8 +55,8 @@ public:
     // ===== Methods used for the Ivan method
     void ivan_deff();
     void ivan_getf();
-    void ivan_getSigma(float _tau, float p);
-    void ivan_getw(float p);
+    void ivan_getSigma(double _tau, double p);
+    void ivan_getw(double p);
     void ivan_getK();
 
     // ===== Methods used for the Rabenstein method
@@ -109,15 +109,15 @@ private:
     double sr = 44100;
 
     // FTM model parameters
-    float fomega;        // frequency
-    float ftau, frel;    // sustain
+    double fomega;        // frequency
+    double ftau, frel;    // sustain
     bool bgate;
-    float fp, fring;     // damping
+    double fp, fring;     // damping
     bool bpGate;
-    float fd = 0, nextd; // inharmonicity
-    float fa, fa2;       // squareness/cubeness
+    double fd = 0, nextd; // inharmonicity
+    double fa, fa2;       // squareness/cubeness
 
-    float r1, r2, r3;    // coordinates
+    double r1, r2, r3;    // coordinates
 
     int m1 = 5; // shouldn't be bigger than MAX_M1
     int m2 = 5; // shouldn't be bigger than MAX_M2
@@ -132,65 +132,65 @@ private:
     // ===== Variables used for the Ivan method
     int tau = 300;
 
-    float fx1[301]; // tau
-    float fx2[301];
-    float fx3[301];
-    float f1[MAX_M1];
-    float f2[MAX_M2];
-    float f3[MAX_M3];
+    double fx1[301]; // tau
+    double fx2[301];
+    double fx3[301];
+    double f1[MAX_M1];
+    double f2[MAX_M2];
+    double f3[MAX_M3];
 
     // mode decay/damping factors
-    float sigma1d[MAX_M1];
-    float sigma2d[MAX_M1*MAX_M2];
-    float sigma3d[MAX_M1*MAX_M2*MAX_M3];
+    double sigma1d[MAX_M1];
+    double sigma2d[MAX_M1*MAX_M2];
+    double sigma3d[MAX_M1*MAX_M2*MAX_M3];
 
     // and their sample-rate-dependant counterparts
-    float decayamp1[MAX_M1];
-    float decayampn1[MAX_M1];
-    float decayamp2[MAX_M1*MAX_M2];
-    float decayampn2[MAX_M1*MAX_M2];
-    float decayamp3[MAX_M1*MAX_M2*MAX_M3];
-    float decayampn3[MAX_M1*MAX_M2*MAX_M3];
+    double decayamp1[MAX_M1];
+    double decayampn1[MAX_M1];
+    double decayamp2[MAX_M1*MAX_M2];
+    double decayampn2[MAX_M1*MAX_M2];
+    double decayamp3[MAX_M1*MAX_M2*MAX_M3];
+    double decayampn3[MAX_M1*MAX_M2*MAX_M3];
 
 
     // ===== Variables used for the Rabenstein method
-    float n1d[MAX_M1];
-    float n2d[MAX_M1*MAX_M2];
-    float n3d[MAX_M1*MAX_M2*MAX_M3];
-    float n1d2[MAX_M1];
-    float n2d2[MAX_M1*MAX_M2];
-    float n3d2[MAX_M1*MAX_M2*MAX_M3];
+    double n1d[MAX_M1];
+    double n2d[MAX_M1*MAX_M2];
+    double n3d[MAX_M1*MAX_M2*MAX_M3];
+    double n1d2[MAX_M1];
+    double n2d2[MAX_M1*MAX_M2];
+    double n3d2[MAX_M1*MAX_M2*MAX_M3];
 
-    float alpha1d[MAX_M1];
-    float alpha2d[MAX_M1*MAX_M2];
-    float alpha3d[MAX_M1*MAX_M2*MAX_M3];
-    float beta1d[MAX_M1];
-    float beta2d[MAX_M1*MAX_M2];
-    float beta3d[MAX_M1*MAX_M2*MAX_M3];
+    double alpha1d[MAX_M1];
+    double alpha2d[MAX_M1*MAX_M2];
+    double alpha3d[MAX_M1*MAX_M2*MAX_M3];
+    double beta1d[MAX_M1];
+    double beta2d[MAX_M1*MAX_M2];
+    double beta3d[MAX_M1*MAX_M2*MAX_M3];
 
     bool mode_rejected1d[MAX_M1];
     bool mode_rejected2d[MAX_M1*MAX_M2];
     bool mode_rejected3d[MAX_M1*MAX_M2*MAX_M3];
 
-    float fN1d;
-    float fN2d;
-    float fN3d;
+    double fN1d;
+    double fN2d;
+    double fN3d;
 
-    float yi1d[MAX_M1];
-    float yi2d[MAX_M1*MAX_M2];
-    float yi3d[MAX_M1*MAX_M2*MAX_M3];
+    double yi1d[MAX_M1];
+    double yi2d[MAX_M1*MAX_M2];
+    double yi3d[MAX_M1*MAX_M2*MAX_M3];
 
 
     // ===== Common variables
     // mode magnitudes
-    float k1d[MAX_M1];
-    float k2d[MAX_M1*MAX_M2];
-    float k3d[MAX_M1*MAX_M2*MAX_M3];
+    double k1d[MAX_M1];
+    double k2d[MAX_M1*MAX_M2];
+    double k3d[MAX_M1*MAX_M2*MAX_M3];
 
     // mode frequencies
-    float omega1d[MAX_M1];
-    float omega2d[MAX_M1*MAX_M2];
-    float omega3d[MAX_M1*MAX_M2*MAX_M3];
+    double omega1d[MAX_M1];
+    double omega2d[MAX_M1*MAX_M2];
+    double omega3d[MAX_M1*MAX_M2*MAX_M3];
 
-    float maxh = 1; // the max of h for each set of parameters
+    double maxh = 1; // the max of h for each set of parameters
 };

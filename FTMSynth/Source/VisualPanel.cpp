@@ -96,9 +96,10 @@ void VisualPanel::paint(juce::Graphics& g)
         Image drumSkin = ImageCache::getFromMemory(BinaryData::drum_skin_png, BinaryData::drum_skin_pngSize);
         float srcX = 0.f;
         float srcY = (1-alpha1)*drumSkin.getHeight()/2.0f;
-        float srcWidth = drumSkin.getWidth();
+        float srcWidth = float(drumSkin.getWidth());
         float srcHeight = alpha1*drumSkin.getHeight();
-        g.drawImage(drumSkin, destX, destY, destWidth, destHeight, srcX, srcY, srcWidth, srcHeight);
+        g.drawImage(drumSkin, int(destX), int(destY), int(destWidth), int(destHeight),
+                    int(srcX), int(srcY), int(srcWidth), int(srcHeight));
 
         // draw red cross at impact position
         g.setColour(Colours::red);

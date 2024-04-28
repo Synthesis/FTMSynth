@@ -49,7 +49,7 @@ public:
         setColour(TooltipWindow::outlineColourId, Colour(0xFF8F815B));
     }
 
-    Font getTextButtonFont(TextButton&, int buttonHeight) override
+    Font getTextButtonFont(TextButton&, int) override
     {
         return standardFont;
     }
@@ -64,22 +64,22 @@ public:
     void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
                           const float rotaryStartAngle, const float rotaryEndAngle, Slider& slider) override
     {
-        float diameter = jmin(width, height);
-        float centerX = x + width / 2;
-        float centerY = y + height / 2;
+        float diameter = float(jmin(width, height));
+        float centerX = float(x) + float(width) / 2.0f;
+        float centerY = float(y) + float(height) / 2.0f;
         float angle = rotaryStartAngle + (sliderPos * (rotaryEndAngle - rotaryStartAngle));
 
         Image myKnob = ImageCache::getFromMemory(BinaryData::knob_png, BinaryData::knob_pngSize);
         Rectangle<int> knobArea(0, 0, myKnob.getWidth()/3, myKnob.getHeight());
         Rectangle<int> indicatorArea(myKnob.getWidth()/3, 0, myKnob.getWidth()/3, myKnob.getHeight());
         Rectangle<int> shadowArea(myKnob.getWidth()*2/3, 0, myKnob.getWidth()/3, myKnob.getHeight());
-        float imgCenterX = myKnob.getWidth() / 6;
-        float imgCenterY = myKnob.getHeight() / 2;
+        float imgCenterX = float(myKnob.getWidth()) / 6.0f;
+        float imgCenterY = float(myKnob.getHeight()) / 2.0f;
         Image knob = myKnob.getClippedImage(knobArea);
         Image indicator = myKnob.getClippedImage(indicatorArea);
         Image shadow = myKnob.getClippedImage(shadowArea);
 
-        float scale = jmax(myKnob.getWidth()/3, myKnob.getHeight());
+        float scale = float(jmax(myKnob.getWidth()/3, myKnob.getHeight()));
         scale = diameter/scale;
 
         g.setImageResamplingQuality(Graphics::highResamplingQuality);
@@ -179,8 +179,8 @@ public:
 class DraggableBox : public CustomLookAndFeel
 {
 public:
-    void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
-                          const float rotaryStartAngle, const float rotaryEndAngle, Slider& slider) override
+    void drawRotarySlider(Graphics& g, int x, int y, int width, int height, float,
+                          const float, const float, Slider& slider) override
     {
         Rectangle<int> boxBounds(x, y, width, height);
 
@@ -198,7 +198,7 @@ public:
 class CustomComboBox : public CustomLookAndFeel
 {
 public:
-    void drawComboBox(Graphics& g, int width, int height, bool isButtonDown, int, int, int, int,
+    void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int,
         ComboBox& comboBox) override
     {
         Rectangle<int> boxBounds(0, 0, width, height);
