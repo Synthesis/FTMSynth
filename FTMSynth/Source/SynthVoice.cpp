@@ -171,7 +171,6 @@ void SynthVoice::ivan_getf()
     }
 }
 
-
 // intermediate variables
 // sigma
 void SynthVoice::ivan_getSigma(double _tau, double p)
@@ -218,7 +217,6 @@ void SynthVoice::ivan_getSigma(double _tau, double p)
     }
 }
 
-
 // get coefficient omega for the impulse response
 void SynthVoice::ivan_getw(double p)
 {
@@ -264,7 +262,6 @@ void SynthVoice::ivan_getw(double p)
         }
     }
 }
-
 
 // get coefficient k for the impulse response
 void SynthVoice::ivan_getK()
@@ -334,25 +331,26 @@ void SynthVoice::rabenstein_initialize()
 
     if (dim == 0)
     {
-        double S = pow(pow(fd*fomega, 2) + pow(fp/ftau, 2), 0.25);
+        double EI = pow(fd*fomega, 2) + pow(fp/ftau, 2);
         double T = ((1 - fp*fp) / ftau*ftau + fomega*fomega * (1 - fd*fd));
 
         double d1 = 2 * (1 - fp) / ftau;
         double d3 = -2 * fp / ftau;
 
-        double EI = pow(S, 4);
+        double n, n2;
 
         for (int i=0; i<m1; i++)
         {
-            n1d[i] = pow(i+1, 2);
-            n1d2[i] = n1d[i]*n1d[i];
+            n = pow(i+1, 2);
+            n2 = n*n;
 
             k1d[i] = sin((i+1)*M_PI*r1);
 
-            beta1d[i] = EI * n1d2[i] + T * n1d[i];
-            alpha1d[i] = (d1 - d3 * n1d[i]) / 2;
+            beta1d[i] = EI * n2 + T * n;
+            alpha1d[i] = (d1 - d3 * n) / 2;
             omega1d[i] = sqrt(abs(beta1d[i] - alpha1d[i]*alpha1d[i]));
 
+            decayamp1[i] = exp(-alpha1d[i]/sr);
             mode_rejected1d[i] = ((omega1d[i] / (2*M_PI)) > (sr / 2));
         }
 
@@ -368,29 +366,34 @@ void SynthVoice::rabenstein_initialize()
         double l2 = M_PI*fa;
         double beta = fa + 1/fa;
 
-        double S = pow(pow(fd*fomega*fa, 2) + pow(fp*fa/ftau, 2), 0.25);
+        double EI = pow(fd*fomega*fa, 2) + pow(fp*fa/ftau, 2);
         double T = (fa * (1/beta - fp*fp*beta) / ftau*ftau
                 + fa * fomega*fomega * (1/beta - fd*fd * beta));
 
         double d1 = 2 * (1 - fp*beta) / ftau;
         double d3 = -2 * fp * fa / ftau;
 
-        double EI = pow(S, 4);
+        double n, n2;
+
+        int index = 0;
 
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
             {
-                n2d[i+m1*j] = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2);
-                n2d2[i+m1*j] = n2d[i+m1*j]*n2d[i+m1*j];
+                index = i+m1*j;
 
-                k2d[i+m1*j] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2);
+                n = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2);
+                n2 = n*n;
 
-                beta2d[i+m1*j] = EI * n2d2[i+m1*j] + T * n2d[i+m1*j];
-                alpha2d[i+m1*j] = (d1 - d3 * n2d[i+m1*j]) / 2;
-                omega2d[i+m1*j] = sqrt(abs(beta2d[i+m1*j] - alpha2d[i+m1*j]*alpha2d[i+m1*j]));
+                k2d[index] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2);
 
-                mode_rejected2d[i+m1*j] = ((omega2d[i+m1*j] / (2*M_PI)) > (sr / 2));
+                beta2d[index] = EI * n2 + T * n;
+                alpha2d[index] = (d1 - d3 * n) / 2;
+                omega2d[index] = sqrt(abs(beta2d[index] - alpha2d[index]*alpha2d[index]));
+
+                decayamp2[index] = exp(-alpha2d[index]/sr);
+                mode_rejected2d[index] = ((omega2d[index] / (2*M_PI)) > (sr / 2));
             }
         }
 
@@ -410,14 +413,16 @@ void SynthVoice::rabenstein_initialize()
         double l3 = M_PI*fa2;
         double beta = fa*fa2 + fa/fa2 + fa2/fa;
 
-        double S = pow(pow(fd*fomega*fa*fa2, 2) + pow(fp*fa*fa2/ftau, 2), 0.25);
+        double EI = pow(fd*fomega*fa*fa2, 2) + pow(fp*fa*fa2/ftau, 2);
         double T = (fa*fa2 * (1/beta - fp*fp*beta) / ftau*ftau
                 + fa*fa2 * fomega*fomega * (1/beta - fd*fd * beta));
 
         double d1 = 2 * (1 - fp*beta) / ftau;
         double d3 = -2 * fp * fa*fa2 / ftau;
 
-        double EI = pow(S, 4);
+        double n, n2;
+
+        int index = 0;
 
         for (int k=0; k<m3; k++)
         {
@@ -425,16 +430,19 @@ void SynthVoice::rabenstein_initialize()
             {
                 for (int i=0; i<m1; i++)
                 {
-                    n3d[i+m1*(j+m2*k)] = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2) + pow((k+1)*M_PI/l3, 2);
-                    n3d2[i+m1*(j+m2*k)] = n3d[i+m1*(j+m2*k)]*n3d[i+m1*(j+m2*k)];
+                    index = i+m1*(j+m2*k);
 
-                    k3d[i+m1*(j+m2*k)] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) * sin((k+1)*M_PI*r3);
+                    n = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2) + pow((k+1)*M_PI/l3, 2);
+                    n2 = n*n;
 
-                    beta3d[i+m1*(j+m2*k)] = EI * n3d2[i+m1*(j+m2*k)] + T * n3d[i+m1*(j+m2*k)];
-                    alpha3d[i+m1*(j+m2*k)] = (d1 - d3 * n3d[i+m1*(j+m2*k)]) / 2;
-                    omega3d[i+m1*(j+m2*k)] = sqrt(abs(beta3d[i+m1*(j+m2*k)] - alpha3d[i+m1*(j+m2*k)]*alpha3d[i+m1*(j+m2*k)]));
+                    k3d[index] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) * sin((k+1)*M_PI*r3);
 
-                    mode_rejected3d[i+m1*(j+m2*k)] = ((omega3d[i+m1*(j+m2*k)] / (2*M_PI)) > (sr / 2));
+                    beta3d[index] = EI * n2 + T * n;
+                    alpha3d[index] = (d1 - d3 * n) / 2;
+                    omega3d[index] = sqrt(abs(beta3d[index] - alpha3d[index]*alpha3d[index]));
+
+                    decayamp3[index] = exp(-alpha3d[index]/sr);
+                    mode_rejected3d[index] = ((omega3d[index] / (2*M_PI)) > (sr / 2));
                 }
             }
         }
@@ -541,6 +549,28 @@ void SynthVoice::findmax()
     maxh = h;
 }
 
+void SynthVoice::initDecayampn()
+{
+    if (dim == 0)
+    {
+        for (int i=0; i<m1; i++)
+            decayampn1[i] = 1.0;
+    }
+    else if (dim == 1)
+    {
+        for (int j=0; j<m2; j++)
+            for (int i=0; i<m1; i++)
+                decayampn2[i+m1*j] = 1.0;
+    }
+    else if (dim == 2)
+    {
+        for (int k=0; k<m3; k++)
+            for (int j=0; j<m2; j++)
+                for (int i=0; i<m1; i++)
+                    decayampn3[i+m1*(j+m2*k)] = 1.0;
+    }
+}
+
 
 // this function synthesizes the signal value at each sample
 double SynthVoice::ivan_finaloutput()
@@ -555,53 +585,41 @@ double SynthVoice::ivan_finaloutput()
     {
         for (int i=0; i<m1; i++)
         {
-            if(nsamp==0){
-                decayampn1[i] = decayamp1[i];
-            }
-            else{
-                decayampn1[i] *= decayamp1[i];
-            }
-
-            // h += k1d[i] * decayampn1[i] * sin(omega1d[i]*t);
-            h += k1d[i] * decayampn1[i] * sinLUT[int(omega1d[i]*t*lutScale) & SIN_LUT_MODULO];
+            decayampn1[i] *= decayamp1[i];
+            h += k1d[i] * decayampn1[i] * fastSin(omega1d[i]*t);
         }
     }
     // 2D
     else if (dim == 1)
     {
+        int index = 0;
+
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
             {
+                index = i+m1*j;
                 // designate the exponential envelope
-                if (nsamp == 0)
-                    decayampn2[i+m1*j] = decayamp2[i+m1*j];
-                else
-                    decayampn2[i+m1*j] *= decayamp2[i+m1*j];
-
+                decayampn2[index] *= decayamp2[index];
                 // synthesize the sound at time t
-                // h += k2d[i+m1*j] * decayampn2[i+m1*j] * sin(omega2d[i+m1*j]*t);
-                h += k2d[i+m1*j] * decayampn2[i+m1*j] * sinLUT[int(omega2d[i+m1*j]*t*lutScale) & SIN_LUT_MODULO];
+                h += k2d[index] * decayampn2[index] * fastSin(omega2d[index]*t);
             }
         }
     }
     // 3D
     else if (dim == 2)
     {
+        int index = 0;
+
         for (int k=0; k<m3; k++)
         {
             for (int j=0; j<m2; j++)
             {
                 for (int i=0; i<m1; i++)
                 {
-                    if(nsamp==0){
-                        decayampn3[i+m1*(j+m2*k)] = decayamp3[i+m1*(j+m2*k)];
-                    }
-                    else{
-                        decayampn3[i+m1*(j+m2*k)] *= decayamp3[i+m1*(j+m2*k)];
-                    }
-                    // h += k3d[i+m1*(j+m2*k)] * decayampn3[(i*m2+j)*m2+k] * sin(omega3d[i+m1*(j+m2*k)]*t);
-                    h += k3d[i+m1*(j+m2*k)] * decayampn3[i+m1*(j+m2*k)] * sinLUT[int(omega3d[i+m1*(j+m2*k)]*t*lutScale) & SIN_LUT_MODULO];
+                    index = i+m1*(j+m2*k);
+                    decayampn3[index] *= decayamp3[index];
+                    h += k3d[index] * decayampn3[index] * fastSin(omega3d[index]*t);
                 }
             }
         }
@@ -633,14 +651,12 @@ double SynthVoice::rabenstein_finaloutput()
     // 1D
     if (dim == 0)
     {
-        double decayamp;
-
         for (int i=0; i<m1; i++)
         {
             if (!mode_rejected1d[i])
             {
-                decayamp = exp(-alpha1d[i]*t) * fastSin(omega1d[i]*t);
-                h += (yi1d[i] * decayamp) * k1d[i];
+                decayampn1[i] *= decayamp1[i];
+                h += (yi1d[i] * decayampn1[i] * fastSin(omega1d[i]*t)) * k1d[i];
             }
         }
         h /= fN1d;
@@ -648,7 +664,6 @@ double SynthVoice::rabenstein_finaloutput()
     // 2D
     else if (dim == 1)
     {
-        double decayamp;
         int index = 0;
 
         for (int j=0; j<m2; j++)
@@ -658,8 +673,8 @@ double SynthVoice::rabenstein_finaloutput()
                 index = i+m1*j;
                 if (!mode_rejected2d[index])
                 {
-                    decayamp = exp(-alpha2d[index]*t) * fastSin(omega2d[index]*t);
-                    h += (yi2d[index] * decayamp) * k2d[index];
+                    decayampn2[index] *= decayamp2[index];
+                    h += (yi2d[index] * decayampn2[index] * fastSin(omega2d[index]*t)) * k2d[index];
                 }
             }
         }
@@ -668,7 +683,6 @@ double SynthVoice::rabenstein_finaloutput()
     // 3D
     else if (dim == 2)
     {
-        double decayamp;
         int index = 0;
 
         for (int k=0; k<m3; k++)
@@ -680,8 +694,8 @@ double SynthVoice::rabenstein_finaloutput()
                     index = i+m1*(j+m2*k);
                     if (!mode_rejected3d[index])
                     {
-                        decayamp = exp(-alpha3d[index]*t) * fastSin(omega3d[index]*t);
-                        h += (yi3d[index] * decayamp) * k3d[index];
+                        decayampn3[index] *= decayamp3[index];
+                        h += (yi3d[index] * decayampn3[index] * fastSin(omega3d[index]*t)) * k3d[index];
                     }
                 }
             }
@@ -749,6 +763,7 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
         rabenstein_initialize();
     }
     findmax();
+    initDecayampn();
 
     t = 0;
     nsamp = 0;

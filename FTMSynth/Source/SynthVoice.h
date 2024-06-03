@@ -64,6 +64,7 @@ public:
 
     // ===== Common methods
     void findmax();
+    void initDecayampn();
     double ivan_finaloutput();
     double rabenstein_finaloutput();
 
@@ -144,23 +145,8 @@ private:
     double sigma2d[MAX_M1*MAX_M2];
     double sigma3d[MAX_M1*MAX_M2*MAX_M3];
 
-    // and their sample-rate-dependant counterparts
-    double decayamp1[MAX_M1];
-    double decayampn1[MAX_M1];
-    double decayamp2[MAX_M1*MAX_M2];
-    double decayampn2[MAX_M1*MAX_M2];
-    double decayamp3[MAX_M1*MAX_M2*MAX_M3];
-    double decayampn3[MAX_M1*MAX_M2*MAX_M3];
-
 
     // ===== Variables used for the Rabenstein method
-    double n1d[MAX_M1];
-    double n2d[MAX_M1*MAX_M2];
-    double n3d[MAX_M1*MAX_M2*MAX_M3];
-    double n1d2[MAX_M1];
-    double n2d2[MAX_M1*MAX_M2];
-    double n3d2[MAX_M1*MAX_M2*MAX_M3];
-
     double alpha1d[MAX_M1];
     double alpha2d[MAX_M1*MAX_M2];
     double alpha3d[MAX_M1*MAX_M2*MAX_M3];
@@ -191,6 +177,14 @@ private:
     double omega1d[MAX_M1];
     double omega2d[MAX_M1*MAX_M2];
     double omega3d[MAX_M1*MAX_M2*MAX_M3];
+
+    // mode decay factors, sample-rate dependant
+    double decayamp1[MAX_M1];
+    double decayampn1[MAX_M1];
+    double decayamp2[MAX_M1*MAX_M2];
+    double decayampn2[MAX_M1*MAX_M2];
+    double decayamp3[MAX_M1*MAX_M2*MAX_M3];
+    double decayampn3[MAX_M1*MAX_M2*MAX_M3];
 
     double maxh = 1; // the max of h for each set of parameters
 };
