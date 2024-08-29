@@ -60,7 +60,9 @@ public:
     void ivan_getK();
 
     // ===== Methods used for the Rabenstein method
-    void rabenstein_initialize();
+    void rabenstein_getCoefficients(double _tau, double _p);
+    void rabenstein_getOmega();
+    void rabenstein_getK();
 
     // ===== Common methods
     void findmax();
@@ -110,13 +112,14 @@ private:
     double sr = 44100;
 
     // FTM model parameters
-    double fomega;        // frequency
-    double ftau, frel;    // sustain
+    double fomega;            // frequency
+    double ftau, frel;        // sustain
     bool bgate;
-    double fp, fring;     // damping
+    double fp, fring;         // damping
     bool bpGate;
-    double fd = 0, nextd; // inharmonicity
-    double fa, fa2;       // squareness/cubeness
+    double fd  = 0,   nextd;  // inharmonicity
+    double fa  = 0.5, nexta;  // squareness
+    double fa2 = 0.5, nexta2; // cubeness
 
     double r1, r2, r3;    // coordinates
 

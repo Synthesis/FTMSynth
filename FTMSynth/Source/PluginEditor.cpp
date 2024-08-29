@@ -285,7 +285,6 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     algoComboBox.addItemList(StringArray{"IVAN", "RABENSTEIN"}, 1);
     algoComboBox.setEditableText(false);
     algoComboBox.setLookAndFeel(new CustomComboBox());
-    algoComboBox.onChange = [this] { updateAlgoComponents(); };
     algoTree.reset(new AudioProcessorValueTreeState::ComboBoxAttachment(processor.tree, "algorithm", algoComboBox));
     addAndMakeVisible(algoComboBox);
     algoLabel.setText("METHOD", dontSendNotification);
@@ -416,27 +415,6 @@ void FTMSynthAudioProcessorEditor::updateVisualizations(int dimensionFlags)
     if ((dimensions == 3) && (dimensionFlags & 4))
     {
         boxView.repaint();
-    }
-}
-
-
-void FTMSynthAudioProcessorEditor::updateAlgoComponents()
-{
-    int choice = algoComboBox.getSelectedItemIndex();
-
-    if (choice == 1)
-    {
-        tauGateButton.setVisible(false);
-        relSlider.setVisible(false);
-        pGateButton.setVisible(false);
-        ringSlider.setVisible(false);
-    }
-    else
-    {
-        if (!tauGateButton.isVisible()) tauGateButton.setVisible(true);
-        if (!relSlider.isVisible()) relSlider.setVisible(true);
-        if (!pGateButton.isVisible()) pGateButton.setVisible(true);
-        if (!ringSlider.isVisible()) ringSlider.setVisible(true);
     }
 }
 
