@@ -126,34 +126,48 @@ void VisualPanel::paint(juce::Graphics& g)
         r3 = 1-r3;
 
         float thickness = 3.0f;
+        float zPlaneThickness = 1.0f;
+        Colour zPlaneColour(0x0FFF0000);
+        Colour zPlaneContourColour(0x4FFF0000);
 
         float width = 128.0f;
-        float depth = 128.0f*alpha2;
-        float height = 64.0f*alpha1;
+        float height = 128.0f*alpha1;
+        float depth = 64.0f*alpha2;
 
         // compute coordinates of cube vertices
-        float frontLeft = 160.0f-(height/2.0f);
-        float frontTop = 108.0f-(depth/2.0f)+(height/2.0f);
+        float frontLeft = 160.0f-(depth/2.0f);
+        float frontTop = 108.0f-(height/2.0f)+(depth/2.0f);
         float frontRight = frontLeft + width;
-        float frontBottom = frontTop + depth;
-        float backLeft = 160.0f+(height/2.0f);
-        float backTop = 108.0f-(depth/2.0f)-(height/2.0f);
+        float frontBottom = frontTop + height;
+        float backLeft = 160.0f+(depth/2.0f);
+        float backTop = 108.0f-(height/2.0f)-(depth/2.0f);
         float backRight = backLeft + width;
-        float backBottom = backTop + depth;
+        float backBottom = backTop + height;
 
         // draw backface and edge
         g.setColour(Colour(0xFF7F7F7F));
-        g.drawRect(backLeft-(thickness/2.0f), backTop-(thickness/2.0f), width+thickness, depth+thickness, thickness);
+        g.drawRect(backLeft-(thickness/2.0f), backTop-(thickness/2.0f), width+thickness, height+thickness, thickness);
         g.drawLine(frontLeft, frontBottom, backLeft, backBottom, thickness);
+
+        // draw left and bottom impact depth-plane contour
+        g.setColour(zPlaneContourColour);
+        g.drawLine(backLeft-(r3*depth), backTop+(r3*depth),
+                   backLeft-(r3*depth), backTop+(r3*depth)+height, zPlaneThickness);
+        g.drawLine(backLeft-(r3*depth), backTop+(r3*depth)+height,
+                   backLeft+width-(r3*depth), backTop+(r3*depth)+height, zPlaneThickness);
 
         // draw red cross at impact position
         g.setColour(Colours::red);
         float pointThickness = 3.0f;
         float crossSize = 5.0f;
-        g.drawLine(backLeft+(r1*width)-(r2*height)-crossSize, backTop+(r2*height)+(r3*depth),
-                   backLeft+(r1*width)-(r2*height)+crossSize, backTop+(r2*height)+(r3*depth), pointThickness);
-        g.drawLine(backLeft+(r1*width)-(r2*height), backTop+(r2*height)+(r3*depth)-crossSize,
-                   backLeft+(r1*width)-(r2*height), backTop+(r2*height)+(r3*depth)+crossSize, pointThickness);
+        g.drawLine(backLeft+(r1*width)-(r3*depth)-crossSize, backTop+(r3*depth)+(r2*height),
+                   backLeft+(r1*width)-(r3*depth)+crossSize, backTop+(r3*depth)+(r2*height), pointThickness);
+        g.drawLine(backLeft+(r1*width)-(r3*depth), backTop+(r3*depth)+(r2*height)-crossSize,
+                   backLeft+(r1*width)-(r3*depth), backTop+(r3*depth)+(r2*height)+crossSize, pointThickness);
+
+        // draw depth plane in translucent red
+        g.setColour(zPlaneColour);
+        g.fillRect(backLeft-(r3*depth), backTop+(r3*depth), width, height);
 
         // define top and right faces
         Path parallelogram1;
@@ -167,7 +181,14 @@ void VisualPanel::paint(juce::Graphics& g)
         g.setColour(Colour(0x5FFFFFFF));
         g.fillPath(parallelogram1);
         g.fillPath(parallelogram2);
-        g.fillRect(frontLeft, frontTop, width, depth);
+        g.fillRect(frontLeft, frontTop, width, height);
+
+        // draw top and right impact depth-plane contour
+        g.setColour(zPlaneContourColour);
+        g.drawLine(backLeft-(r3*depth), backTop+(r3*depth),
+                   backLeft+width-(r3*depth), backTop+(r3*depth), zPlaneThickness);
+        g.drawLine(backLeft+width-(r3*depth), backTop+(r3*depth),
+                   backLeft+width-(r3*depth), backTop+(r3*depth)+height, zPlaneThickness);
 
         // draw cube contour (front face + other outer edges)
         g.setColour(Colours::black);
@@ -176,7 +197,7 @@ void VisualPanel::paint(juce::Graphics& g)
         g.drawLine(frontRight, frontTop, backRight, backTop, thickness);
         g.drawLine(backRight, backTop, backRight, backBottom, thickness);
         g.drawLine(backRight, backBottom, frontRight, frontBottom, thickness);
-        g.drawRect(frontLeft-(thickness/2.0f), frontTop-(thickness/2.0f), width+thickness, depth+thickness, thickness);
+        g.drawRect(frontLeft-(thickness/2.0f), frontTop-(thickness/2.0f), width+thickness, height+thickness, thickness);
     }
 }
 
