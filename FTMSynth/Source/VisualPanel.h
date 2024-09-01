@@ -17,8 +17,10 @@
 class VisualPanel : public juce::Component
 {
 public:
-    VisualPanel(FTMSynthAudioProcessor& p, int dim);
+    VisualPanel(FTMSynthAudioProcessor& p);
     ~VisualPanel() override;
+
+    void setDimensions(int dim);
 
     void paint(juce::Graphics&) override;
     void resized() override;

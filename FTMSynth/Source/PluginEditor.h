@@ -28,7 +28,7 @@ public:
 private:
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
-    void updateVisualizations(int dimensionFlags);
+    void updateVisualization();
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -63,9 +63,7 @@ private:
     Slider voicesSlider;
     ComboBox algoComboBox;
 
-    VisualPanel stringView;
-    VisualPanel drumView;
-    VisualPanel boxView;
+    VisualPanel visualPanel;
 
     // Labels
     Label volumeLabel;

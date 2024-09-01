@@ -18,8 +18,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     stringButton("string"), drumButton("drum"), boxButton("box"),
     kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
     mainControls(112, 8, 512, 158), xyzControls(400, 176, 208, 216),
-    stringView(p, 1), drumView(p, 2), boxView(p, 3),
-    helpButton("help")
+    visualPanel(p), helpButton("help")
 {
     setSize(640, 400);
 
@@ -164,7 +163,6 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     dSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     dSlider.setPopupDisplayEnabled(true, true, this);
     dSlider.getProperties().set("colour", var(int(0x8000EAFF)));
-    dSlider.onValueChange = [this] { updateVisualizations(2); }; // 2D view
     dTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "dispersion", dSlider));
     dSlider.textFromValueFunction = [] (double value) { return String(value, 4); };
     addAndMakeVisible(dSlider);
@@ -177,7 +175,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     alpha1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     alpha1Slider.setPopupDisplayEnabled(true, true, this);
     alpha1Slider.getProperties().set("colour", var(int(0x8000FF44)));
-    alpha1Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
+    alpha1Slider.onValueChange = [this] { updateVisualization(); };
     alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "squareness", alpha1Slider));
     alpha1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha1Slider);
@@ -190,7 +188,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     alpha2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     alpha2Slider.setPopupDisplayEnabled(true, true, this);
     alpha2Slider.getProperties().set("colour", var(int(0x8067FF00)));
-    alpha2Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
+    alpha2Slider.onValueChange = [this] { updateVisualization(); };
     alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "cubeness", alpha2Slider));
     alpha2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha2Slider);
@@ -204,7 +202,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     r1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     r1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     r1Slider.setPopupDisplayEnabled(true, true, this);
-    r1Slider.onValueChange = [this] { updateVisualizations(7); }; // 1D + 2D + 3D view
+    r1Slider.onValueChange = [this] { updateVisualization(); };
     r1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r1", r1Slider));
     r1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r1Slider);
@@ -212,7 +210,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     r2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     r2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     r2Slider.setPopupDisplayEnabled(true, true, this);
-    r2Slider.onValueChange = [this] { updateVisualizations(6); }; // 2D + 3D view
+    r2Slider.onValueChange = [this] { updateVisualization(); };
     r2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r2", r2Slider));
     r2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r2Slider);
@@ -220,7 +218,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     r3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     r3Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     r3Slider.setPopupDisplayEnabled(true, true, this);
-    r3Slider.onValueChange = [this] { updateVisualizations(4); }; // 3D view
+    r3Slider.onValueChange = [this] { updateVisualization(); };
     r3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r3", r3Slider));
     r3Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r3Slider);
@@ -266,10 +264,8 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     addAndMakeVisible(zLabel);
 
 
-    // View panels
-    addChildComponent(stringView);
-    addChildComponent(drumView);
-    addChildComponent(boxView);
+    // View panel
+    addAndMakeVisible(visualPanel);
 
 
     // Misc components
@@ -357,10 +353,6 @@ void FTMSynthAudioProcessorEditor::updateDimensionComponents()
         alpha2Label.setAlpha(alphaOff);
         yLabel.setAlpha(alphaOff);
         zLabel.setAlpha(alphaOff);
-
-        drumView.setVisible(false);
-        boxView.setVisible(false);
-        stringView.setVisible(true);
     }
     else if (dimensions == 2)
     {
@@ -375,10 +367,6 @@ void FTMSynthAudioProcessorEditor::updateDimensionComponents()
         alpha2Label.setAlpha(alphaOff);
         yLabel.setAlpha(1);
         zLabel.setAlpha(alphaOff);
-
-        stringView.setVisible(false);
-        boxView.setVisible(false);
-        drumView.setVisible(true);
     }
     else if (dimensions == 3)
     {
@@ -393,29 +381,15 @@ void FTMSynthAudioProcessorEditor::updateDimensionComponents()
         alpha2Label.setAlpha(1);
         yLabel.setAlpha(1);
         zLabel.setAlpha(1);
-
-        stringView.setVisible(false);
-        drumView.setVisible(false);
-        boxView.setVisible(true);
     }
+
+    visualPanel.setDimensions(dimensions);
+    updateVisualization();
 }
 
-void FTMSynthAudioProcessorEditor::updateVisualizations(int dimensionFlags)
+void FTMSynthAudioProcessorEditor::updateVisualization()
 {
-    int dimensions = int(dimensionsSlider.getValue());
-
-    if ((dimensions == 1) && (dimensionFlags & 1))
-    {
-        stringView.repaint();
-    }
-    if ((dimensions == 2) && (dimensionFlags & 2))
-    {
-        drumView.repaint();
-    }
-    if ((dimensions == 3) && (dimensionFlags & 4))
-    {
-        boxView.repaint();
-    }
+    visualPanel.repaint();
 }
 
 
@@ -427,11 +401,6 @@ void FTMSynthAudioProcessorEditor::paint(Graphics& g)
 
     Image background = ImageCache::getFromMemory(BinaryData::background_png, BinaryData::background_pngSize);
     g.drawImage(background, Rectangle<float>(0, 0, 640, 400), RectanglePlacement::stretchToFit);
-
-    // g.setColour(getLookAndFeel().findColour(ResizableWindow::backgroundColourId)/*.withAlpha(0.5f)*/);
-    // g.fillRoundedRectangle(mainControls.getX(), mainControls.getY(), mainControls.getWidth(), mainControls.getHeight(), 4);
-    // g.fillRoundedRectangle(xyzControls.getX(), xyzControls.getY(), xyzControls.getWidth(), xyzControls.getHeight(), 4);
-    // g.setColour(Colours::black);
 
     updateDimensionComponents();
 }
@@ -492,11 +461,7 @@ void FTMSynthAudioProcessorEditor::resized()
     voicesSlider.setBounds(16, 16, 76, 24);
     voicesLabel.setBounds( 16, 48, 76, 14);
 
-    // View panels
-    drumView.setBounds(  32, 180, 352, 212);
-    boxView.setBounds(   32, 180, 352, 212);
-    stringView.setBounds(32, 180, 352, 212);
-
+    visualPanel.setBounds(32, 180, 352, 212);
     helpButton.setBounds(32, 344, 48, 48);
 
     algoComboBox.setBounds(464, 368, 144, 24);

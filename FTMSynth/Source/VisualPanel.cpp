@@ -13,8 +13,8 @@
 #include "CustomLookAndFeel.h"
 
 //==============================================================================
-VisualPanel::VisualPanel(FTMSynthAudioProcessor& p, int dim)
-    : processor(p), dimensions(dim)
+VisualPanel::VisualPanel(FTMSynthAudioProcessor& p)
+    : processor(p)
 {
     setLookAndFeel(new FunnyFont());
 
@@ -23,30 +23,27 @@ VisualPanel::VisualPanel(FTMSynthAudioProcessor& p, int dim)
     thisIsALabel.setText(typeStr, dontSendNotification);
     thisIsALabel.setJustificationType(Justification(Justification::topLeft));
     thisIsALabel.setColour(Label::textColourId, Colour(0xFF5F5F5F));
-    addAndMakeVisible(thisIsALabel);
-
-    String objStr("");
-    if (dimensions == 1) objStr += "string.";
-    else if (dimensions == 2) objStr += "drum.";
-    else if (dimensions == 3) objStr += "cuboid.";
-
-    nameLabel.setText(objStr, dontSendNotification);
-    nameLabel.setJustificationType(Justification(Justification::topLeft));
-    addAndMakeVisible(nameLabel);
+    addChildComponent(thisIsALabel);
+    addChildComponent(nameLabel);
 }
 
 VisualPanel::~VisualPanel()
 {
 }
 
+void VisualPanel::setDimensions(int dim)
+{
+    dimensions = dim;
+}
+
 void VisualPanel::paint(juce::Graphics& g)
 {
-    // g.setColour(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-    // g.fillRoundedRectangle(0, 0, getWidth(), getHeight(), 4);
-    // g.setColour(Colours::black);
+    String objStr("");
 
     if (dimensions == 1)
     {
+        objStr += "string.";
+
         float r1 = processor.tree.getRawParameterValue("r1")->load();
 
         Image strImage = ImageCache::getFromMemory(BinaryData::string_png, BinaryData::string_pngSize);
@@ -80,6 +77,8 @@ void VisualPanel::paint(juce::Graphics& g)
     }
     else if (dimensions == 2)
     {
+        objStr += "drum.";
+
         float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
         float r1 = processor.tree.getRawParameterValue("r1")->load();
         float r2 = processor.tree.getRawParameterValue("r2")->load();
@@ -117,6 +116,8 @@ void VisualPanel::paint(juce::Graphics& g)
     }
     else if (dimensions == 3)
     {
+        objStr += "cuboid.";
+
         float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
         float alpha2 = processor.tree.getRawParameterValue("cubeness")->load();
         float r1 = processor.tree.getRawParameterValue("r1")->load();
@@ -198,6 +199,20 @@ void VisualPanel::paint(juce::Graphics& g)
         g.drawLine(backRight, backTop, backRight, backBottom, thickness);
         g.drawLine(backRight, backBottom, frontRight, frontBottom, thickness);
         g.drawRect(frontLeft-(thickness/2.0f), frontTop-(thickness/2.0f), width+thickness, height+thickness, thickness);
+    }
+
+    nameLabel.setText(objStr, dontSendNotification);
+    nameLabel.setJustificationType(Justification(Justification::topLeft));
+
+    if (dimensions >= 1 && dimensions <= 3)
+    {
+        if (! thisIsALabel.isVisible()) thisIsALabel.setVisible(true);
+        if (! nameLabel.isVisible()) nameLabel.setVisible(true);
+    }
+    else
+    {
+        if (thisIsALabel.isVisible()) thisIsALabel.setVisible(false);
+        if (nameLabel.isVisible()) nameLabel.setVisible(false);
     }
 }
 
