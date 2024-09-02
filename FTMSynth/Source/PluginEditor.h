@@ -28,7 +28,7 @@ public:
 private:
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
-    void updateVisualization();
+    void updateVisualization(bool updateBounds = false);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

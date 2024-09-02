@@ -18,7 +18,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     stringButton("string"), drumButton("drum"), boxButton("box"),
     kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
     mainControls(112, 8, 512, 158), xyzControls(400, 176, 208, 216),
-    visualPanel(p), helpButton("help")
+    visualPanel(p, r1Slider, r2Slider, r3Slider), helpButton("help")
 {
     setSize(640, 400);
 
@@ -175,7 +175,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     alpha1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     alpha1Slider.setPopupDisplayEnabled(true, true, this);
     alpha1Slider.getProperties().set("colour", var(int(0x8000FF44)));
-    alpha1Slider.onValueChange = [this] { updateVisualization(); };
+    alpha1Slider.onValueChange = [this] { updateVisualization(true); };
     alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "squareness", alpha1Slider));
     alpha1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha1Slider);
@@ -188,7 +188,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     alpha2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     alpha2Slider.setPopupDisplayEnabled(true, true, this);
     alpha2Slider.getProperties().set("colour", var(int(0x8067FF00)));
-    alpha2Slider.onValueChange = [this] { updateVisualization(); };
+    alpha2Slider.onValueChange = [this] { updateVisualization(true); };
     alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "cubeness", alpha2Slider));
     alpha2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha2Slider);
@@ -218,7 +218,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     r3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     r3Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     r3Slider.setPopupDisplayEnabled(true, true, this);
-    r3Slider.onValueChange = [this] { updateVisualization(); };
+    r3Slider.onValueChange = [this] { updateVisualization(true); };
     r3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "r3", r3Slider));
     r3Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r3Slider);
@@ -387,8 +387,9 @@ void FTMSynthAudioProcessorEditor::updateDimensionComponents()
     updateVisualization();
 }
 
-void FTMSynthAudioProcessorEditor::updateVisualization()
+void FTMSynthAudioProcessorEditor::updateVisualization(bool updateBounds)
 {
+    if (updateBounds) visualPanel.updateBounds();
     visualPanel.repaint();
 }
 
@@ -449,11 +450,11 @@ void FTMSynthAudioProcessorEditor::resized()
     r1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() +  34, 48, 48);
     r2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
     r3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() +  34, 48, 48);
-    rLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() +  16, 48, 14);
+    rLabel.setBounds(  xyzControls.getX() +  74, xyzControls.getY() +  16, 64, 14);
     m1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() + 110, 48, 48);
     m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
     m3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() + 110, 48, 48);
-    mLabel.setBounds(  xyzControls.getX() +  82, xyzControls.getY() + 164, 48, 14);
+    mLabel.setBounds(  xyzControls.getX() +  74, xyzControls.getY() + 164, 64, 14);
     xLabel.setBounds(  xyzControls.getX() +  22, xyzControls.getY() +  89, 24, 14);
     yLabel.setBounds(  xyzControls.getX() +  94, xyzControls.getY() +  89, 24, 14);
     zLabel.setBounds(  xyzControls.getX() + 166, xyzControls.getY() +  89, 24, 14);

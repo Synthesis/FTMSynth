@@ -13,8 +13,9 @@
 #include "CustomLookAndFeel.h"
 
 //==============================================================================
-VisualPanel::VisualPanel(FTMSynthAudioProcessor& p)
-    : processor(p)
+VisualPanel::VisualPanel(FTMSynthAudioProcessor& p, Slider& attachedX, Slider& attachedY, Slider& attachedZ)
+    : processor(p), xSlider(attachedX), ySlider(attachedY), zSlider(attachedZ),
+      boundsDelta(12.0f), mouseDownInBounds(false)
 {
     setLookAndFeel(new FunnyFont());
 
@@ -23,8 +24,18 @@ VisualPanel::VisualPanel(FTMSynthAudioProcessor& p)
     thisIsALabel.setText(typeStr, dontSendNotification);
     thisIsALabel.setJustificationType(Justification(Justification::topLeft));
     thisIsALabel.setColour(Label::textColourId, Colour(0xFF5F5F5F));
+    thisIsALabel.setInterceptsMouseClicks(false, true);
     addChildComponent(thisIsALabel);
+    nameLabel.setInterceptsMouseClicks(false, true);
     addChildComponent(nameLabel);
+
+    // 1D resources
+    strImage = ImageCache::getFromMemory(BinaryData::string_png, BinaryData::string_pngSize);
+    delimiter = strImage.getClippedImage(Rectangle<int>(0, 0, strImage.getWidth()/2, strImage.getHeight()));
+    wire = strImage.getClippedImage(Rectangle<int>(strImage.getWidth()/2, 0, strImage.getWidth()/2, strImage.getHeight()));
+
+    // 2D resources
+    drumSkin = ImageCache::getFromMemory(BinaryData::drum_skin_png, BinaryData::drum_skin_pngSize);
 }
 
 VisualPanel::~VisualPanel()
@@ -34,9 +45,34 @@ VisualPanel::~VisualPanel()
 void VisualPanel::setDimensions(int dim)
 {
     dimensions = dim;
+    updateBounds();
 }
 
-void VisualPanel::paint(juce::Graphics& g)
+void VisualPanel::updateBounds()
+{
+    if (dimensions == 1)
+    {
+        bounds.setBounds(128.0f, 104.0f, 192.0f, 32.0f);
+    }
+    if (dimensions == 2)
+    {
+        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
+        bounds.setBounds(128.0f, 108.0f-(192.0f*alpha1/2.0f),
+                         192.0f, 192.0f*alpha1);
+    }
+    if (dimensions == 3)
+    {
+        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
+        float alpha2 = processor.tree.getRawParameterValue("cubeness")->load();
+        float r3 = processor.tree.getRawParameterValue("r3")->load();
+        float height = 128.0f*alpha1;
+        float depth = 64.0f*alpha2;
+        bounds.setBounds(160.0f+((r3-0.5f)*depth), 108.0f-(height*0.5f)+((0.5f-r3)*depth),
+                         128.0f, height);
+    }
+}
+
+void VisualPanel::paint(Graphics& g)
 {
     String objStr("");
 
@@ -45,10 +81,6 @@ void VisualPanel::paint(juce::Graphics& g)
         objStr += "string.";
 
         float r1 = processor.tree.getRawParameterValue("r1")->load();
-
-        Image strImage = ImageCache::getFromMemory(BinaryData::string_png, BinaryData::string_pngSize);
-        Image delimiter = strImage.getClippedImage(Rectangle<int>(0, 0, strImage.getWidth()/2, strImage.getHeight()));
-        Image wire = strImage.getClippedImage(Rectangle<int>(strImage.getWidth()/2, 0, strImage.getWidth()/2, strImage.getHeight()));
 
         int left = 120;
         int right = 312;
@@ -91,8 +123,10 @@ void VisualPanel::paint(juce::Graphics& g)
         float destX = 128.0f;
         float destY = 108.0f-(destHeight/2.0f);
 
+        float impulseX = destX+(r1*destWidth);
+        float impulseY = destY+(r2*destHeight);
+
         // draw drum skin
-        Image drumSkin = ImageCache::getFromMemory(BinaryData::drum_skin_png, BinaryData::drum_skin_pngSize);
         float srcX = 0.f;
         float srcY = (1-alpha1)*drumSkin.getHeight()/2.0f;
         float srcWidth = float(drumSkin.getWidth());
@@ -104,10 +138,8 @@ void VisualPanel::paint(juce::Graphics& g)
         g.setColour(Colours::red);
         float pointThickness = 3.0f;
         float crossSize = 5.0f;
-        g.drawLine(destX+(r1*destWidth)-crossSize, destY+(r2*destHeight),
-                   destX+(r1*destWidth)+crossSize, destY+(r2*destHeight), pointThickness);
-        g.drawLine(destX+(r1*destWidth), destY+(r2*destHeight)-crossSize,
-                   destX+(r1*destWidth), destY+(r2*destHeight)+crossSize, pointThickness);
+        g.drawLine(impulseX-crossSize, impulseY, impulseX+crossSize, impulseY, pointThickness);
+        g.drawLine(impulseX, impulseY-crossSize, impulseX, impulseY+crossSize, pointThickness);
 
         // draw bounds
         g.setColour(Colour(0xFF451A08));
@@ -145,6 +177,9 @@ void VisualPanel::paint(juce::Graphics& g)
         float backRight = backLeft + width;
         float backBottom = backTop + height;
 
+        float impulseX = backLeft+(r1*width)-(r3*depth);
+        float impulseY = backTop+(r3*depth)+(r2*height);
+
         // draw backface and edge
         g.setColour(Colour(0xFF7F7F7F));
         g.drawRect(backLeft-(thickness/2.0f), backTop-(thickness/2.0f), width+thickness, height+thickness, thickness);
@@ -161,10 +196,8 @@ void VisualPanel::paint(juce::Graphics& g)
         g.setColour(Colours::red);
         float pointThickness = 3.0f;
         float crossSize = 5.0f;
-        g.drawLine(backLeft+(r1*width)-(r3*depth)-crossSize, backTop+(r3*depth)+(r2*height),
-                   backLeft+(r1*width)-(r3*depth)+crossSize, backTop+(r3*depth)+(r2*height), pointThickness);
-        g.drawLine(backLeft+(r1*width)-(r3*depth), backTop+(r3*depth)+(r2*height)-crossSize,
-                   backLeft+(r1*width)-(r3*depth), backTop+(r3*depth)+(r2*height)+crossSize, pointThickness);
+        g.drawLine(impulseX-crossSize, impulseY, impulseX+crossSize, impulseY, pointThickness);
+        g.drawLine(impulseX, impulseY-crossSize, impulseX, impulseY+crossSize, pointThickness);
 
         // draw depth plane in translucent red
         g.setColour(zPlaneColour);
@@ -221,6 +254,65 @@ void VisualPanel::resized()
     int offsetX = 16;
     int offsetY = 12;
 
-    thisIsALabel.setBounds(offsetX, offsetY, 256, 96);
-    nameLabel.setBounds(offsetX + 20, offsetY + 28, 240, 48);
+    thisIsALabel.setBounds(offsetX, offsetY, 96, 64);
+    nameLabel.setBounds(offsetX + 20, offsetY + 28, 80, 40);
+}
+
+void VisualPanel::updateXYonMouse(const MouseEvent& e)
+{
+    if (bounds.expanded(boundsDelta).contains(e.position))
+    {
+        if (dimensions >= 1)
+        {
+            double r1 = jlimit(xSlider.getMinimum(), xSlider.getMaximum(),
+                              double((e.position.getX()-bounds.getX()) / bounds.getWidth()));
+            xSlider.setValue(r1);
+        }
+        if (dimensions == 2 || dimensions == 3)
+        {
+            double r2 = jlimit(ySlider.getMinimum(), ySlider.getMaximum(),
+                              double((bounds.getBottom()-e.position.getY()) / bounds.getHeight()));
+            ySlider.setValue(r2);
+        }
+    }
+}
+
+void VisualPanel::mouseDown(const MouseEvent& e)
+{
+    if (e.mods.isLeftButtonDown() && bounds.expanded(boundsDelta).contains(e.position))
+    {
+        mouseDownInBounds = true;
+        updateXYonMouse(e);
+    }
+    else
+    {
+        mouseDownInBounds = false;
+    }
+}
+
+void VisualPanel::mouseDrag(const MouseEvent& e)
+{
+    if (mouseDownInBounds)
+        updateXYonMouse(e);
+}
+
+void VisualPanel::mouseUp(const MouseEvent& /*e*/)
+{
+    if (mouseDownInBounds) mouseDownInBounds = false;
+}
+
+void VisualPanel::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
+{
+    if (dimensions == 3)
+    {
+        MouseEvent eventNoDrag(e.source, e.position, e.mods.withoutMouseButtons(),
+                               e.pressure, e.orientation, e.rotation, e.tiltX, e.tiltY,
+                               e.eventComponent, e.originalComponent,
+                               e.eventTime, e.position, e.eventTime, 0, false);
+        zSlider.mouseWheelMove(eventNoDrag, wheel);
+    }
+    else
+    {
+        Component::mouseWheelMove(e, wheel);
+    }
 }
