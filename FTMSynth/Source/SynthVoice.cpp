@@ -181,42 +181,42 @@ void SynthVoice::ivan_getf()
 // sigma
 void SynthVoice::ivan_getSigma(double _tau, double p)
 {
-    double sigma1 = -1/_tau;
+    double fsigma = -1/_tau;
 
     // 1D
     if (dim == 0)
     {
         for (int i=0; i<m1; i++)
         {
-            sigma1d[i] = sigma1*(1+p*(pow(i+1,2)-1));
-            decayamp1[i] = exp(sigma1d[i]/sr);
+            sigma[i] = fsigma*(1+p*(pow(i+1,2)-1));
+            decayamp[i] = exp(sigma[i]/sr);
         }
     }
     // 2D
     else if (dim == 1)
     {
-        double beta = fa + 1/fa;
+        double fbeta = fa + 1/fa;
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
             {
-                sigma2d[i+m1*j] = sigma1*(1+p*(pow(i+1,2)*fa+pow(j+1,2)/fa-beta));
-                decayamp2[i+m1*j] = exp(sigma2d[i+m1*j]/sr);
+                sigma[i+m1*j] = fsigma*(1+p*(pow(i+1,2)*fa+pow(j+1,2)/fa-fbeta));
+                decayamp[i+m1*j] = exp(sigma[i+m1*j]/sr);
             }
         }
     }
     // 3D
     else if (dim == 2)
     {
-        double beta = fa*fa2 + fa/fa2 + fa2/fa;
+        double fbeta = fa*fa2 + fa/fa2 + fa2/fa;
         for (int k=0; k<m3; k++)
         {
             for (int j=0; j<m2; j++)
             {
                 for (int i=0; i<m1; i++)
                 {
-                    sigma3d[i+m1*(j+m2*k)] = sigma1*(1+p*(pow(i+1,2)*fa*fa2 + pow(j+1,2)*fa2/fa + pow(k+1,2)*fa/fa2 - beta));
-                    decayamp3[i+m1*(j+m2*k)] = exp(sigma3d[i+m1*(j+m2*k)]/sr);
+                    sigma[i+m1*(j+m2*k)] = fsigma*(1+p*(pow(i+1,2)*fa*fa2 + pow(j+1,2)*fa2/fa + pow(k+1,2)*fa/fa2 - fbeta));
+                    decayamp[i+m1*(j+m2*k)] = exp(sigma[i+m1*(j+m2*k)]/sr);
                 }
             }
         }
@@ -229,40 +229,59 @@ void SynthVoice::ivan_getw(double p)
     // 1D
     if (dim == 0)
     {
-        double sigma = -1/ftau;
+        double fsigma = -1/ftau;
         for (int i=0; i<m1; i++)
         {
             double interm = pow(i+1,2); //M^2
-            omega1d[i] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p), 2) + pow(fomega,2)*(1-pow(fd, 2))) - pow(sigma*(1-p), 2));
+            omega[i] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(fsigma*(1-p), 2) + pow(fomega,2)*(1-pow(fd, 2))) - pow(fsigma*(1-p), 2));
+
+            // remove aliasing by checking whether the mode frequency is above Nyquist
+            mode_rejected[i] = ((omega[i]/(2*M_PI)) >= (sr/2));
         }
     }
     // 2D
     else if (dim == 1)
     {
-        double beta = fa + 1/fa;
-        double sigma = -1/ftau;
+        double fbeta = fa + 1/fa;
+        double fsigma = -1/ftau;
+
+        int index = 0;
+
         for (int j=0; j<m2; j++)
         {
             for (int i=0; i<m1; i++)
             {
+                index = i+m1*j;
+
                 double interm = pow(i+1,2)*fa + pow(j+1,2)/fa;
-                omega2d[i+m1*j] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-p*beta), 2));
+                omega[index] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(fsigma*(1-p*fbeta), 2)/fbeta + pow(fomega, 2)*(1-pow(fd*fbeta, 2))/fbeta) - pow(fsigma*(1-p*fbeta), 2));
+
+                // aliasing removal
+                mode_rejected[index] = ((omega[index]/(2*M_PI)) >= (sr/2));
             }
         }
     }
     // 3D
     else if (dim == 2)
     {
-        double beta = fa*fa2 + fa/fa2 + fa2/fa;
-        double sigma = -1/ftau;
+        double fbeta = fa*fa2 + fa/fa2 + fa2/fa;
+        double fsigma = -1/ftau;
+
+        int index = 0;
+
         for (int k=0; k<m3; k++)
         {
             for (int j=0; j<m2; j++)
             {
                 for (int i=0; i<m1; i++)
                 {
+                    index = i+m1*(j+m2*k);
+
                     double interm = pow(i+1,2)*fa*fa2 + pow(j+1,2)*fa2/fa + pow(k+1,2)*fa/fa2;
-                    omega3d[i+m1*(j+m2*k)] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(sigma*(1-p*beta), 2)/beta + pow(fomega, 2)*(1-pow(fd*beta, 2))/beta) - pow(sigma*(1-p*beta), 2));
+                    omega[index] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(fsigma*(1-p*fbeta), 2)/fbeta + pow(fomega, 2)*(1-pow(fd*fbeta, 2))/fbeta) - pow(fsigma*(1-p*fbeta), 2));
+
+                    // aliasing removal
+                    mode_rejected[index] = ((omega[index]/(2*M_PI)) >= (sr/2));
                 }
             }
         }
@@ -280,11 +299,7 @@ void SynthVoice::ivan_getK()
     {
         for (int i=0; i<m1; i++)
         {
-            if ((omega1d[i]/(2*M_PI)) >= (sr/2.0))
-                // remove aliasing by checking whether the mode frequency is above Nyquist
-                k1d[i] = 0;
-            else
-                k1d[i] = f1[i] * sin((i+1)*x1*M_PI/l1) / omega1d[i];
+            knd[i] = f1[i] * sin((i+1)*x1*M_PI/l1) / omega[i];
         }
     }
     // 2D
@@ -297,11 +312,7 @@ void SynthVoice::ivan_getK()
         {
             for (int i=0; i<m1; i++)
             {
-                if ((omega2d[i+m1*j]/(2*M_PI)) >= (sr/2.0))
-                    // aliasing removal
-                    k2d[i+m1*j] = 0;
-                else
-                    k2d[i+m1*j] = f1[i]*f2[j] * sin((i+1)*x1*M_PI/l1) * sin((j+1)*x2*M_PI/l2) / omega2d[i+m1*j];
+                knd[i+m1*j] = f1[i]*f2[j] * sin((i+1)*x1*M_PI/l1) * sin((j+1)*x2*M_PI/l2) / omega[i+m1*j];
             }
         }
     }
@@ -319,11 +330,7 @@ void SynthVoice::ivan_getK()
             {
                 for (int i=0; i<m1; i++)
                 {
-                    if ((omega3d[i+m1*(j+m2*k)]/(2*M_PI)) >= (sr/2.0))
-                        // aliasing removal
-                        k3d[i+m1*(j+m2*k)] = 0;
-                    else
-                        k3d[i+m1*(j+m2*k)] = f1[i]*f2[j]*f3[k] * sin((i+1)*x1*M_PI/l1) * sin((j+1)*x2*M_PI/l2) * sin((k+1)*x3*M_PI/l3) / omega3d[i+m1*(j+m2*k)];
+                    knd[i+m1*(j+m2*k)] = f1[i]*f2[j]*f3[k] * sin((i+1)*x1*M_PI/l1) * sin((j+1)*x2*M_PI/l2) * sin((k+1)*x3*M_PI/l3) / omega[i+m1*(j+m2*k)];
                 }
             }
         }
@@ -351,25 +358,25 @@ void SynthVoice::rabenstein_getCoefficients(double _tau, double p)
             n = pow(i+1, 2);
             n2 = n*n;
 
-            beta1d[i] = EI * n2 + T * n;
-            alpha1d[i] = (d1 - d3 * n) / 2;
+            beta[i] = EI * n2 + T * n;
+            alpha[i] = (d1 - d3 * n) / 2;
 
-            decayamp1[i] = exp(-alpha1d[i]/sr);
+            decayamp[i] = exp(-alpha[i]/sr);
         }
 
-        fN1d = M_PI / 4;
+        fN = M_PI / 4;
     }
     // 2D
     else if (dim == 1)
     {
         double l2 = M_PI*fa;
-        double beta = fa + 1/fa;
+        double fbeta = fa + 1/fa;
 
         double EI = pow(fd*fomega*fa, 2) + pow(p*fa/_tau, 2);
-        double T = (fa * (1/beta - p*p*beta) / _tau*_tau
-                + fa * fomega*fomega * (1/beta - fd*fd * beta));
+        double T = (fa * (1/fbeta - p*p*fbeta) / _tau*_tau
+                + fa * fomega*fomega * (1/fbeta - fd*fd * fbeta));
 
-        double d1 = 2 * (1 - p*beta) / _tau;
+        double d1 = 2 * (1 - p*fbeta) / _tau;
         double d3 = -2 * p * fa / _tau;
 
         int index = 0;
@@ -384,27 +391,27 @@ void SynthVoice::rabenstein_getCoefficients(double _tau, double p)
                 n = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2);
                 n2 = n*n;
 
-                beta2d[index] = EI * n2 + T * n;
-                alpha2d[index] = (d1 - d3 * n) / 2;
+                beta[index] = EI * n2 + T * n;
+                alpha[index] = (d1 - d3 * n) / 2;
 
-                decayamp2[index] = exp(-alpha2d[index]/sr);
+                decayamp[index] = exp(-alpha[index]/sr);
             }
         }
 
-        fN2d = M_PI * l2 / 4;
+        fN = M_PI * l2 / 4;
     }
     // 3D
     else if (dim == 2)
     {
         double l2 = M_PI*fa;
         double l3 = M_PI*fa2;
-        double beta = fa*fa2 + fa/fa2 + fa2/fa;
+        double fbeta = fa*fa2 + fa/fa2 + fa2/fa;
 
         double EI = pow(fd*fomega*fa*fa2, 2) + pow(p*fa*fa2/_tau, 2);
-        double T = (fa*fa2 * (1/beta - p*p*beta) / _tau*_tau
-                + fa*fa2 * fomega*fomega * (1/beta - fd*fd * beta));
+        double T = (fa*fa2 * (1/fbeta - p*p*fbeta) / _tau*_tau
+                + fa*fa2 * fomega*fomega * (1/fbeta - fd*fd * fbeta));
 
-        double d1 = 2 * (1 - p*beta) / _tau;
+        double d1 = 2 * (1 - p*fbeta) / _tau;
         double d3 = -2 * p * fa*fa2 / _tau;
 
         int index = 0;
@@ -421,62 +428,30 @@ void SynthVoice::rabenstein_getCoefficients(double _tau, double p)
                     n = pow((i+1)*M_PI/l0, 2) + pow((j+1)*M_PI/l2, 2) + pow((k+1)*M_PI/l3, 2);
                     n2 = n*n;
 
-                    beta3d[index] = EI * n2 + T * n;
-                    alpha3d[index] = (d1 - d3 * n) / 2;
+                    beta[index] = EI * n2 + T * n;
+                    alpha[index] = (d1 - d3 * n) / 2;
 
-                    decayamp3[index] = exp(-alpha3d[index]/sr);
+                    decayamp[index] = exp(-alpha[index]/sr);
                 }
             }
         }
 
-        fN3d = M_PI * l2 * l3 / 8;
+        fN = M_PI * l2 * l3 / 8;
     }
 }
 
 // get coefficient omega for the impulse response
-void SynthVoice::rabenstein_getOmega()
+void SynthVoice::rabenstein_getw()
 {
-    // 1D
-    if (dim == 0)
-    {
-        for (int i=0; i<m1; i++)
-        {
-            omega1d[i] = sqrt(abs(beta1d[i] - alpha1d[i]*alpha1d[i]));
-            mode_rejected1d[i] = ((omega1d[i] / (2*M_PI)) > (sr / 2));
-        }
-    }
-    // 2D
-    else if (dim == 1)
-    {
-        int index = 0;
+    int maxIndex = 0;
+    if (dim >= 0) maxIndex = m1;
+    if (dim >= 1) maxIndex *= m2;
+    if (dim >= 2) maxIndex *= m3;
 
-        for (int j=0; j<m2; j++)
-        {
-            for (int i=0; i<m1; i++)
-            {
-                index = i+m1*j;
-                omega2d[index] = sqrt(abs(beta2d[index] - alpha2d[index]*alpha2d[index]));
-                mode_rejected2d[index] = ((omega2d[index] / (2*M_PI)) > (sr / 2));
-            }
-        }
-    }
-    // 3D
-    else if (dim == 2)
+    for (int i=0; i<maxIndex; i++)
     {
-        int index = 0;
-
-        for (int k=0; k<m3; k++)
-        {
-            for (int j=0; j<m2; j++)
-            {
-                for (int i=0; i<m1; i++)
-                {
-                    index = i+m1*(j+m2*k);
-                    omega3d[index] = sqrt(abs(beta3d[index] - alpha3d[index]*alpha3d[index]));
-                    mode_rejected3d[index] = ((omega3d[index] / (2*M_PI)) > (sr / 2));
-                }
-            }
-        }
+        omega[i] = sqrt(abs(beta[i] - alpha[i]*alpha[i]));
+        mode_rejected[i] = ((omega[i]/(2*M_PI)) > (sr/2));
     }
 }
 
@@ -488,8 +463,8 @@ void SynthVoice::rabenstein_getK()
     {
         for (int i=0; i<m1; i++)
         {
-            k1d[i] = sin((i+1)*M_PI*r1);
-            yi1d[i] = level * k1d[i] / omega1d[i];
+            knd[i] = sin((i+1)*M_PI*r1);
+            yi[i] = level * knd[i] / omega[i];
         }
     }
     // 2D
@@ -503,8 +478,8 @@ void SynthVoice::rabenstein_getK()
             {
                 index = i+m1*j;
 
-                k2d[index] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2);
-                yi2d[index] = level * k2d[index] / omega2d[index];
+                knd[index] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2);
+                yi[index] = level * knd[index] / omega[index];
             }
         }
     }
@@ -521,8 +496,8 @@ void SynthVoice::rabenstein_getK()
                 {
                     index = i+m1*(j+m2*k);
 
-                    k3d[index] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) * sin((k+1)*M_PI*r3);
-                    yi3d[index] = level * k3d[index] / omega3d[index];
+                    knd[index] = sin((i+1)*M_PI*r1) * sin((j+1)*M_PI*r2) * sin((k+1)*M_PI*r3);
+                    yi[index] = level * knd[index] / omega[index];
                 }
             }
         }
@@ -535,245 +510,80 @@ void SynthVoice::findmax()
 {
     double h = 0;
 
-    // 1D
-    if (dim == 0)
+    int maxIndex = 0;
+    if (dim >= 0) maxIndex = m1;
+    if (dim >= 1) maxIndex *= m2;
+    if (dim >= 2) maxIndex *= m3;
+
+    double coef, decay;
+    for (int i=0; i<maxIndex; i++)
     {
-        double coef, decay;
-        for (int i=0; i<m1; i++)
+        coef = 1;
+        decay = 0;
+        if (currentAlgorithm == Algorithm::ivan)
         {
-            coef = 1;
-            decay = 0;
-            if (currentAlgorithm == Algorithm::ivan)
-            {
-                decay = sigma1d[i];
-            }
-            else if (currentAlgorithm == Algorithm::rabenstein)
-            {
-                coef = yi1d[i];
-                decay = -alpha1d[i];
-            }
-            h += coef * k1d[i] * exp(decay*M_PI_2 / omega1d[i]);
+            decay = sigma[i];
         }
-        if (currentAlgorithm == Algorithm::rabenstein) h /= fN1d*level;
-    }
-    // 2D
-    else if (dim == 1)
-    {
-        double coef, decay;
-        for (int j=0; j<m2; j++)
+        else if (currentAlgorithm == Algorithm::rabenstein)
         {
-            for (int i=0; i<m1; i++)
-            {
-                coef = 1;
-                decay = 0;
-                if (currentAlgorithm == Algorithm::ivan)
-                {
-                    decay = sigma2d[i+m1*j];
-                }
-                else if (currentAlgorithm == Algorithm::rabenstein)
-                {
-                    coef = yi2d[i+m1*j];
-                    decay = -alpha2d[i+m1*j];
-                }
-                h += coef * k2d[i+m1*j] * exp(decay*M_PI_2 / omega2d[i+m1*j]);
-            }
+            coef = yi[i];
+            decay = -alpha[i];
         }
-        if (currentAlgorithm == Algorithm::rabenstein) h /= fN2d*level;
+        h += coef * knd[i] * exp(decay*M_PI_2 / omega[i]);
     }
-    // 3D
-    else if (dim == 2)
-    {
-        double coef, decay;
-        for (int k=0; k<m3; k++)
-        {
-            for (int j=0; j<m2; j++)
-            {
-                for (int i=0; i<m1; i++)
-                {
-                    coef = 1;
-                    decay = 0;
-                    if (currentAlgorithm == Algorithm::ivan)
-                    {
-                        decay = sigma3d[i+m1*(j+m2*k)];
-                    }
-                    else if (currentAlgorithm == Algorithm::rabenstein)
-                    {
-                        coef = yi3d[i+m1*(j+m2*k)];
-                        decay = -alpha3d[i+m1*(j+m2*k)];
-                    }
-                    h += coef * k3d[i+m1*(j+m2*k)] * exp(decay*M_PI_2 / omega3d[i+m1*(j+m2*k)]);
-                }
-            }
-        }
-        if (currentAlgorithm == Algorithm::rabenstein) h /= fN3d*level;
-    }
-    //
-    else
-    {
-        h = 1;
-    }
+    if (currentAlgorithm == Algorithm::rabenstein) h /= fN*level;
+
+    if (h == 0) h = 1;
 
     maxh = h;
 }
 
 void SynthVoice::initDecayampn()
 {
-    // 1D
-    if (dim == 0)
-    {
-        for (int i=0; i<m1; i++)
-            decayampn1[i] = 1.0;
-    }
-    // 2D
-    else if (dim == 1)
-    {
-        for (int j=0; j<m2; j++)
-            for (int i=0; i<m1; i++)
-                decayampn2[i+m1*j] = 1.0;
-    }
-    // 3D
-    else if (dim == 2)
-    {
-        for (int k=0; k<m3; k++)
-            for (int j=0; j<m2; j++)
-                for (int i=0; i<m1; i++)
-                    decayampn3[i+m1*(j+m2*k)] = 1.0;
-    }
+    int maxIndex = 0;
+    if (dim >= 0) maxIndex = m1;
+    if (dim >= 1) maxIndex *= m2;
+    if (dim >= 2) maxIndex *= m3;
+
+    for (int i=0; i<maxIndex; i++)
+        decayampn[i] = 1.0;
 }
 
 
 // this function synthesizes the signal value at each sample
-double SynthVoice::ivan_finaloutput()
+double SynthVoice::finaloutput()
 {
     if (trig == false) return 0;
 
     double h = 0;
     double lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
 
-    // 1D
-    if (dim == 0)
-    {
-        for (int i=0; i<m1; i++)
-        {
-            decayampn1[i] *= decayamp1[i];
-            h += k1d[i] * decayampn1[i] * fastSin(omega1d[i]*t);
-        }
-    }
-    // 2D
-    else if (dim == 1)
-    {
-        int index = 0;
-
-        for (int j=0; j<m2; j++)
-        {
-            for (int i=0; i<m1; i++)
-            {
-                index = i+m1*j;
-                // designate the exponential envelope
-                decayampn2[index] *= decayamp2[index];
-                // synthesize the sound at time t
-                h += k2d[index] * decayampn2[index] * fastSin(omega2d[index]*t);
-            }
-        }
-    }
-    // 3D
-    else if (dim == 2)
-    {
-        int index = 0;
-
-        for (int k=0; k<m3; k++)
-        {
-            for (int j=0; j<m2; j++)
-            {
-                for (int i=0; i<m1; i++)
-                {
-                    index = i+m1*(j+m2*k);
-                    decayampn3[index] *= decayamp3[index];
-                    h += k3d[index] * decayampn3[index] * fastSin(omega3d[index]*t);
-                }
-            }
-        }
-    }
-
-    double output = (h*level) / maxh;
-
-    nsamp += pow(2.0, pitchBend);
-    t = nsamp/sr; // t advancing one sample
-
-    if (t >= dur)
-    {
-        trig = false;
-        clearCurrentNote();
-    }
-
-    return output * mainVolume;
-}
-
-// this function synthesizes the signal value at each sample
-double SynthVoice::rabenstein_finaloutput()
-{
-    if (trig == false) return 0;
-
-    double h = 0;
-    double lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
+    int maxIndex = 0;
+    if (dim >= 0) maxIndex = m1;
+    if (dim >= 1) maxIndex *= m2;
+    if (dim >= 2) maxIndex *= m3;
 
     // synthesize the sound at time t
-    // 1D
-    if (dim == 0)
+    for (int i=0; i<maxIndex; i++)
     {
-        for (int i=0; i<m1; i++)
-        {
-            if (!mode_rejected1d[i])
-            {
-                decayampn1[i] *= decayamp1[i];
-                h += (yi1d[i] * decayampn1[i] * fastSin(omega1d[i]*t)) * k1d[i];
-            }
-        }
-        h /= fN1d;
-    }
-    // 2D
-    else if (dim == 1)
-    {
-        int index = 0;
+        double y = 1.0;
 
-        for (int j=0; j<m2; j++)
-        {
-            for (int i=0; i<m1; i++)
-            {
-                index = i+m1*j;
-                if (!mode_rejected2d[index])
-                {
-                    decayampn2[index] *= decayamp2[index];
-                    h += (yi2d[index] * decayampn2[index] * fastSin(omega2d[index]*t)) * k2d[index];
-                }
-            }
-        }
-        h /= fN2d;
-    }
-    // 3D
-    else if (dim == 2)
-    {
-        int index = 0;
+        if (currentAlgorithm == Algorithm::rabenstein) y = yi[i];
 
-        for (int k=0; k<m3; k++)
+        if (!mode_rejected[i])
         {
-            for (int j=0; j<m2; j++)
-            {
-                for (int i=0; i<m1; i++)
-                {
-                    index = i+m1*(j+m2*k);
-                    if (!mode_rejected3d[index])
-                    {
-                        decayampn3[index] *= decayamp3[index];
-                        h += (yi3d[index] * decayampn3[index] * fastSin(omega3d[index]*t)) * k3d[index];
-                    }
-                }
-            }
+            // designate the exponential envelope
+            decayampn[i] *= decayamp[i];
+
+            // synthesize the sound
+            h += knd[i] * decayampn[i] * fastSin(omega[i]*t) * y;
         }
-        h /= fN3d;
     }
 
-    double output = h / maxh;
+    double lvl = level;
+    if (currentAlgorithm == Algorithm::rabenstein) lvl = 1/fN;
+
+    double output = (h*lvl) / maxh;
 
     nsamp += pow(2.0, pitchBend);
     t = nsamp/sr; // t advancing one sample
@@ -833,7 +643,7 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     else if (currentAlgorithm == Algorithm::rabenstein)
     {
         rabenstein_getCoefficients(ftau, fp);
-        rabenstein_getOmega();
+        rabenstein_getw();
         rabenstein_getK();
     }
     findmax();
@@ -907,52 +717,24 @@ void SynthVoice::channelPressureChanged(int /*newChannelPressureValue*/)
 //==================================
 void SynthVoice::renderNextBlock(AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
-    if (currentAlgorithm == Algorithm::ivan)
+    for (int sample=0; sample<numSamples; sample++)
     {
-        for (int sample=0; sample<numSamples; sample++)
+        float drumSound = float(finaloutput());
+        for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
         {
-            float drumSound = float(ivan_finaloutput());
-            for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
-            {
-                outputBuffer.addSample(channel, startSample+sample, drumSound);
-            }
-        }
-    }
-    else if (currentAlgorithm == Algorithm::rabenstein)
-    {
-        for (int sample=0; sample<numSamples; sample++)
-        {
-            float drumSound = float(rabenstein_finaloutput());
-            for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
-            {
-                outputBuffer.addSample(channel, startSample+sample, drumSound);
-            }
+            outputBuffer.addSample(channel, startSample+sample, drumSound);
         }
     }
 }
 //==================================
 void SynthVoice::renderNextBlock(AudioBuffer<double> &outputBuffer, int startSample, int numSamples)
 {
-    if (currentAlgorithm == Algorithm::ivan)
+    for (int sample=0; sample<numSamples; sample++)
     {
-        for (int sample=0; sample<numSamples; sample++)
+        double drumSound = finaloutput();
+        for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
         {
-            double drumSound = ivan_finaloutput();
-            for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
-            {
-                outputBuffer.addSample(channel, startSample+sample, drumSound);
-            }
-        }
-    }
-    else if (currentAlgorithm == Algorithm::rabenstein)
-    {
-        for (int sample=0; sample<numSamples; sample++)
-        {
-            double drumSound = rabenstein_finaloutput();
-            for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
-            {
-                outputBuffer.addSample(channel, startSample+sample, drumSound);
-            }
+            outputBuffer.addSample(channel, startSample+sample, drumSound);
         }
     }
 }
@@ -971,7 +753,7 @@ void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
     else if (currentAlgorithm == Algorithm::rabenstein)
     {
         rabenstein_getCoefficients(_tau, p);
-        rabenstein_getOmega();
+        rabenstein_getw();
     }
 }
 //==================================

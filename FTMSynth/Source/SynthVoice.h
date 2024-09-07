@@ -61,14 +61,13 @@ public:
 
     // ===== Methods used for the Rabenstein method
     void rabenstein_getCoefficients(double _tau, double _p);
-    void rabenstein_getOmega();
+    void rabenstein_getw();
     void rabenstein_getK();
 
     // ===== Common methods
     void findmax();
     void initDecayampn();
-    double ivan_finaloutput();
-    double rabenstein_finaloutput();
+    double finaloutput();
 
 
     //==================================
@@ -144,50 +143,30 @@ private:
     double f3[MAX_M3];
 
     // mode decay/damping factors
-    double sigma1d[MAX_M1];
-    double sigma2d[MAX_M1*MAX_M2];
-    double sigma3d[MAX_M1*MAX_M2*MAX_M3];
+    double sigma[MAX_M1*MAX_M2*MAX_M3];
 
 
     // ===== Variables used for the Rabenstein method
-    double alpha1d[MAX_M1];
-    double alpha2d[MAX_M1*MAX_M2];
-    double alpha3d[MAX_M1*MAX_M2*MAX_M3];
-    double beta1d[MAX_M1];
-    double beta2d[MAX_M1*MAX_M2];
-    double beta3d[MAX_M1*MAX_M2*MAX_M3];
+    double alpha[MAX_M1*MAX_M2*MAX_M3];
+    double beta[MAX_M1*MAX_M2*MAX_M3];
 
-    bool mode_rejected1d[MAX_M1];
-    bool mode_rejected2d[MAX_M1*MAX_M2];
-    bool mode_rejected3d[MAX_M1*MAX_M2*MAX_M3];
+    bool mode_rejected[MAX_M1*MAX_M2*MAX_M3];
 
-    double fN1d;
-    double fN2d;
-    double fN3d;
+    double fN;
 
-    double yi1d[MAX_M1];
-    double yi2d[MAX_M1*MAX_M2];
-    double yi3d[MAX_M1*MAX_M2*MAX_M3];
+    double yi[MAX_M1*MAX_M2*MAX_M3];
 
 
     // ===== Common variables
     // mode magnitudes
-    double k1d[MAX_M1];
-    double k2d[MAX_M1*MAX_M2];
-    double k3d[MAX_M1*MAX_M2*MAX_M3];
+    double knd[MAX_M1*MAX_M2*MAX_M3];
 
     // mode frequencies
-    double omega1d[MAX_M1];
-    double omega2d[MAX_M1*MAX_M2];
-    double omega3d[MAX_M1*MAX_M2*MAX_M3];
+    double omega[MAX_M1*MAX_M2*MAX_M3];
 
     // mode decay factors, sample-rate dependant
-    double decayamp1[MAX_M1];
-    double decayampn1[MAX_M1];
-    double decayamp2[MAX_M1*MAX_M2];
-    double decayampn2[MAX_M1*MAX_M2];
-    double decayamp3[MAX_M1*MAX_M2*MAX_M3];
-    double decayampn3[MAX_M1*MAX_M2*MAX_M3];
+    double decayamp[MAX_M1*MAX_M2*MAX_M3];
+    double decayampn[MAX_M1*MAX_M2*MAX_M3];
 
     double maxh = 1; // the max of h for each set of parameters
 };
