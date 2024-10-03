@@ -45,6 +45,7 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     {
         std::make_unique<AudioParameterChoice>("algorithm", "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
         std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
+        std::make_unique<AudioParameterFloat>("attack", "Attack", NormalisableRange<float>(0.0f, 1.0f), 1.0f),
         std::make_unique<AudioParameterFloat>("pitch", "Pitch", NormalisableRange<float>(-24.0f, 24.0f, 0.001f), 0.0f,  // in semitones
                                               AudioParameterFloatAttributes().withStringFromValueFunction([] (auto value, auto) { return String(value, 3); })),
         std::make_unique<AudioParameterBool>("kbTrack", "Keyboard Tracking", true),
@@ -320,9 +321,6 @@ AudioProcessorEditor* FTMSynthAudioProcessor::createEditor()
 //==============================================================================
 void FTMSynthAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
     auto state = tree.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
@@ -330,8 +328,6 @@ void FTMSynthAudioProcessor::getStateInformation(MemoryBlock& destData)
 
 void FTMSynthAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState.get() != nullptr)
         if (xmlState->hasTagName(tree.state.getType()))
@@ -339,7 +335,7 @@ void FTMSynthAudioProcessor::setStateInformation(const void* data, int sizeInByt
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
+// This creates new instances of the plugin
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new FTMSynthAudioProcessor();

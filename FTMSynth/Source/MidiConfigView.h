@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-    VisualPanel.h
-    Created: 25 Jun 2022 1:40:51pm
+    MidiConfigView.h
+    Created: 4 Oct 2024 12:03:56am
     Author:  Loïc J
 
   ==============================================================================
@@ -28,46 +28,17 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
 
 //==============================================================================
-class VisualPanel : public juce::Component
+class MidiConfigView  : public juce::Component
 {
 public:
-    VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attachedX, Slider& attachedY, Slider& attachedZ);
-    ~VisualPanel() override;
+    MidiConfigView();
+    ~MidiConfigView() override;
 
-    void setDimensions(int dim);
-    void updateBounds();
-
-    void paint(Graphics&) override;
+    void paint (juce::Graphics&) override;
     void resized() override;
 
-
-    void updateXYonMouse(const MouseEvent& e);
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
-
 private:
-    AudioProcessorValueTreeState& tree;
-    int dimensions;
-    Slider& xSlider;
-    Slider& ySlider;
-    Slider& zSlider;
-
-    Label thisIsALabel;
-    Label nameLabel;
-
-    Image strImage;
-    Image delimiter;
-    Image wire;
-    Image drumSkin;
-
-    Rectangle<float> bounds;
-    float boundsDelta;
-    bool mouseDownInBounds;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VisualPanel)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiConfigView)
 };

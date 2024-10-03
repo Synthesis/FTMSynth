@@ -60,6 +60,7 @@ private:
     float alphaOff;
 
     Slider volumeSlider;
+    Slider attackSlider;
     Slider pitchSlider;
     ToggleButton kbTrackButton;
     Slider tauSlider;
@@ -84,6 +85,7 @@ private:
 
     // Labels
     Label volumeLabel;
+    Label attackLabel;
     Label pitchLabel;
     Label tauLabel;
     Label pLabel;
@@ -104,6 +106,7 @@ private:
     // Attachments from model to components
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> volumeTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> attackTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> pitchTree;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> kbTrackTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> tauTree;
@@ -125,8 +128,9 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::ComboBoxAttachment> algoTree;
 
     // Help tooltip
-    ImageButton helpButton;
     SharedResourcePointer<TooltipWindow> tooltip;
+    ImageButton helpButton;
+    ImageButton midiButton;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FTMSynthAudioProcessorEditor)
 };

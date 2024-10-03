@@ -35,7 +35,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     stringButton("string"), drumButton("drum"), boxButton("box"),
     kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
     mainControls(112, 8, 512, 158), xyzControls(416, 176, 208, 216),
-    visualPanel(p, r1Slider, r2Slider, r3Slider), helpButton("help")
+    visualPanel(p.tree, r1Slider, r2Slider, r3Slider), helpButton("help")
 {
     setSize(640, 400);
 
@@ -43,6 +43,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     CustomLookAndFeel* customLookAndFeel = new CustomLookAndFeel();
     setLookAndFeel(customLookAndFeel);
     tooltip->setLookAndFeel(customLookAndFeel);
+    tooltip->setOpaque(false);
 
 
     // Dimension selector
@@ -285,6 +286,23 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     addAndMakeVisible(visualPanel);
 
 
+    // Needs to be placed over the view panel in order to be clickable
+    attackSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
+    attackSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
+    attackSlider.setPopupDisplayEnabled(true, true, this);
+    attackSlider.onValueChange = [this] {
+        attackSlider.setAlpha((attackSlider.getValue() == attackSlider.getMaximum()) ? alphaOff : 1);
+    };
+    attackTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "attack", attackSlider));
+    attackSlider.textFromValueFunction = [] (double value) { return String(int(value*100)); };
+    attackSlider.setTextValueSuffix(" %");
+    addAndMakeVisible(attackSlider);
+    attackLabel.setText("ATTACK", dontSendNotification);
+    attackLabel.setJustificationType(Justification(Justification::centred));
+    attackLabel.setTooltip("Attack intensity");
+    addAndMakeVisible(attackLabel);
+
+
     // Misc components
     voicesSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
     voicesSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
@@ -315,6 +333,18 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     helpButton.setTooltip("Information\n\nThis is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\n(Hover the mouse over the knob labels for more informations)");
     addAndMakeVisible(&helpButton);
 
+    Image midiImg = ImageCache::getFromMemory(BinaryData::midi_png, BinaryData::midi_pngSize);
+    Image midiOff = midiImg.getClippedImage(Rectangle<int>(0, 0, midiImg.getWidth()/3, midiImg.getHeight()));
+    Image midiHovered = midiImg.getClippedImage(Rectangle<int>(midiImg.getWidth()/3, 0, midiImg.getWidth()/3, midiImg.getHeight()));
+    Image midiOn = midiImg.getClippedImage(Rectangle<int>(midiImg.getWidth()*2/3, 0, midiImg.getWidth()/3, midiImg.getHeight()));
+    midiButton.setClickingTogglesState(true);
+    midiButton.setImages(false, true, true,
+                         midiOff, 1.0f, Colours::transparentBlack,
+                         midiHovered, 1.0f, Colours::transparentBlack,
+                         midiOn, 1.0f, Colours::transparentBlack,
+                         0.8f);
+    midiButton.setTooltip("MIDI input settings");
+    addAndMakeVisible(&midiButton);
 
     // Hidden dimension controller
     dimensionsSlider.onValueChange = [this] { setDimensions(int(dimensionsSlider.getValue()), false); };
@@ -440,8 +470,8 @@ void FTMSynthAudioProcessorEditor::resized()
 
     volumeSlider.setBounds( mainControls.getX() -  88, mainControls.getY() +   knobOffY, 64, 64);
     volumeLabel.setBounds(  mainControls.getX() -  90, mainControls.getY() +    lblOffY, 72, 14);
-    // attackSlider.setBounds( mainControls.getX() -  80, mainControls.getY() +   knobOffY, 48, 48);
-    // attackLabel.setBounds(  mainControls.getX() -  82, mainControls.getY() +   knobOffY, 56, 14);
+    attackSlider.setBounds( mainControls.getX() -  80, mainControls.getY() +   knobOffY+96, 48, 48);
+    attackLabel.setBounds(  mainControls.getX() -  82, mainControls.getY() +    lblOffY+80, 56, 14);
 
     pitchSlider.setBounds(  mainControls.getX() +  14, mainControls.getY() +   knobOffY-16, 64, 64+16);
     pitchLabel.setBounds(   mainControls.getX() +  10, mainControls.getY() +    lblOffY, 72, 14);
@@ -480,7 +510,7 @@ void FTMSynthAudioProcessorEditor::resized()
 
     visualPanel.setBounds(16, 180, 352, 212);
     helpButton.setBounds(16, 344, 48, 48);
-    // midiButton.setBounds(52, 344, 48, 48);
+    midiButton.setBounds(52, 344, 48, 48);
 
     algoComboBox.setBounds(480, 368, 144, 24);
     algoLabel.setBounds(   416, 368,  56, 24);

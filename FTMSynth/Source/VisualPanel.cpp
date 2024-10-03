@@ -30,8 +30,8 @@
 #include "CustomLookAndFeel.h"
 
 //==============================================================================
-VisualPanel::VisualPanel(FTMSynthAudioProcessor& p, Slider& attachedX, Slider& attachedY, Slider& attachedZ)
-    : processor(p), xSlider(attachedX), ySlider(attachedY), zSlider(attachedZ),
+VisualPanel::VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attachedX, Slider& attachedY, Slider& attachedZ)
+    : tree(treeState), xSlider(attachedX), ySlider(attachedY), zSlider(attachedZ),
       boundsDelta(12.0f), mouseDownInBounds(false)
 {
     setLookAndFeel(new FunnyFont());
@@ -76,15 +76,15 @@ void VisualPanel::updateBounds()
     }
     if (dimensions == 2)
     {
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
+        float alpha1 = tree.getRawParameterValue("squareness")->load();
         bounds.setBounds(152.0f, 108.0f-(192.0f*alpha1/2.0f),
                          192.0f, 192.0f*alpha1);
     }
     if (dimensions == 3)
     {
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        float alpha2 = processor.tree.getRawParameterValue("cubeness")->load();
-        float r3 = processor.tree.getRawParameterValue("r3")->load();
+        float alpha1 = tree.getRawParameterValue("squareness")->load();
+        float alpha2 = tree.getRawParameterValue("cubeness")->load();
+        float r3 = tree.getRawParameterValue("r3")->load();
         float height = 128.0f*alpha1;
         float depth = 64.0f*alpha2;
         bounds.setBounds(184.0f+((r3-0.5f)*depth), 108.0f-(height*0.5f)+((0.5f-r3)*depth),
@@ -100,7 +100,7 @@ void VisualPanel::paint(Graphics& g)
     {
         objStr += "string.";
 
-        float r1 = processor.tree.getRawParameterValue("r1")->load();
+        float r1 = tree.getRawParameterValue("r1")->load();
 
         int left = 144;
         int right = 336;
@@ -131,9 +131,9 @@ void VisualPanel::paint(Graphics& g)
     {
         objStr += "drum.";
 
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        float r1 = processor.tree.getRawParameterValue("r1")->load();
-        float r2 = processor.tree.getRawParameterValue("r2")->load();
+        float alpha1 = tree.getRawParameterValue("squareness")->load();
+        float r1 = tree.getRawParameterValue("r1")->load();
+        float r2 = tree.getRawParameterValue("r2")->load();
         r2 = 1-r2; // Y is inverted on a screen
 
         float thickness = 3.0f;
@@ -170,11 +170,11 @@ void VisualPanel::paint(Graphics& g)
     {
         objStr += "cuboid.";
 
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        float alpha2 = processor.tree.getRawParameterValue("cubeness")->load();
-        float r1 = processor.tree.getRawParameterValue("r1")->load();
-        float r2 = processor.tree.getRawParameterValue("r2")->load();
-        float r3 = processor.tree.getRawParameterValue("r3")->load();
+        float alpha1 = tree.getRawParameterValue("squareness")->load();
+        float alpha2 = tree.getRawParameterValue("cubeness")->load();
+        float r1 = tree.getRawParameterValue("r1")->load();
+        float r2 = tree.getRawParameterValue("r2")->load();
+        float r3 = tree.getRawParameterValue("r3")->load();
         r2 = 1-r2; // vertical direction is inverted on a screen
         r3 = 1-r3;
 
