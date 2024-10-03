@@ -67,14 +67,17 @@ void VisualPanel::setDimensions(int dim)
 
 void VisualPanel::updateBounds()
 {
+    // TODO set const coordinate offset (x, y) for clickable visualization
+    // (in order to avoid manually changing every variable when repositioning the widget)
+
     if (dimensions == 1)
     {
-        bounds.setBounds(128.0f, 104.0f, 192.0f, 32.0f);
+        bounds.setBounds(152.0f, 104.0f, 192.0f, 32.0f);
     }
     if (dimensions == 2)
     {
         float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        bounds.setBounds(128.0f, 108.0f-(192.0f*alpha1/2.0f),
+        bounds.setBounds(152.0f, 108.0f-(192.0f*alpha1/2.0f),
                          192.0f, 192.0f*alpha1);
     }
     if (dimensions == 3)
@@ -84,7 +87,7 @@ void VisualPanel::updateBounds()
         float r3 = processor.tree.getRawParameterValue("r3")->load();
         float height = 128.0f*alpha1;
         float depth = 64.0f*alpha2;
-        bounds.setBounds(160.0f+((r3-0.5f)*depth), 108.0f-(height*0.5f)+((0.5f-r3)*depth),
+        bounds.setBounds(184.0f+((r3-0.5f)*depth), 108.0f-(height*0.5f)+((0.5f-r3)*depth),
                          128.0f, height);
     }
 }
@@ -99,8 +102,8 @@ void VisualPanel::paint(Graphics& g)
 
         float r1 = processor.tree.getRawParameterValue("r1")->load();
 
-        int left = 120;
-        int right = 312;
+        int left = 144;
+        int right = 336;
         int y = 112;
 
         // draw string
@@ -137,7 +140,7 @@ void VisualPanel::paint(Graphics& g)
 
         float destWidth = 192.0f;
         float destHeight = 192.0f*alpha1;
-        float destX = 128.0f;
+        float destX = 152.0f;
         float destY = 108.0f-(destHeight/2.0f);
 
         float impulseX = destX+(r1*destWidth);
@@ -185,11 +188,11 @@ void VisualPanel::paint(Graphics& g)
         float depth = 64.0f*alpha2;
 
         // compute coordinates of cube vertices
-        float frontLeft = 160.0f-(depth/2.0f);
+        float frontLeft = 184.0f-(depth/2.0f);
         float frontTop = 108.0f-(height/2.0f)+(depth/2.0f);
         float frontRight = frontLeft + width;
         float frontBottom = frontTop + height;
-        float backLeft = 160.0f+(depth/2.0f);
+        float backLeft = 184.0f+(depth/2.0f);
         float backTop = 108.0f-(height/2.0f)-(depth/2.0f);
         float backRight = backLeft + width;
         float backBottom = backTop + height;
@@ -269,7 +272,7 @@ void VisualPanel::paint(Graphics& g)
 void VisualPanel::resized()
 {
     int offsetX = 16;
-    int offsetY = 12;
+    int offsetY = 98;
 
     thisIsALabel.setBounds(offsetX, offsetY, 96, 64);
     nameLabel.setBounds(offsetX + 20, offsetY + 28, 80, 40);

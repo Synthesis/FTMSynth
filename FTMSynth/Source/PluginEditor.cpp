@@ -34,7 +34,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     : AudioProcessorEditor(&p), processor(p), alphaOff(0.125f),
     stringButton("string"), drumButton("drum"), boxButton("box"),
     kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
-    mainControls(112, 8, 512, 158), xyzControls(400, 176, 208, 216),
+    mainControls(112, 8, 512, 158), xyzControls(416, 176, 208, 216),
     visualPanel(p, r1Slider, r2Slider, r3Slider), helpButton("help")
 {
     setSize(640, 400);
@@ -438,8 +438,10 @@ void FTMSynthAudioProcessorEditor::resized()
     drumButton.setBounds(   mainControls.getX() + 350, mainControls.getY() +    btnOffY, 64, 40);
     boxButton.setBounds(    mainControls.getX() + 434, mainControls.getY() +    btnOffY, 64, 40);
 
-    volumeSlider.setBounds( mainControls.getX() -  90, mainControls.getY() +   knobOffY, 64, 64);
-    volumeLabel.setBounds(  mainControls.getX() -  92, mainControls.getY() +    lblOffY, 72, 14);
+    volumeSlider.setBounds( mainControls.getX() -  88, mainControls.getY() +   knobOffY, 64, 64);
+    volumeLabel.setBounds(  mainControls.getX() -  90, mainControls.getY() +    lblOffY, 72, 14);
+    // attackSlider.setBounds( mainControls.getX() -  80, mainControls.getY() +   knobOffY, 48, 48);
+    // attackLabel.setBounds(  mainControls.getX() -  82, mainControls.getY() +   knobOffY, 56, 14);
 
     pitchSlider.setBounds(  mainControls.getX() +  14, mainControls.getY() +   knobOffY-16, 64, 64+16);
     pitchLabel.setBounds(   mainControls.getX() +  10, mainControls.getY() +    lblOffY, 72, 14);
@@ -461,24 +463,25 @@ void FTMSynthAudioProcessorEditor::resized()
     alpha2Slider.setBounds( mainControls.getX() + 434, mainControls.getY() +   knobOffY, 64, 64);
     alpha2Label.setBounds(  mainControls.getX() + 430, mainControls.getY() +    lblOffY, 72, 14);
 
-    r1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() +  34, 48, 48);
+    r1Slider.setBounds(xyzControls.getX() +  12, xyzControls.getY() +  34, 48, 48);
     r2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
-    r3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() +  34, 48, 48);
-    rLabel.setBounds(  xyzControls.getX() +  74, xyzControls.getY() +  16, 64, 14);
-    m1Slider.setBounds(xyzControls.getX() +   8, xyzControls.getY() + 110, 48, 48);
+    r3Slider.setBounds(xyzControls.getX() + 148, xyzControls.getY() +  34, 48, 48);
+    rLabel.setBounds(  xyzControls.getX() +  81, xyzControls.getY() +  16, 50, 14);
+    m1Slider.setBounds(xyzControls.getX() +  12, xyzControls.getY() + 110, 48, 48);
     m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
-    m3Slider.setBounds(xyzControls.getX() + 152, xyzControls.getY() + 110, 48, 48);
-    mLabel.setBounds(  xyzControls.getX() +  74, xyzControls.getY() + 164, 64, 14);
-    xLabel.setBounds(  xyzControls.getX() +  22, xyzControls.getY() +  89, 24, 14);
+    m3Slider.setBounds(xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
+    mLabel.setBounds(  xyzControls.getX() +  81, xyzControls.getY() + 164, 50, 14);
+    xLabel.setBounds(  xyzControls.getX() +  26, xyzControls.getY() +  89, 24, 14);
     yLabel.setBounds(  xyzControls.getX() +  94, xyzControls.getY() +  89, 24, 14);
-    zLabel.setBounds(  xyzControls.getX() + 166, xyzControls.getY() +  89, 24, 14);
+    zLabel.setBounds(  xyzControls.getX() + 162, xyzControls.getY() +  89, 24, 14);
 
-    voicesSlider.setBounds(16, 16, 76, 24);
-    voicesLabel.setBounds( 16, 48, 76, 14);
+    voicesSlider.setBounds(16, 16, 80, 24);
+    voicesLabel.setBounds( 18, 48, 76, 14);
 
-    visualPanel.setBounds(32, 180, 352, 212);
-    helpButton.setBounds(32, 344, 48, 48);
+    visualPanel.setBounds(16, 180, 352, 212);
+    helpButton.setBounds(16, 344, 48, 48);
+    // midiButton.setBounds(52, 344, 48, 48);
 
-    algoComboBox.setBounds(464, 368, 144, 24);
-    algoLabel.setBounds(   400, 368,  56, 24);
+    algoComboBox.setBounds(480, 368, 144, 24);
+    algoLabel.setBounds(   416, 368,  56, 24);
 }
