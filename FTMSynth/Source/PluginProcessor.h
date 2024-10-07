@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "SynthSound.h"
 #include "SynthVoice.h"
 

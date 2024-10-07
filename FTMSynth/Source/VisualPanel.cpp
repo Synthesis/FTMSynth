@@ -27,14 +27,13 @@
 
 #include <JuceHeader.h>
 #include "VisualPanel.h"
-#include "CustomLookAndFeel.h"
 
 //==============================================================================
 VisualPanel::VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attachedX, Slider& attachedY, Slider& attachedZ)
     : tree(treeState), xSlider(attachedX), ySlider(attachedY), zSlider(attachedZ),
-      boundsDelta(12.0f), mouseDownInBounds(false)
+      funnyFont(), boundsDelta(12.0f), mouseDownInBounds(false)
 {
-    setLookAndFeel(new FunnyFont());
+    setLookAndFeel(&funnyFont);
 
     String typeStr("this is\na");
 
@@ -57,8 +56,11 @@ VisualPanel::VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attach
 
 VisualPanel::~VisualPanel()
 {
+    setLookAndFeel(nullptr);
 }
 
+
+//==============================================================================
 void VisualPanel::setDimensions(int dim)
 {
     dimensions = dim;
@@ -92,6 +94,8 @@ void VisualPanel::updateBounds()
     }
 }
 
+
+//==============================================================================
 void VisualPanel::paint(Graphics& g)
 {
     String objStr("");
@@ -278,6 +282,8 @@ void VisualPanel::resized()
     nameLabel.setBounds(offsetX + 20, offsetY + 28, 80, 40);
 }
 
+
+//==============================================================================
 void VisualPanel::updateXYonMouse(const MouseEvent& e)
 {
     if (bounds.expanded(boundsDelta).contains(e.position))

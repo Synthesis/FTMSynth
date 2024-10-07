@@ -29,6 +29,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "CustomLookAndFeel.h"
 
 //==============================================================================
 class VisualPanel : public juce::Component
@@ -43,20 +44,23 @@ public:
     void paint(Graphics&) override;
     void resized() override;
 
-
-    void updateXYonMouse(const MouseEvent& e);
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
 
 private:
+    void updateXYonMouse(const MouseEvent& e);
+
     AudioProcessorValueTreeState& tree;
+
     int dimensions;
     Slider& xSlider;
     Slider& ySlider;
     Slider& zSlider;
 
+    // Custom look-and-feel
+    FunnyFont funnyFont;
     Label thisIsALabel;
     Label nameLabel;
 

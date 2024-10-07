@@ -28,17 +28,25 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "PluginProcessor.h"
 
 //==============================================================================
-class MidiConfigView  : public juce::Component
+class MidiConfigView : public juce::Component
 {
 public:
-    MidiConfigView();
+    MidiConfigView(FTMSynthAudioProcessor& p);
     ~MidiConfigView() override;
 
-    void paint (juce::Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
 private:
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    FTMSynthAudioProcessor& processor;
+
+    // Help tooltip
+    SharedResourcePointer<TooltipWindow> tooltip;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiConfigView)
 };

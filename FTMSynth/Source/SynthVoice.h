@@ -26,7 +26,7 @@
 */
 
 #pragma once
-#include "../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 #include "SynthSound.h"
 
 #define MAX_M1  16
@@ -69,24 +69,6 @@ public:
                      std::atomic<float>* modesZ,
                      std::atomic<float>* dimensions);
 
-    // ===== Methods used for the Ivan method
-    void ivan_deff();
-    void ivan_getf();
-    void ivan_getSigma(double _tau, double p);
-    void ivan_getw(double p);
-    void ivan_getK();
-
-    // ===== Methods used for the Rabenstein method
-    void rabenstein_getCoefficients(double _tau, double _p);
-    void rabenstein_getw();
-    void rabenstein_getK();
-
-    // ===== Common methods
-    void findmax();
-    void initDecayampn();
-    double finaloutput();
-
-
     //==================================
     void startNote(int midiNoteNumber, float velocity, SynthesiserSound *sound, int
                    currentPitchWheelPosition) override;
@@ -109,6 +91,26 @@ public:
 
 
 private:
+    // Methods used for the Ivan method
+    void ivan_deff();
+    void ivan_getf();
+    void ivan_getSigma(double _tau, double p);
+    void ivan_getw(double p);
+    void ivan_getK();
+
+    // Methods used for the Rabenstein method
+    void rabenstein_getCoefficients(double _tau, double _p);
+    void rabenstein_getw();
+    void rabenstein_getK();
+
+    // Common methods
+    void findmax();
+    void initDecayampn();
+    double finaloutput();
+
+
+    //==================================
+    // Class members
     inline static double sinLUT[SIN_LUT_RESOLUTION];
 
     Algorithm currentAlgorithm, nextAlgorithm;
