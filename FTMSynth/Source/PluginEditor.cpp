@@ -25,13 +25,12 @@
   ==============================================================================
 */
 
-#include "PluginProcessor.h"
 #include "PluginEditor.h"
 
 //==============================================================================
 FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor& p)
     : AudioProcessorEditor(&p), processor(p), customLookAndFeel(), helpButton("help"),
-      mainView(processor), midiConfigView(processor)
+      labelView(processor), mainView(processor), midiConfigView(processor)
 {
     setSize(640, 400);
 
@@ -40,9 +39,13 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     tooltip->setLookAndFeel(&customLookAndFeel);
     tooltip->setOpaque(false);
 
-    addAndMakeVisible(&mainView);
-    addChildComponent(&midiConfigView);
+    // Panels
+    labelView.setOpaqueLabels(false);
+    addAndMakeVisible(labelView);
+    addAndMakeVisible(mainView);
+    addChildComponent(midiConfigView);
 
+    // Buttons
     Image helpImg = ImageCache::getFromMemory(BinaryData::question_png, BinaryData::question_pngSize);
     Image helpOff = helpImg.getClippedImage(Rectangle<int>(0, 0, helpImg.getWidth()/2, helpImg.getHeight()));
     Image helpHovered = helpImg.getClippedImage(Rectangle<int>(helpImg.getWidth()/2, 0, helpImg.getWidth()/2, helpImg.getHeight()));
@@ -52,7 +55,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
                          helpHovered, 1.0f, Colours::transparentBlack,
                          0.8f);
     helpButton.setTooltip("Information\n\nThis is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\n(Hover the mouse over the knob labels for more informations)");
-    addAndMakeVisible(&helpButton);
+    addAndMakeVisible(helpButton);
 
     Image midiImg = ImageCache::getFromMemory(BinaryData::midi_png, BinaryData::midi_pngSize);
     Image midiOff = midiImg.getClippedImage(Rectangle<int>(0, 0, midiImg.getWidth()/3, midiImg.getHeight()));
@@ -64,9 +67,9 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
                          midiOn, 1.0f, Colours::transparentBlack,
                          0.8f);
     midiButton.setClickingTogglesState(true);
-    midiButton.onStateChange = [this] { switchViews(); };
+    midiButton.onClick = [this] { switchViews(); };
     midiButton.setTooltip("MIDI input settings");
-    addAndMakeVisible(&midiButton);
+    addAndMakeVisible(midiButton);
 }
 
 FTMSynthAudioProcessorEditor::~FTMSynthAudioProcessorEditor()
@@ -90,11 +93,13 @@ void FTMSynthAudioProcessorEditor::switchViews()
 {
     if (midiButton.getToggleState())
     {
+        labelView.setOpaqueLabels(true);
         mainView.setVisible(false);
         midiConfigView.setVisible(true);
     }
     else
     {
+        labelView.setOpaqueLabels(false);
         midiConfigView.setVisible(false);
         mainView.setVisible(true);
     }
@@ -103,10 +108,6 @@ void FTMSynthAudioProcessorEditor::switchViews()
 void FTMSynthAudioProcessorEditor::resized()
 {
     setSize(640, 400);
-
-    // show main and midi views here
-    mainView.setBounds(0, 0, 640, 400);
-    midiConfigView.setBounds(0, 0, 640, 480);
 
     helpButton.setBounds(16, 344, 48, 48);
     midiButton.setBounds(52, 344, 48, 48);

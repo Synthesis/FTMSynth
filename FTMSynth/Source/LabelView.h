@@ -1,8 +1,8 @@
 /*
   ==============================================================================
 
-    VisualPanel.h
-    Created: 25 Jun 2022 1:40:51pm
+    LabelView.h
+    Created: 13 Oct 2024 5:14:35pm
     Author:  Loïc J
 
   ==============================================================================
@@ -29,46 +29,50 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "CustomLookAndFeel.h"
 
 //==============================================================================
-class VisualPanel : public juce::Component
+class LabelView : public juce::Component
 {
 public:
-    VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attachedX, Slider& attachedY, Slider& attachedZ);
-    ~VisualPanel() override;
+    LabelView(FTMSynthAudioProcessor& p);
+    ~LabelView() override;
 
-    void setDimensions(int dim);
-    void updateMouseBounds();
-
-    void paint(Graphics&) override;
+    void paint(juce::Graphics&) override;
     void resized() override;
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
+    void setOpaqueLabels(bool opaqueLabels);
 
 private:
-    void updateXYonMouse(const MouseEvent& e);
+    void updateDimensionComponents();
 
-    AudioProcessorValueTreeState& tree;
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    FTMSynthAudioProcessor& processor;
 
-    int dimensions;
-    Slider& xSlider;
-    Slider& ySlider;
-    Slider& zSlider;
+    // Labels
+    Label volumeLabel;
+    Label attackLabel;
+    Label pitchLabel;
+    Label tauLabel;
+    Label pLabel;
+    Label dLabel;
+    Label alpha1Label;
+    Label alpha2Label;
+    Label rLabel;
+    Label mLabel;
+    Label xLabel;
+    Label yLabel;
+    Label zLabel;
+    Label voicesLabel;
+    Label algoLabel;
 
-    Image strImage;
-    Image delimiter;
-    Image wire;
-    Image drumSkin;
+    // Help tooltip
+    SharedResourcePointer<TooltipWindow> tooltip;
 
-    Point<float> center;
+    // Used for label opacity
+    Slider dimensionsSlider;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;
+    bool hasOpaqueLabels;
 
-    Rectangle<float> mouseBounds;
-    float mouseBoundsDelta;
-    bool mouseDownInBounds;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (VisualPanel)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabelView)
 };

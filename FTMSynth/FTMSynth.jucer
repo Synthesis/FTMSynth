@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="ez6eyY" projectType="audioplug" jucerFormatVersion="1" name="FTMSynth"
-              companyName="LS2N" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
+              companyName="LS2N" companyWebsite="audio.ls2n.fr" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
               pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
-              pluginAUMainType="'aumu'" pluginVST3Category="Drum,Instrument,Synth"
+              aaxIdentifier="fr.ljankowiak.ftmsynth" pluginAUMainType="'aumu'"
+              pluginVST3Category="Drum,Instrument,Synth" lv2Uri="urn:uuid:01927853-bb20-7c91-9a67-ab4786345508"
               cppLanguageStandard="20">
   <MAINGROUP id="RvdlOT" name="FTMSynth">
     <GROUP id="{1E368382-AFE3-B851-6460-B81F306FAB88}" name="Source">
@@ -17,6 +18,8 @@
       <FILE id="qb5Q4m" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="eL5b01" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="wiXLu7" name="CustomLookAndFeel.cpp" compile="1" resource="0"
+            file="Source/CustomLookAndFeel.cpp"/>
       <FILE id="B8sfSH" name="CustomLookAndFeel.h" compile="0" resource="0"
             file="Source/CustomLookAndFeel.h"/>
       <FILE id="IPb2Qo" name="MainView.cpp" compile="1" resource="0" file="Source/MainView.cpp"/>
@@ -27,6 +30,8 @@
             file="Source/MidiConfigView.cpp"/>
       <FILE id="cmqvrD" name="MidiConfigView.h" compile="0" resource="0"
             file="Source/MidiConfigView.h"/>
+      <FILE id="vGo9Cp" name="LabelView.cpp" compile="1" resource="0" file="Source/LabelView.cpp"/>
+      <FILE id="Xn7E18" name="LabelView.h" compile="0" resource="0" file="Source/LabelView.h"/>
     </GROUP>
     <GROUP id="{C61A0867-1E87-1969-876A-3CC9E304CA3B}" name="Assets">
       <FILE id="TfIAeu" name="background.png" compile="0" resource="1" file="Assets/background.png"/>

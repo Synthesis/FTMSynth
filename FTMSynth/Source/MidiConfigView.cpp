@@ -32,6 +32,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     : processor(p)
 {
     setSize(640, 400);
+    setInterceptsMouseClicks(false, true);
 }
 
 MidiConfigView::~MidiConfigView()

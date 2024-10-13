@@ -45,7 +45,7 @@ public:
 private:
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
-    void updateVisualization(bool updateBounds = false);
+    void updateVisualization(bool updateMouseBounds = false);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
@@ -55,6 +55,7 @@ private:
     WithTextBox withTextBox;
     DraggableBox draggableBox;
     CustomComboBox customComboBox;
+    FunnyFont funnyFont;
 
     // Help tooltip
     SharedResourcePointer<TooltipWindow> tooltip;
@@ -64,8 +65,6 @@ private:
     ImageButton stringButton;
     ImageButton drumButton;
     ImageButton boxButton;
-
-    float alphaOff;
 
     Slider volumeSlider;
     Slider attackSlider;
@@ -89,27 +88,9 @@ private:
     Slider voicesSlider;
     ComboBox algoComboBox;
 
+    Label thisIsALabel;
+    Label nameLabel;
     VisualPanel visualPanel;
-
-    // Labels
-    Label volumeLabel;
-    Label attackLabel;
-    Label pitchLabel;
-    Label tauLabel;
-    Label pLabel;
-    Label dLabel;
-    Label alpha1Label;
-    Label alpha2Label;
-    Label rLabel;
-    Label mLabel;
-    Label xLabel;
-    Label yLabel;
-    Label zLabel;
-    Label voicesLabel;
-    Label algoLabel;
-
-    Rectangle<int> mainControls;
-    Rectangle<int> xyzControls;
 
     // Attachments from model to components
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;

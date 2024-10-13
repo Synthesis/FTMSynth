@@ -30,6 +30,7 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "CustomLookAndFeel.h"
+#include "LabelView.h"
 #include "MainView.h"
 #include "MidiConfigView.h"
 
@@ -58,6 +59,7 @@ private:
     ImageButton helpButton;
     ImageButton midiButton;
 
+    LabelView labelView;
     MainView mainView;
     MidiConfigView midiConfigView;
 
