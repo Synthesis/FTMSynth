@@ -169,7 +169,7 @@ void LabelView::resized()
     alpha1Label.setBounds(mainControls.getX() + 346, mainControls.getY() + lblOffY,      72, 14);
     alpha2Label.setBounds(mainControls.getX() + 430, mainControls.getY() + lblOffY,      72, 14);
 
-    rLabel.setBounds(xyzControls.getX() +  81, xyzControls.getY() +  16, 50, 14);
+    rLabel.setBounds(xyzControls.getX() +  81, xyzControls.getY() +  14, 50, 14);
     mLabel.setBounds(xyzControls.getX() +  81, xyzControls.getY() + 164, 50, 14);
     xLabel.setBounds(xyzControls.getX() +  26, xyzControls.getY() +  89, 24, 14);
     yLabel.setBounds(xyzControls.getX() +  94, xyzControls.getY() +  89, 24, 14);

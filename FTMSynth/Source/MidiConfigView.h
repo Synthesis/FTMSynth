@@ -29,6 +29,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "MidiConfigButton.h"
 
 //==============================================================================
 class MidiConfigView : public juce::Component
@@ -47,6 +48,28 @@ private:
 
     // Help tooltip
     SharedResourcePointer<TooltipWindow> tooltip;
+
+    // Buttons
+    MidiConfigButton volumeButton;
+    MidiConfigButton attackButton;
+    MidiConfigButton dimensionsButton;
+    MidiConfigButton pitchButton;
+    MidiConfigButton tauButton;
+    MidiConfigButton pButton;
+    MidiConfigButton dButton;
+    MidiConfigButton alpha1Button;
+    MidiConfigButton alpha2Button;
+    MidiConfigButton r1Button;
+    MidiConfigButton r2Button;
+    MidiConfigButton r3Button;
+    MidiConfigButton m1Button;
+    MidiConfigButton m2Button;
+    MidiConfigButton m3Button;
+    MidiConfigButton voicesButton;
+    MidiConfigButton algoButton;
+
+    // Extra label
+    Label dimensionsLabel;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiConfigView)
 };

@@ -30,6 +30,10 @@
             file="Source/MidiConfigView.cpp"/>
       <FILE id="cmqvrD" name="MidiConfigView.h" compile="0" resource="0"
             file="Source/MidiConfigView.h"/>
+      <FILE id="xdm9su" name="MidiConfigButton.cpp" compile="1" resource="0"
+            file="Source/MidiConfigButton.cpp"/>
+      <FILE id="mPB68l" name="MidiConfigButton.h" compile="0" resource="0"
+            file="Source/MidiConfigButton.h"/>
       <FILE id="vGo9Cp" name="LabelView.cpp" compile="1" resource="0" file="Source/LabelView.cpp"/>
       <FILE id="Xn7E18" name="LabelView.h" compile="0" resource="0" file="Source/LabelView.h"/>
     </GROUP>

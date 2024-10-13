@@ -43,12 +43,12 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     Image buttonOff = buttons.getClippedImage(Rectangle<int>(0, 0, buttons.getWidth()/3, buttons.getHeight()/3));
     Image buttonHovered = buttons.getClippedImage(Rectangle<int>(0, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
     Image buttonOn = buttons.getClippedImage(Rectangle<int>(0, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
-    stringButton.setClickingTogglesState(true);
     stringButton.setImages(false, true, true,
                            buttonOff, 1.0f, Colours::transparentBlack,
                            buttonHovered, 1.0f, Colours::transparentBlack,
                            buttonOn, 1.0f, Colours::transparentBlack,
                            0.0f);
+    stringButton.setClickingTogglesState(true);
     stringButton.setTooltip("1D model (string)");
     stringButton.onClick = [this] { setDimensions(1, true); };
     stringButton.setRadioGroupId(1);
@@ -57,12 +57,12 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     buttonOff = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()/3, 0, buttons.getWidth()/3, buttons.getHeight()/3));
     buttonHovered = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()/3, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
     buttonOn = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()/3, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
-    drumButton.setClickingTogglesState(true);
     drumButton.setImages(false, true, true,
                          buttonOff, 1.0f, Colours::transparentBlack,
                          buttonHovered, 1.0f, Colours::transparentBlack,
                          buttonOn, 1.0f, Colours::transparentBlack,
                          0.0f);
+    drumButton.setClickingTogglesState(true);
     drumButton.setTooltip("2D model (drum)");
     drumButton.onClick = [this] { setDimensions(2, true); };
     drumButton.setRadioGroupId(1);
@@ -71,12 +71,12 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     buttonOff = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()*2/3, 0, buttons.getWidth()/3, buttons.getHeight()/3));
     buttonHovered = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()*2/3, buttons.getHeight()/3, buttons.getWidth()/3, buttons.getHeight()/3));
     buttonOn = buttons.getClippedImage(Rectangle<int>(buttons.getWidth()*2/3, buttons.getHeight()*2/3, buttons.getWidth()/3, buttons.getHeight()/3));
-    boxButton.setClickingTogglesState(true);
     boxButton.setImages(false, true, true,
                         buttonOff, 1.0f, Colours::transparentBlack,
                         buttonHovered, 1.0f, Colours::transparentBlack,
                         buttonOn, 1.0f, Colours::transparentBlack,
                         0.0f);
+    boxButton.setClickingTogglesState(true);
     boxButton.setTooltip("3D model (cuboid)");
     boxButton.onClick = [this] { setDimensions(3, true); };
     boxButton.setRadioGroupId(1);

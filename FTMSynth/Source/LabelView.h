@@ -49,6 +49,9 @@ private:
     // access the processor object that created it.
     FTMSynthAudioProcessor& processor;
 
+    // Help tooltip
+    SharedResourcePointer<TooltipWindow> tooltip;
+
     // Labels
     Label volumeLabel;
     Label attackLabel;
@@ -65,9 +68,6 @@ private:
     Label zLabel;
     Label voicesLabel;
     Label algoLabel;
-
-    // Help tooltip
-    SharedResourcePointer<TooltipWindow> tooltip;
 
     // Used for label opacity
     Slider dimensionsSlider;
