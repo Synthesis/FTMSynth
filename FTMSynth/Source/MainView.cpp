@@ -225,11 +225,11 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     // View panel
     thisIsALabel.setLookAndFeel(&funnyFont);
     thisIsALabel.setText("this is\na", dontSendNotification);
-    thisIsALabel.setJustificationType(Justification(Justification::topLeft));
+    thisIsALabel.setJustificationType(Justification::topLeft);
     thisIsALabel.setColour(Label::textColourId, Colour(0xFF5F5F5F));
     addChildComponent(thisIsALabel);
     nameLabel.setLookAndFeel(&funnyFont);
-    nameLabel.setJustificationType(Justification(Justification::topLeft));
+    nameLabel.setJustificationType(Justification::topLeft);
     addChildComponent(nameLabel);
 
     addAndMakeVisible(visualPanel);
@@ -305,7 +305,7 @@ void MainView::setDimensions(int dimensions, bool btnToSlider)
 void MainView::updateDimensionComponents()
 {
     int dimensions = int(dimensionsSlider.getValue());
-    String objStr("");
+    String strObj("");
 
     if (dimensions == 1)
     {
@@ -316,7 +316,7 @@ void MainView::updateDimensionComponents()
         m2Slider.setAlpha(alphaOff);
         m3Slider.setAlpha(alphaOff);
 
-        objStr += "string.";
+        strObj += "string.";
     }
     else if (dimensions == 2)
     {
@@ -327,7 +327,7 @@ void MainView::updateDimensionComponents()
         m2Slider.setAlpha(1);
         m3Slider.setAlpha(alphaOff);
 
-        objStr += "drum.";
+        strObj += "drum.";
     }
     else if (dimensions == 3)
     {
@@ -338,10 +338,10 @@ void MainView::updateDimensionComponents()
         m2Slider.setAlpha(1);
         m3Slider.setAlpha(1);
 
-        objStr += "cuboid.";
+        strObj += "cuboid.";
     }
 
-    nameLabel.setText(objStr, dontSendNotification);
+    nameLabel.setText(strObj, dontSendNotification);
 
     if (dimensions >= 1 && dimensions <= 3)
     {

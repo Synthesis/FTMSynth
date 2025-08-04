@@ -64,7 +64,7 @@ void VisualPanel::updateMouseBounds()
 
     if (dimensions == 1)
     {
-        mouseBounds.setBounds(center.x - 96.0f, center.y - 8.f, 192.0f, 32.0f);
+        mouseBounds.setBounds(center.x - 96.0f, center.y - 8.0f, 192.0f, 32.0f);
     }
     if (dimensions == 2)
     {

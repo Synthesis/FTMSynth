@@ -41,76 +41,76 @@ LabelView::LabelView(FTMSynthAudioProcessor& p)
 
     // Top panel
     volumeLabel.setText("VOLUME", dontSendNotification);
-    volumeLabel.setJustificationType(Justification(Justification::centred));
+    volumeLabel.setJustificationType(Justification::centred);
     volumeLabel.setTooltip("Main volume");
     addAndMakeVisible(volumeLabel);
 
     attackLabel.setText("ATTACK", dontSendNotification);
-    attackLabel.setJustificationType(Justification(Justification::centred));
+    attackLabel.setJustificationType(Justification::centred);
     attackLabel.setTooltip("Attack intensity");
     addAndMakeVisible(attackLabel);
 
     pitchLabel.setText("PITCH", dontSendNotification);
-    pitchLabel.setJustificationType(Justification(Justification::centred));
+    pitchLabel.setJustificationType(Justification::centred);
     pitchLabel.setTooltip("Note pitch");
     addAndMakeVisible(pitchLabel);
 
     tauLabel.setText("SUSTAIN", dontSendNotification);
-    tauLabel.setJustificationType(Justification(Justification::centred));
+    tauLabel.setJustificationType(Justification::centred);
     tauLabel.setTooltip("Duration of the resonance");
     addAndMakeVisible(tauLabel);
 
     pLabel.setText("DAMP", dontSendNotification);
-    pLabel.setJustificationType(Justification(Justification::centred));
+    pLabel.setJustificationType(Justification::centred);
     pLabel.setTooltip("Damping of the harmonics\n(from resonating to muffled)");
     addAndMakeVisible(pLabel);
 
     dLabel.setText("INHARMONICITY", dontSendNotification);
-    dLabel.setJustificationType(Justification(Justification::centred));
+    dLabel.setJustificationType(Justification::centred);
     dLabel.setTooltip("Dispersion of the sound waves\n(from harmonic to inharmonic partials)");
     addAndMakeVisible(dLabel);
 
     alpha1Label.setText("SQUARENESS", dontSendNotification);
-    alpha1Label.setJustificationType(Justification(Justification::centred));
+    alpha1Label.setJustificationType(Justification::centred);
     alpha1Label.setTooltip("Shape ratio of the 2D drum\n(thin to square)");
     addAndMakeVisible(alpha1Label);
 
     alpha2Label.setText("CUBENESS", dontSendNotification);
-    alpha2Label.setJustificationType(Justification(Justification::centred));
+    alpha2Label.setJustificationType(Justification::centred);
     alpha2Label.setTooltip("Shape ratio of the 3D drum\n(thin to cubic)");
     addAndMakeVisible(alpha2Label);
 
     // Right panel
     rLabel.setText("IMPULSE", dontSendNotification);
-    rLabel.setJustificationType(Justification(Justification::centred));
+    rLabel.setJustificationType(Justification::centred);
     rLabel.setTooltip("Location of the impulse on the\nstring/drum surface/cuboid");
     addAndMakeVisible(rLabel);
 
     mLabel.setText("MODES", dontSendNotification);
-    mLabel.setJustificationType(Justification(Justification::centred));
+    mLabel.setJustificationType(Justification::centred);
     mLabel.setTooltip("Number of modes (partials)\nper dimension");
     addAndMakeVisible(mLabel);
 
     xLabel.setText("X", dontSendNotification);
-    xLabel.setJustificationType(Justification(Justification::centred));
+    xLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(xLabel);
 
     yLabel.setText("Y", dontSendNotification);
-    yLabel.setJustificationType(Justification(Justification::centred));
+    yLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(yLabel);
 
     zLabel.setText("Z", dontSendNotification);
-    zLabel.setJustificationType(Justification(Justification::centred));
+    zLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(zLabel);
 
     // Misc components
     voicesLabel.setText("POLY VOICES", dontSendNotification);
-    voicesLabel.setJustificationType(Justification(Justification::centred));
+    voicesLabel.setJustificationType(Justification::centred);
     voicesLabel.setTooltip("Maximum number of notes\nplaying simultaneously");
     addAndMakeVisible(voicesLabel);
 
     algoLabel.setText("METHOD", dontSendNotification);
-    algoLabel.setJustificationType(Justification(Justification::centred));
+    algoLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(algoLabel);
 
     // Hidden dimension controller
