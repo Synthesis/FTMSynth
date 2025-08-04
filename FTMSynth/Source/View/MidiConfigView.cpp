@@ -26,7 +26,7 @@
 */
 
 #include "MidiConfigView.h"
-#include "CustomLookAndFeel.h"
+#include "../LookAndFeel/CustomLookAndFeel.h"
 
 //==============================================================================
 MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)

@@ -26,7 +26,7 @@
 */
 
 #include "LabelView.h"
-#include "CustomLookAndFeel.h"
+#include "../LookAndFeel/CustomLookAndFeel.h"
 
 //==============================================================================
 const float is2dAlphaOff[3] = {true, false, false};

@@ -26,7 +26,7 @@
 */
 
 #include "PluginProcessor.h"
-#include "PluginEditor.h"
+#include "../View/PluginEditor.h"
 
 //==============================================================================
 FTMSynthAudioProcessor::FTMSynthAudioProcessor()

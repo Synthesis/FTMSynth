@@ -28,8 +28,8 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
-#include "CustomLookAndFeel.h"
+#include "../Processor/PluginProcessor.h"
+#include "../LookAndFeel/CustomLookAndFeel.h"
 #include "VisualPanel.h"
 
 //==============================================================================

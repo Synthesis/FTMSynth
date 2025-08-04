@@ -1,9 +1,9 @@
 /*
   ==============================================================================
 
-    LabelView.h
-    Created: 13 Oct 2024 5:14:35pm
-    Author:  Loïc J
+    PluginEditor.h
+    Created: 10 Oct 2019 10:03:03am
+    Authors: Lily H, Loïc J
 
   ==============================================================================
 
@@ -28,51 +28,40 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
+#include "../Processor/PluginProcessor.h"
+#include "../LookAndFeel/CustomLookAndFeel.h"
+#include "LabelView.h"
+#include "MainView.h"
+#include "MidiConfigView.h"
 
 //==============================================================================
-class LabelView : public juce::Component
+class FTMSynthAudioProcessorEditor : public AudioProcessorEditor
 {
 public:
-    LabelView(FTMSynthAudioProcessor& p);
-    ~LabelView() override;
+    FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor& p);
+    ~FTMSynthAudioProcessorEditor();
 
-    void paint(juce::Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
 
-    void setOpaqueLabels(bool opaqueLabels);
-
 private:
-    void updateDimensionComponents();
+    void switchViews();
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FTMSynthAudioProcessor& processor;
 
+    // Custom look-and-feel
+    CustomLookAndFeel customLookAndFeel;
+
     // Help tooltip
     SharedResourcePointer<TooltipWindow> tooltip;
+    ImageButton helpButton;
+    ImageButton midiButton;
 
-    // Labels
-    Label volumeLabel;
-    Label attackLabel;
-    Label pitchLabel;
-    Label tauLabel;
-    Label pLabel;
-    Label dLabel;
-    Label alpha1Label;
-    Label alpha2Label;
-    Label rLabel;
-    Label mLabel;
-    Label xLabel;
-    Label yLabel;
-    Label zLabel;
-    Label voicesLabel;
-    Label algoLabel;
+    LabelView labelView;
+    MainView mainView;
+    MidiConfigView midiConfigView;
 
-    // Used for label opacity
-    Slider dimensionsSlider;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;
-    bool hasOpaqueLabels;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LabelView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FTMSynthAudioProcessorEditor)
 };
