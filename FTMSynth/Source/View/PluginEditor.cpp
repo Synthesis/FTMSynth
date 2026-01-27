@@ -30,7 +30,10 @@
 //==============================================================================
 FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor& p)
     : AudioProcessorEditor(&p), processor(p), customLookAndFeel(), helpButton("help"),
-      labelView(processor), mainView(processor), midiConfigView(processor)
+      labelView(processor), mainView(processor)
+#if JucePlugin_Build_Standalone
+    , midiConfigView(processor)
+#endif
 {
     setSize(640, 400);
 
@@ -43,7 +46,9 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     labelView.setOpaqueLabels(false);
     addAndMakeVisible(labelView);
     addAndMakeVisible(mainView);
+#if JucePlugin_Build_Standalone
     addChildComponent(midiConfigView);
+#endif
 
     // Buttons
     Image helpImg = ImageCache::getFromMemory(BinaryData::question_png, BinaryData::question_pngSize);
@@ -57,6 +62,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     helpButton.setTooltip("Information\n\nThis is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\n(Hover the mouse over the knob labels for more informations)");
     addAndMakeVisible(helpButton);
 
+#if JucePlugin_Build_Standalone
     Image midiImg = ImageCache::getFromMemory(BinaryData::midi_png, BinaryData::midi_pngSize);
     Image midiOff = midiImg.getClippedImage(Rectangle<int>(0, 0, midiImg.getWidth()/3, midiImg.getHeight()));
     Image midiHovered = midiImg.getClippedImage(Rectangle<int>(midiImg.getWidth()/3, 0, midiImg.getWidth()/3, midiImg.getHeight()));
@@ -70,6 +76,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     midiButton.onClick = [this] { switchViews(); };
     midiButton.setTooltip("MIDI input settings");
     addAndMakeVisible(midiButton);
+#endif
 }
 
 FTMSynthAudioProcessorEditor::~FTMSynthAudioProcessorEditor()
@@ -89,6 +96,7 @@ void FTMSynthAudioProcessorEditor::paint(Graphics& g)
     g.drawImage(background, Rectangle<float>(0, 0, 640, 400), RectanglePlacement::stretchToFit);
 }
 
+#if JucePlugin_Build_Standalone
 void FTMSynthAudioProcessorEditor::switchViews()
 {
     if (midiButton.getToggleState())
@@ -104,6 +112,7 @@ void FTMSynthAudioProcessorEditor::switchViews()
         mainView.setVisible(true);
     }
 }
+#endif
 
 void FTMSynthAudioProcessorEditor::resized()
 {

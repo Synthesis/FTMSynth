@@ -37,6 +37,13 @@ MidiConfigButton::MidiConfigButton()
 MidiConfigButton::~MidiConfigButton()
 {
 }
+
+void MidiConfigButton::setMapping(int cc, int channel)
+{
+    currentCC = cc;
+    currentChannel = channel;
+    repaint();
+}
 /*
 void MidiConfigButton::paint(juce::Graphics& g)
 {
@@ -51,14 +58,31 @@ void MidiConfigButton::paintButton(Graphics &g,
                                    bool shouldDrawButtonAsHighlighted,
                                    bool shouldDrawButtonAsDown)
 {
-    g.setColour(juce::Colour(0x3F000000));
-    if (shouldDrawButtonAsHighlighted) g.setColour(juce::Colour(0x3FFFFFFF));
-    if (shouldDrawButtonAsDown || getToggleState()) g.setColour(juce::Colour(0xA7FFFFFF));
+    Rectangle<float> bounds = getBounds().toFloat();
+    bounds.setPosition(0.0f, 0.0f);
+
+    g.setColour(Colour(0x3F000000));
+    if (shouldDrawButtonAsHighlighted) g.setColour(Colour(0x3FFFFFFF));
+    if (shouldDrawButtonAsDown || getToggleState()) g.setColour(Colour(0xA7FFFFFF));
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f, 0.5f), 6.0f, 1.0f);
 
     if (shouldDrawButtonAsDown || getToggleState())
     {
-        g.setColour(juce::Colour(0xFFDFCEA1));
+        g.setColour(Colour(0xFFDFCEA1));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f, 1.0f), 5.0f);
     }
+
+    String strCC = "CC  ";
+    if (currentCC == -1) strCC += "---";
+    else                 strCC += String(currentCC);
+
+    String strChannel = "CH  ";
+    if (currentChannel == -2)      strChannel += "--";
+    else if (currentChannel == -1) strChannel += "OM";
+    else                           strChannel += String(currentChannel + 1);
+
+    g.setColour(Colour(0xFF000000));
+    g.drawText(strCC, bounds, Justification::centredTop);
+    g.setColour(Colour(0x7F000000));
+    g.drawText(strChannel, bounds, Justification::centredBottom);
 }

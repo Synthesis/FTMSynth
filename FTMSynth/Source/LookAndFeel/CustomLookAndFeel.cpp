@@ -44,6 +44,8 @@ CustomLookAndFeel::CustomLookAndFeel()
     setColour(DrawableButton::backgroundOnColourId, Colour(0x00D6C59A));
 
     setColour(Slider::backgroundColourId, Colour(0x00D6C59A));
+    setColour(Slider::rotarySliderOutlineColourId, Colour(0xFF000000));
+    setColour(Slider::textBoxTextColourId, Colour(0xFF000000));
 
     setColour(ComboBox::backgroundColourId, Colour(0xFFD6C59A));
     setColour(ComboBox::textColourId, Colour(0xFF000000));
@@ -190,9 +192,9 @@ void DraggableBox::drawRotarySlider(Graphics& g, int x, int y, int width, int he
     g.setColour(slider.findColour(Slider::backgroundColourId).withAlpha(1.0f));
     g.fillRoundedRectangle(boxBounds.toFloat(), 6.0f);
     g.setColour(slider.findColour(Slider::rotarySliderOutlineColourId).withAlpha(0.5f));
-    g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 6.0f, 1.0f);
+    g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f), 6.0f, 1.0f);
     g.setColour(slider.findColour(Label::textColourId));
-    g.drawFittedText(String(int(slider.getValue())), x, y, width, height, Justification::centred, 1);
+    g.drawFittedText(slider.getTextFromValue(slider.getValue()), x, y, width, height, Justification::centred, 1);
 }
 
 
@@ -206,7 +208,7 @@ void CustomComboBox::drawComboBox(Graphics& g, int width, int height, bool, int,
     g.fillRoundedRectangle(boxBounds.toFloat(), 6.0f);
 
     g.setColour(comboBox.findColour(ComboBox::outlineColourId).withAlpha(0.5f));
-    g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), 6.0f, 1.0f);
+    g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f), 6.0f, 1.0f);
 
     Rectangle<int> arrowZone(width - 30, 0, 20, height);
     Path path;

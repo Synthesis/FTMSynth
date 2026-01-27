@@ -42,6 +42,12 @@ public:
 protected:
     void paintButton(Graphics &g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
+    int currentCC = -1;
+    int currentChannel = -2;
+
+public:
+    void setMapping(int cc, int channel);
+
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiConfigButton)
 };

@@ -109,7 +109,7 @@ LabelView::LabelView(FTMSynthAudioProcessor& p)
     voicesLabel.setTooltip("Maximum number of notes\nplaying simultaneously");
     addAndMakeVisible(voicesLabel);
 
-    algoLabel.setText("METHOD", dontSendNotification);
+    algoLabel.setText("ALGORITHM", dontSendNotification);
     algoLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(algoLabel);
 
@@ -176,5 +176,5 @@ void LabelView::resized()
     zLabel.setBounds(xyzControls.getX() + 162, xyzControls.getY() +  89, 24, 14);
 
     voicesLabel.setBounds( 18,  48, 76, 14);
-    algoLabel.setBounds(  416, 368, 56, 24);
+    algoLabel.setBounds(  416, 368, 64, 24);
 }

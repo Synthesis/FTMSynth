@@ -1,4 +1,5 @@
 /FTMSynth/Builds
 /FTMSynth/JuceLibraryCode
 .vscode
+.clangd
 .DS_Store

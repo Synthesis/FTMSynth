@@ -30,9 +30,31 @@
 #include <JuceHeader.h>
 #include "SynthSound.h"
 #include "SynthVoice.h"
+#if JucePlugin_Build_Standalone
+#include <map>
+#endif
+
+//==============================================================================
+#if JucePlugin_Build_Standalone
+struct MidiMappingEntry
+{
+    std::unique_ptr<AudioParameterInt> cc;
+    std::unique_ptr<AudioParameterInt> channel;
+};
+
+struct MidiMapping
+{
+    int cc = -1;
+    int channel = -2;
+};
+#endif
 
 //==============================================================================
 class FTMSynthAudioProcessor : public AudioProcessor
+#if JucePlugin_Build_Standalone
+                             , public ChangeBroadcaster
+                             , public AsyncUpdater
+#endif
 {
 public:
     //==============================================================================
@@ -69,17 +91,39 @@ public:
     void changeProgramName(int index, const String& newName) override;
 
     //==============================================================================
+#if JucePlugin_Build_Standalone
+    // MIDI Mapping (Standalone only)
+    std::map<String, std::unique_ptr<MidiMappingEntry>> midiMappings;
+    std::unique_ptr<AudioParameterInt> defaultChannelParam;
+    void setMidiMapping(String paramID, int cc, int channel);
+    MidiMapping getMidiMapping(String paramID);
+
+    // Learn Mode
+    std::atomic<bool> learningCC { false };
+    std::atomic<bool> learningChannel { false };
+    String learningParamID;
+    void setMidiLearn(String paramID, bool learnCC, bool learnChannel);
+    void handleAsyncUpdate() override;
+
+    // Persistence
+    static PropertiesFile::Options getGlobalSettingsOptions();
+    void saveGlobalMidiMappings();
+    void loadGlobalMidiMappings();
+#endif
+
+    //==============================================================================
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
     //==============================================================================
-    AudioProcessorValueTreeState tree; //to link values from the slider to processor
+    AudioProcessorValueTreeState tree;  // to link values from the slider to processor
 
 private:
     Synthesiser mySynth;
     SynthVoice* myVoice;
 
     double lastSampleRate;
+
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FTMSynthAudioProcessor)
 };

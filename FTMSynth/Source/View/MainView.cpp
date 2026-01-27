@@ -29,7 +29,7 @@
 
 //==============================================================================
 MainView::MainView(FTMSynthAudioProcessor& p)
-    : processor(p), withTextBox(), draggableBox(), customComboBox(),
+    : processor(p),
       stringButton("string"), drumButton("drum"), boxButton("box"),
       kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
       visualPanel(p.tree, r1Slider, r2Slider, r3Slider)
@@ -345,8 +345,8 @@ void MainView::updateDimensionComponents()
 
     if (dimensions >= 1 && dimensions <= 3)
     {
-        if (! thisIsALabel.isVisible()) thisIsALabel.setVisible(true);
-        if (! nameLabel.isVisible()) nameLabel.setVisible(true);
+        if (!thisIsALabel.isVisible()) thisIsALabel.setVisible(true);
+        if (!nameLabel.isVisible()) nameLabel.setVisible(true);
     }
     else
     {
@@ -414,5 +414,5 @@ void MainView::resized()
     visualPanel.setBounds(152, 176, 224, 224);
 
     voicesSlider.setBounds( 16,  16,  80, 24);
-    algoComboBox.setBounds(480, 368, 144, 24);
+    algoComboBox.setBounds(488, 368, 136, 24);
 }

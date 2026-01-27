@@ -81,6 +81,42 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     // clear and add sounds
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
+
+#if JucePlugin_Build_Standalone
+    // Helper to create mapping entry
+    auto createMapping = [](String id)
+    {
+        auto entry = std::make_unique<MidiMappingEntry>();
+
+        entry->cc = std::make_unique<AudioParameterInt>(id + "_cc", "CC", -1, 127, -1);
+        entry->channel = std::make_unique<AudioParameterInt>(id + "_ch", "Channel", -2, 15, -2);
+
+        return entry;
+    };
+
+    // Initialize MIDI Mappings
+    midiMappings["volume"] = createMapping("volume");
+    midiMappings["attack"] = createMapping("attack");
+    midiMappings["dimensions"] = createMapping("dimensions");
+    midiMappings["pitch"] = createMapping("pitch");
+    midiMappings["sustain"] = createMapping("sustain");
+    midiMappings["damp"] = createMapping("damp");
+    midiMappings["dispersion"] = createMapping("dispersion");
+    midiMappings["squareness"] = createMapping("squareness");
+    midiMappings["cubeness"] = createMapping("cubeness");
+    midiMappings["r1"] = createMapping("r1");
+    midiMappings["r2"] = createMapping("r2");
+    midiMappings["r3"] = createMapping("r3");
+    midiMappings["m1"] = createMapping("m1");
+    midiMappings["m2"] = createMapping("m2");
+    midiMappings["m3"] = createMapping("m3");
+    midiMappings["voices"] = createMapping("voices");
+    midiMappings["algorithm"] = createMapping("algorithm");
+
+    defaultChannelParam = std::make_unique<AudioParameterInt>("default_ch", "Default Channel", -1, 15, -1);
+
+    loadGlobalMidiMappings();
+#endif
 }
 
 
@@ -268,6 +304,95 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
+#if JucePlugin_Build_Standalone
+    // Unified MIDI message processing (Standalone only)
+    MidiBuffer filteredMidi;
+    int defaultCh = defaultChannelParam->get();
+
+    for (const auto metadata : midiMessages)
+    {
+        auto message = metadata.getMessage();
+        int inCh = message.getChannel() - 1; // 0-15
+
+        // --- Synth Events (Notes, Pitch, Aftertouch) ---
+        // Filter by Default Channel
+        if (message.isNoteOn() || message.isNoteOff() ||
+            message.isPitchWheel() || message.isAftertouch() || message.isChannelPressure() ||
+            message.isAllNotesOff() || message.isAllSoundOff())
+        {
+            if (defaultCh == -1 || defaultCh == inCh)
+            {
+                filteredMidi.addEvent(message, metadata.samplePosition);
+            }
+        }
+
+        // --- CC Events (Parameter Mapping) ---
+        else if (message.isController())
+        {
+            int inCC = message.getControllerNumber();
+
+            // Learn Mode
+            if (learningCC || learningChannel)
+            {
+                if (learningParamID.isNotEmpty())
+                {
+                    bool changed = false;
+                    if (learningCC)
+                    {
+                        *midiMappings[learningParamID]->cc = inCC;
+                        learningCC = false;
+                        changed = true;
+                    }
+                    if (learningChannel)
+                    {
+                        *midiMappings[learningParamID]->channel = inCh;
+                        learningChannel = false;
+                        changed = true;
+                    }
+
+                    if (changed)
+                    {
+                        triggerAsyncUpdate();  // Safe save on Message Thread
+                        sendChangeMessage();  // Notify view to update sliders/buttons
+                        continue;  // Consume message, do not update parameter
+                    }
+                }
+            }
+
+            // Parameter Dispatch
+            for (auto const& [paramID, entry] : midiMappings)
+            {
+                if (entry->cc->get() == inCC)
+                {
+                    bool channelMatch = false;
+                    int mappedCh = entry->channel->get();
+
+                    if (mappedCh == -1)  // OMNI
+                        channelMatch = true;
+                    else if (mappedCh == -2)  // MAIN
+                    {
+                        if (defaultCh == -1 || defaultCh == inCh)
+                            channelMatch = true;
+                    }
+                    else if (mappedCh == inCh)  // Specific
+                        channelMatch = true;
+
+                    if (channelMatch)
+                    {
+                        auto* param = tree.getParameter(paramID);
+                        if (param != nullptr)
+                        {
+                            // Map 0-127 to 0.0-1.0
+                            float newValue = (float)message.getControllerValue() / 127.0f;
+                            param->setValueNotifyingHost(newValue);
+                        }
+                    }
+                }
+            }
+        }
+    }
+#endif
+
     // Retrieve parameters from sliders and pass them to the model
     for (int i=0; i < mySynth.getNumVoices(); i++)
     {
@@ -304,7 +429,11 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     buffer.clear();
 
-    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples()); // which is the callback function
+#if JucePlugin_Build_Standalone
+    mySynth.renderNextBlock(buffer, filteredMidi, 0, buffer.getNumSamples());
+#else
+    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+#endif
 }
 
 //==============================================================================
@@ -319,19 +448,121 @@ AudioProcessorEditor* FTMSynthAudioProcessor::createEditor()
 }
 
 //==============================================================================
+#if JucePlugin_Build_Standalone
+void FTMSynthAudioProcessor::setMidiMapping(String paramID, int cc, int channel)
+{
+    if (midiMappings.find(paramID) != midiMappings.end())
+    {
+        *midiMappings[paramID]->cc = cc;
+        *midiMappings[paramID]->channel = channel;
+        saveGlobalMidiMappings();
+    }
+}
+
+void FTMSynthAudioProcessor::setMidiLearn(String paramID, bool learnCC, bool learnChannel)
+{
+    if (paramID.isNotEmpty())
+        learningParamID = paramID;
+
+    if (learnCC) learningCC = !learningCC;
+    if (learnChannel) learningChannel = !learningChannel;
+
+    sendChangeMessage();  // Notify view of state change
+}
+
+MidiMapping FTMSynthAudioProcessor::getMidiMapping(String paramID)
+{
+    MidiMapping m;
+    if (midiMappings.find(paramID) != midiMappings.end())
+    {
+        m.cc = midiMappings[paramID]->cc->get();
+        m.channel = midiMappings[paramID]->channel->get();
+    }
+    return m;
+}
+
+void FTMSynthAudioProcessor::handleAsyncUpdate()
+{
+    saveGlobalMidiMappings();
+}
+
+//==============================================================================
+PropertiesFile::Options FTMSynthAudioProcessor::getGlobalSettingsOptions()
+{
+    PropertiesFile::Options options;
+    options.applicationName = JucePlugin_Name;
+    options.filenameSuffix = ".settings";
+    options.folderName = JucePlugin_Name;
+    options.osxLibrarySubFolder = "Application Support";
+    return options;
+}
+
+void FTMSynthAudioProcessor::saveGlobalMidiMappings()
+{
+    ApplicationProperties props;
+    props.setStorageParameters(getGlobalSettingsOptions());
+
+    std::unique_ptr<XmlElement> xml(new XmlElement("MidiMappings"));
+
+    // Default Channel
+    xml->setAttribute("defaultChannel", defaultChannelParam->get());
+
+    for (auto const& [id, entry] : midiMappings)
+    {
+        auto* e = xml->createNewChildElement("Mapping");
+        e->setAttribute("paramID", id);
+        e->setAttribute("cc", entry->cc->get());
+        e->setAttribute("channel", entry->channel->get());
+    }
+
+    props.getUserSettings()->setValue("MidiMappings", xml->toString());
+    props.saveIfNeeded();
+}
+
+void FTMSynthAudioProcessor::loadGlobalMidiMappings()
+{
+    ApplicationProperties props;
+    props.setStorageParameters(getGlobalSettingsOptions());
+
+    auto xmlString = props.getUserSettings()->getValue("MidiMappings");
+    if (xmlString.isNotEmpty())
+    {
+        std::unique_ptr<XmlElement> xml(XmlDocument::parse(xmlString));
+        if (xml != nullptr && xml->hasTagName("MidiMappings"))
+        {
+            *defaultChannelParam = xml->getIntAttribute("defaultChannel", -1);
+
+            for (auto* child : xml->getChildIterator())
+            {
+                if (child->hasTagName("Mapping"))
+                {
+                    String id = child->getStringAttribute("paramID");
+                    if (midiMappings.find(id) != midiMappings.end())
+                    {
+                        *midiMappings[id]->cc = child->getIntAttribute("cc");
+                        *midiMappings[id]->channel = child->getIntAttribute("channel");
+                    }
+                }
+            }
+        }
+    }
+}
+#endif
+
+//==============================================================================
 void FTMSynthAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
     auto state = tree.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    std::unique_ptr<XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
 
 void FTMSynthAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState.get() != nullptr)
         if (xmlState->hasTagName(tree.state.getType()))
-            tree.replaceState(juce::ValueTree::fromXml(*xmlState));
+            tree.replaceState(ValueTree::fromXml(*xmlState));
 }
 
 //==============================================================================
