@@ -157,9 +157,11 @@ private:
     Slider midiCCSlider;
     Slider midiChannelSlider;
     Slider midiDefaultSlider;
-    
-    TextButton learnCCButton;
-    TextButton learnChannelButton;
+
+    DrawableButton resetCCButton;
+    DrawableButton resetChannelButton;
+    DrawableButton learnCCButton;
+    DrawableButton learnChannelButton;
 
     bool isDragging = false;
 

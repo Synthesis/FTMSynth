@@ -56,12 +56,16 @@ static String getParamID(int buttonID)
 
 //==============================================================================
 MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
-    : processor(p)
+    : processor(p),
+      resetCCButton("resetCC", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize),
+      resetChannelButton("resetChannel", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize),
+      learnCCButton("learnCC", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize),
+      learnChannelButton("learnChannel", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize)
 {
     setSize(640, 400);
     setInterceptsMouseClicks(false, true);
 
-    // Buttons
+    // Parameter selectors
     volumeButton.onClick = [this] { updateView(BUTTON_ID_VOLUME); };
     volumeButton.setRadioGroupId(2);
     addAndMakeVisible(volumeButton);
@@ -145,6 +149,12 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     paramNameLabel.setJustificationType(Justification::centred);
     addChildComponent(paramNameLabel);
 
+    // CC selector
+    DrawableImage resetDrawable(ImageCache::getFromMemory(BinaryData::midiReset_png, BinaryData::midiReset_pngSize));
+    Image midiLearnImage = ImageCache::getFromMemory(BinaryData::midiLearn_png, BinaryData::midiLearn_pngSize);
+    DrawableImage midiLearnDrawable(midiLearnImage.getClippedImage(Rectangle<int>(0, 0, midiLearnImage.getWidth()/2, midiLearnImage.getHeight())));
+    DrawableImage midiLearnDrawableOn(midiLearnImage.getClippedImage(Rectangle<int>(midiLearnImage.getWidth()/2, 0, midiLearnImage.getWidth()/2, midiLearnImage.getHeight())));
+
     midiCCLabel.setText("CC", dontSendNotification);
     midiCCLabel.setJustificationType(Justification::centredRight);
     addChildComponent(midiCCLabel);
@@ -177,10 +187,23 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     };
     addChildComponent(midiCCSlider);
 
-    learnCCButton.setButtonText("LEARN");
-    learnCCButton.setTooltip("Learn MIDI CC");
+    resetCCButton.setImages(&resetDrawable);
+    resetCCButton.setTooltip("Reset");
+    resetCCButton.setWantsKeyboardFocus(false);
+    resetCCButton.onClick = [this]
+    {
+        if (current_button_id > 0)
+        {
+            midiCCSlider.setValue(-1, sendNotification);
+        }
+    };
+    addChildComponent(resetCCButton);
+
+    learnCCButton.setImages(&midiLearnDrawable, nullptr, nullptr, nullptr, &midiLearnDrawableOn);
+    learnCCButton.setTooltip("MIDI Learn");
     learnCCButton.setClickingTogglesState(true);
-    learnCCButton.setColour(TextButton::buttonOnColourId, Colours::orange);
+    learnCCButton.setColour(TextButton::buttonOnColourId, Colour(0xFFFC5647));
+    learnCCButton.setWantsKeyboardFocus(false);
     learnCCButton.onClick = [this]
     {
         if (current_button_id > 0)
@@ -190,6 +213,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     };
     addChildComponent(learnCCButton);
 
+    // Channel selector
     midiChannelLabel.setText("CHANNEL", dontSendNotification);
     midiChannelLabel.setJustificationType(Justification::centredRight);
     addChildComponent(midiChannelLabel);
@@ -223,10 +247,23 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     };
     addChildComponent(midiChannelSlider);
 
-    learnChannelButton.setButtonText("LEARN");
-    learnChannelButton.setTooltip("Learn MIDI Channel");
+    resetChannelButton.setImages(&resetDrawable);
+    resetChannelButton.setTooltip("Reset");
+    resetChannelButton.setWantsKeyboardFocus(false);
+    resetChannelButton.onClick = [this]
+    {
+        if (current_button_id > 0)
+        {
+            midiChannelSlider.setValue(-2, sendNotification);
+        }
+    };
+    addChildComponent(resetChannelButton);
+
+    learnChannelButton.setImages(&midiLearnDrawable, nullptr, nullptr, nullptr, &midiLearnDrawableOn);
+    learnChannelButton.setTooltip("MIDI Learn");
     learnChannelButton.setClickingTogglesState(true);
-    learnChannelButton.setColour(TextButton::buttonOnColourId, Colours::orange);
+    learnChannelButton.setColour(TextButton::buttonOnColourId, Colour(0xFFFC5647));
+    learnChannelButton.setWantsKeyboardFocus(false);
     learnChannelButton.onClick = [this]
     {
         if (current_button_id > 0)
@@ -235,6 +272,11 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
             learnChannelButton.setToggleState(false, dontSendNotification);
     };
     addChildComponent(learnChannelButton);
+
+    // Default channel selector
+    midiDefaultLabel.setText("DEFAULT CHN", dontSendNotification);
+    midiDefaultLabel.setJustificationType(Justification::centredRight);
+    addAndMakeVisible(midiDefaultLabel);
 
     midiDefaultSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
     midiDefaultSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
@@ -260,10 +302,6 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     // Manual initial sync
     midiDefaultSlider.setValue(processor.defaultChannelParam->get(), dontSendNotification);
     addAndMakeVisible(midiDefaultSlider);
-
-    midiDefaultLabel.setText("DEFAULT CHN", dontSendNotification);
-    midiDefaultLabel.setJustificationType(Justification::centredRight);
-    addAndMakeVisible(midiDefaultLabel);
 
     // Initialize buttons with current processor state
     for (int i=0; i < juce::numElementsInArray(midiConfigButtons); ++i)
@@ -311,6 +349,11 @@ void MidiConfigView::changeListenerCallback(ChangeBroadcaster* source)
 
 void MidiConfigView::updateView(int button_id)
 {
+    // Ensure learn mode is reset when switching params
+    learnCCButton.setToggleState(false, sendNotification);
+    learnChannelButton.setToggleState(false, sendNotification);
+    processor.setMidiLearn(getParamID(current_button_id), false, false);
+
     if (current_button_id == button_id)
     {
         midiConfigButtons[current_button_id-1]->setToggleState(false, dontSendNotification);
@@ -321,9 +364,11 @@ void MidiConfigView::updateView(int button_id)
         if (paramNameLabel.isVisible()) paramNameLabel.setVisible(false);
         if (midiCCLabel.isVisible()) midiCCLabel.setVisible(false);
         if (midiCCSlider.isVisible()) midiCCSlider.setVisible(false);
+        if (resetCCButton.isVisible()) resetCCButton.setVisible(false);
         if (learnCCButton.isVisible()) learnCCButton.setVisible(false);
         if (midiChannelLabel.isVisible()) midiChannelLabel.setVisible(false);
         if (midiChannelSlider.isVisible()) midiChannelSlider.setVisible(false);
+        if (resetChannelButton.isVisible()) resetChannelButton.setVisible(false);
         if (learnChannelButton.isVisible()) learnChannelButton.setVisible(false);
     }
     else
@@ -340,14 +385,12 @@ void MidiConfigView::updateView(int button_id)
         if (!paramNameLabel.isVisible()) paramNameLabel.setVisible(true);
         if (!midiCCLabel.isVisible()) midiCCLabel.setVisible(true);
         if (!midiCCSlider.isVisible()) midiCCSlider.setVisible(true);
+        if (!resetCCButton.isVisible()) resetCCButton.setVisible(true);
         if (!learnCCButton.isVisible()) learnCCButton.setVisible(true);
         if (!midiChannelLabel.isVisible()) midiChannelLabel.setVisible(true);
         if (!midiChannelSlider.isVisible()) midiChannelSlider.setVisible(true);
+        if (!resetChannelButton.isVisible()) resetChannelButton.setVisible(true);
         if (!learnChannelButton.isVisible()) learnChannelButton.setVisible(true);
-
-        // Ensure learn mode is reset when switching params
-        learnCCButton.setToggleState(processor.learningCC && processor.learningParamID == paramID, dontSendNotification);
-        learnChannelButton.setToggleState(processor.learningChannel && processor.learningParamID == paramID, dontSendNotification);
 
         // Button update
         midiConfigButtons[current_button_id-1]->setMapping((int)midiCCSlider.getValue(), (int)midiChannelSlider.getValue());
@@ -398,13 +441,15 @@ void MidiConfigView::resized()
 
     configLabel.setBounds(32, 278, 96, 64);
 
-    paramNameLabel.setBounds(   configControls.getCentreX() -  48, configControls.getY()       + 25, 96, 14);
-    midiCCLabel.setBounds(      configControls.getCentreX() - 100, configControls.getCentreY() - 23, 96, 14);
-    midiCCSlider.setBounds(     configControls.getCentreX() +   4, configControls.getCentreY() - 28, 64, 24);
-    learnCCButton.setBounds(    midiCCSlider.getRight()     +   5, midiCCSlider.getY(),              24, 24);
-    midiChannelLabel.setBounds( configControls.getCentreX() - 100, configControls.getCentreY() +  9, 96, 14);
-    midiChannelSlider.setBounds(configControls.getCentreX() +   4, configControls.getCentreY() +  4, 64, 24);
-    learnChannelButton.setBounds(midiChannelSlider.getRight() + 5, midiChannelSlider.getY(),         24, 24);
-    midiDefaultLabel.setBounds( configControls.getCentreX() - 100, configControls.getBottom()  - 23, 96, 14);
-    midiDefaultSlider.setBounds(configControls.getCentreX() +   4, configControls.getBottom()  - 28, 64, 24);
+    paramNameLabel.setBounds(    configControls.getCentreX() -  48, configControls.getY()       + 25, 96, 14);
+    midiCCLabel.setBounds(       configControls.getCentreX() - 128, configControls.getCentreY() - 23, 96, 14);
+    resetCCButton.setBounds(     configControls.getCentreX() -  24, configControls.getCentreY() - 28, 24, 24);
+    midiCCSlider.setBounds(      configControls.getCentreX() +   4, configControls.getCentreY() - 28, 64, 24);
+    learnCCButton.setBounds(     configControls.getCentreX() +  72, configControls.getCentreY() - 28, 24, 24);
+    midiChannelLabel.setBounds(  configControls.getCentreX() - 128, configControls.getCentreY() +  9, 96, 14);
+    resetChannelButton.setBounds(configControls.getCentreX() -  24, configControls.getCentreY() +  4, 24, 24);
+    midiChannelSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() +  4, 64, 24);
+    learnChannelButton.setBounds(configControls.getCentreX() +  72, configControls.getCentreY() +  4, 24, 24);
+    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getBottom()  - 23, 96, 14);
+    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getBottom()  - 28, 64, 24);
 }

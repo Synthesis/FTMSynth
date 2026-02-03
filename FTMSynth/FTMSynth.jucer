@@ -51,6 +51,8 @@
       <FILE id="u4ndxp" name="drum_skin.png" compile="0" resource="1" file="Assets/drum_skin.png"/>
       <FILE id="hZ400v" name="question.png" compile="0" resource="1" file="Assets/question.png"/>
       <FILE id="alFNSq" name="midi.png" compile="0" resource="1" file="Assets/midi.png"/>
+      <FILE id="yq1gwZ" name="midiReset.png" compile="0" resource="1" file="Assets/midiReset.png"/>
+      <FILE id="KX4dHo" name="midiLearn.png" compile="0" resource="1" file="Assets/midiLearn.png"/>
       <FILE id="j5P3Sn" name="arial_narrow_7.ttf" compile="0" resource="1"
             file="Assets/arial_narrow_7.ttf"/>
       <FILE id="Hafu1s" name="123Marker.ttf" compile="0" resource="1" file="Assets/123Marker.ttf"/>
