@@ -37,8 +37,13 @@ static String getParamID(int buttonID)
         case BUTTON_ID_ATTACK:     return "attack";
         case BUTTON_ID_DIMENSIONS: return "dimensions";
         case BUTTON_ID_PITCH:      return "pitch";
+        case BUTTON_ID_KBTRACK:    return "kbTrack";
         case BUTTON_ID_TAU:        return "sustain";
+        case BUTTON_ID_TAU_GATE:   return "susGate";
+        case BUTTON_ID_RELEASE:    return "release";
         case BUTTON_ID_P:          return "damp";
+        case BUTTON_ID_P_GATE:     return "dampGate";
+        case BUTTON_ID_RING:       return "ring";
         case BUTTON_ID_D:          return "dispersion";
         case BUTTON_ID_ALPHA1:     return "squareness";
         case BUTTON_ID_ALPHA2:     return "cubeness";
@@ -80,15 +85,43 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
 
     pitchButton.onClick = [this] { updateView(BUTTON_ID_PITCH); };
     pitchButton.setRadioGroupId(2);
+    pitchButton.setConnectedEdges(Button::ConnectedOnTop);
     addAndMakeVisible(pitchButton);
+
+    kbTrackButton.onClick = [this] { updateView(BUTTON_ID_KBTRACK); };
+    kbTrackButton.setRadioGroupId(2);
+    kbTrackButton.setConnectedEdges(Button::ConnectedOnBottom);
+    addAndMakeVisible(kbTrackButton);
 
     tauButton.onClick = [this] { updateView(BUTTON_ID_TAU); };
     tauButton.setRadioGroupId(2);
+    tauButton.setConnectedEdges(Button::ConnectedOnTop);
     addAndMakeVisible(tauButton);
+
+    tauGateButton.onClick = [this] { updateView(BUTTON_ID_TAU_GATE); };
+    tauGateButton.setRadioGroupId(2);
+    tauGateButton.setConnectedEdges(Button::ConnectedOnTop | Button::ConnectedOnBottom);
+    addAndMakeVisible(tauGateButton);
+
+    relButton.onClick = [this] { updateView(BUTTON_ID_RELEASE); };
+    relButton.setRadioGroupId(2);
+    relButton.setConnectedEdges(Button::ConnectedOnBottom);
+    addAndMakeVisible(relButton);
 
     pButton.onClick = [this] { updateView(BUTTON_ID_P); };
     pButton.setRadioGroupId(2);
+    pButton.setConnectedEdges(Button::ConnectedOnTop);
     addAndMakeVisible(pButton);
+
+    pGateButton.onClick = [this] { updateView(BUTTON_ID_P_GATE); };
+    pGateButton.setRadioGroupId(2);
+    pGateButton.setConnectedEdges(Button::ConnectedOnTop | Button::ConnectedOnBottom);
+    addAndMakeVisible(pGateButton);
+
+    ringButton.onClick = [this] { updateView(BUTTON_ID_RING); };
+    ringButton.setRadioGroupId(2);
+    ringButton.setConnectedEdges(Button::ConnectedOnBottom);
+    addAndMakeVisible(ringButton);
 
     dButton.onClick = [this] { updateView(BUTTON_ID_D); };
     dButton.setRadioGroupId(2);
@@ -133,6 +166,22 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     algoButton.onClick = [this] { updateView(BUTTON_ID_ALGO); };
     algoButton.setRadioGroupId(2);
     addAndMakeVisible(algoButton);
+
+    kbTrackLabel.setText("KB TRACK", dontSendNotification);
+    kbTrackLabel.setJustificationType(Justification::centred);
+    addAndMakeVisible(kbTrackLabel);
+
+    relLabel.setText("RELEASE", dontSendNotification);
+    relLabel.setJustificationType(Justification::centred);
+    addAndMakeVisible(relLabel);
+
+    ringLabel.setText("RING", dontSendNotification);
+    ringLabel.setJustificationType(Justification::centred);
+    addAndMakeVisible(ringLabel);
+
+    gateLabel.setText("GATE", dontSendNotification);
+    gateLabel.setJustificationType(Justification::centred);
+    addAndMakeVisible(gateLabel);
 
     dimensionsLabel.setText("DIMENSIONS", dontSendNotification);
     dimensionsLabel.setJustificationType(Justification::centred);
@@ -406,7 +455,7 @@ void MidiConfigView::paint(juce::Graphics& g)
         g.setColour(Colour(0x7F000000));
         g.drawMultiLineText("Please select a control\nto change its MIDI mapping",
                             configControls.getX(),
-                            configControls.getCentreY() - 16,
+                            configControls.getCentreY() - 32,
                             configControls.getWidth(),
                             Justification::centred);
     }
@@ -422,9 +471,18 @@ void MidiConfigView::resized()
     attackButton.setBounds(    mainControls.getX()    -  80, mainControls.getY() + knobOffY + 80, 48, 48);
     dimensionsButton.setBounds(mainControls.getRight() - 70, mainControls.getY() + knobOffY - 64, 48, 48);
     dimensionsLabel.setBounds( mainControls.getRight() - 86, mainControls.getY() +  lblOffY,      80, 14);
-    pitchButton.setBounds(     mainControls.getX()    +  22, mainControls.getY() + knobOffY - 32, 48, 48 + 32);
-    tauButton.setBounds(       mainControls.getX()    + 106, mainControls.getY() + knobOffY - 48, 48, 48 + 48);
-    pButton.setBounds(         mainControls.getX()    + 190, mainControls.getY() + knobOffY - 48, 48, 48 + 48);
+    pitchButton.setBounds(     mainControls.getX()    +  22, mainControls.getY() + knobOffY,      48, 48);
+    kbTrackButton.setBounds(   mainControls.getX()    +  22, mainControls.getY() + knobOffY - 32, 48, 32);
+    kbTrackLabel.setBounds(    mainControls.getX()    +  10, mainControls.getY() +  lblOffY + 32, 72, 14);
+    tauButton.setBounds(       mainControls.getX()    + 106, mainControls.getY() + knobOffY,      48, 48);
+    tauGateButton.setBounds(   mainControls.getX()    + 106, mainControls.getY() + knobOffY - 32, 48, 32);
+    relButton.setBounds(       mainControls.getX()    + 106, mainControls.getY() + knobOffY - 64, 48, 32);
+    relLabel.setBounds(        mainControls.getX()    +  94, mainControls.getY() +  lblOffY,      72, 14);
+    pButton.setBounds(         mainControls.getX()    + 190, mainControls.getY() + knobOffY,      48, 48);
+    pGateButton.setBounds(     mainControls.getX()    + 190, mainControls.getY() + knobOffY - 32, 48, 32);
+    ringButton.setBounds(      mainControls.getX()    + 190, mainControls.getY() + knobOffY - 64, 48, 32);
+    ringLabel.setBounds(       mainControls.getX()    + 178, mainControls.getY() +  lblOffY,      72, 14);
+    gateLabel.setBounds(       mainControls.getX()    + 160, mainControls.getY() +  lblOffY + 60, 24, 14);
     dButton.setBounds(         mainControls.getX()    + 274, mainControls.getY() + knobOffY,      48, 48);
     alpha1Button.setBounds(    mainControls.getX()    + 358, mainControls.getY() + knobOffY,      48, 48);
     alpha2Button.setBounds(    mainControls.getX()    + 442, mainControls.getY() + knobOffY,      48, 48);
@@ -450,6 +508,6 @@ void MidiConfigView::resized()
     resetChannelButton.setBounds(configControls.getCentreX() -  24, configControls.getCentreY() +  4, 24, 24);
     midiChannelSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() +  4, 64, 24);
     learnChannelButton.setBounds(configControls.getCentreX() +  72, configControls.getCentreY() +  4, 24, 24);
-    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getBottom()  - 23, 96, 14);
-    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getBottom()  - 28, 64, 24);
+    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getCentreY() + 41, 96, 14);
+    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() + 36, 64, 24);
 }

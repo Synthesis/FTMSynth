@@ -36,18 +36,16 @@ public:
     MidiConfigButton();
     ~MidiConfigButton() override;
 
-    // void paint(juce::Graphics&) override;
-    // void resized() override;
+    void setMapping(int cc, int channel);
 
 protected:
     void paintButton(Graphics &g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override;
 
+    Font standardFont;
+
+private:
     int currentCC = -1;
     int currentChannel = -2;
 
-public:
-    void setMapping(int cc, int channel);
-
-private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiConfigButton)
 };

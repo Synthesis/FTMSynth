@@ -37,19 +37,24 @@
 #define BUTTON_ID_ATTACK      2
 #define BUTTON_ID_DIMENSIONS  3
 #define BUTTON_ID_PITCH       4
-#define BUTTON_ID_TAU         5
-#define BUTTON_ID_P           6
-#define BUTTON_ID_D           7
-#define BUTTON_ID_ALPHA1      8
-#define BUTTON_ID_ALPHA2      9
-#define BUTTON_ID_R1         10
-#define BUTTON_ID_R2         11
-#define BUTTON_ID_R3         12
-#define BUTTON_ID_M1         13
-#define BUTTON_ID_M2         14
-#define BUTTON_ID_M3         15
-#define BUTTON_ID_VOICES     16
-#define BUTTON_ID_ALGO       17
+#define BUTTON_ID_KBTRACK     5
+#define BUTTON_ID_TAU         6
+#define BUTTON_ID_TAU_GATE    7
+#define BUTTON_ID_RELEASE     8
+#define BUTTON_ID_P           9
+#define BUTTON_ID_P_GATE     10
+#define BUTTON_ID_RING       11
+#define BUTTON_ID_D          12
+#define BUTTON_ID_ALPHA1     13
+#define BUTTON_ID_ALPHA2     14
+#define BUTTON_ID_R1         15
+#define BUTTON_ID_R2         16
+#define BUTTON_ID_R3         17
+#define BUTTON_ID_M1         18
+#define BUTTON_ID_M2         19
+#define BUTTON_ID_M3         20
+#define BUTTON_ID_VOICES     21
+#define BUTTON_ID_ALGO       22
 
 //==============================================================================
 const Rectangle<int> configControls(128, 184, 256, 208);
@@ -88,8 +93,13 @@ private:
     MidiConfigButton attackButton;
     MidiConfigButton dimensionsButton;
     MidiConfigButton pitchButton;
+    MidiConfigButton kbTrackButton;
     MidiConfigButton tauButton;
+    MidiConfigButton tauGateButton;
+    MidiConfigButton relButton;
     MidiConfigButton pButton;
+    MidiConfigButton pGateButton;
+    MidiConfigButton ringButton;
     MidiConfigButton dButton;
     MidiConfigButton alpha1Button;
     MidiConfigButton alpha2Button;
@@ -103,13 +113,18 @@ private:
     MidiConfigButton algoButton;
 
     int current_button_id = 0;
-    MidiConfigButton* midiConfigButtons[17] = {
+    MidiConfigButton* midiConfigButtons[22] = {
         &volumeButton,
         &attackButton,
         &dimensionsButton,
         &pitchButton,
+        &kbTrackButton,
         &tauButton,
+        &tauGateButton,
+        &relButton,
         &pButton,
+        &pGateButton,
+        &ringButton,
         &dButton,
         &alpha1Button,
         &alpha2Button,
@@ -123,13 +138,18 @@ private:
         &algoButton
     };
 
-    String paramName[17] = {
+    String paramName[22] = {
         "VOLUME",
         "ATTACK",
         "DIMENSIONS",
         "PITCH",
+        "KB TRACK",
         "SUSTAIN",
+        "SUSTAIN GATE",
+        "RELEASE",
         "DAMP",
+        "DAMP GATE",
+        "RING",
         "INHARMONICITY",
         "SQUARENESS",
         "CUBENESS",
@@ -143,7 +163,11 @@ private:
         "ALGORITHM"
     };
 
-    // Extra label
+    // Extra labels
+    Label kbTrackLabel;
+    Label relLabel;
+    Label ringLabel;
+    Label gateLabel;
     Label dimensionsLabel;
 
     // Center panel UI components

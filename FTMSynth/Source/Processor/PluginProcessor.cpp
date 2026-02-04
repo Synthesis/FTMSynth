@@ -99,8 +99,13 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     midiMappings["attack"] = createMapping("attack");
     midiMappings["dimensions"] = createMapping("dimensions");
     midiMappings["pitch"] = createMapping("pitch");
+    midiMappings["kbTrack"] = createMapping("kbTrack");
     midiMappings["sustain"] = createMapping("sustain");
+    midiMappings["susGate"] = createMapping("susGate");
+    midiMappings["release"] = createMapping("release");
     midiMappings["damp"] = createMapping("damp");
+    midiMappings["dampGate"] = createMapping("dampGate");
+    midiMappings["ring"] = createMapping("ring");
     midiMappings["dispersion"] = createMapping("dispersion");
     midiMappings["squareness"] = createMapping("squareness");
     midiMappings["cubeness"] = createMapping("cubeness");

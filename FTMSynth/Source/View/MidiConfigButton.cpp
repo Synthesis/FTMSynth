@@ -30,8 +30,10 @@
 
 //==============================================================================
 MidiConfigButton::MidiConfigButton()
-    : ToggleButton()
+    : ToggleButton(),
+      standardFont(Typeface::createSystemTypefaceFor(BinaryData::arial_narrow_7_ttf, BinaryData::arial_narrow_7_ttfSize))
 {
+    standardFont.setHeight(standardFont.getHeight() * 1.2f);
 }
 
 MidiConfigButton::~MidiConfigButton()
@@ -44,45 +46,84 @@ void MidiConfigButton::setMapping(int cc, int channel)
     currentChannel = channel;
     repaint();
 }
-/*
-void MidiConfigButton::paint(juce::Graphics& g)
-{
-}
-
-void MidiConfigButton::resized()
-{
-}
-*/
 
 void MidiConfigButton::paintButton(Graphics &g,
                                    bool shouldDrawButtonAsHighlighted,
                                    bool shouldDrawButtonAsDown)
 {
-    Rectangle<float> bounds = getBounds().toFloat();
-    bounds.setPosition(0.0f, 0.0f);
+    Rectangle<float> bounds = getLocalBounds().toFloat();
+    bounds.setPosition(0.f, 0.f);
+    float width  = bounds.getWidth();
+    float height = bounds.getHeight();
+
+    bool flatLeft   = isConnectedOnLeft();
+    bool flatRight  = isConnectedOnRight();
+    bool flatTop    = isConnectedOnTop();
+    bool flatBottom = isConnectedOnBottom();
 
     g.setColour(Colour(0x3F000000));
     if (shouldDrawButtonAsHighlighted) g.setColour(Colour(0x3FFFFFFF));
     if (shouldDrawButtonAsDown || getToggleState()) g.setColour(Colour(0xA7FFFFFF));
-    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f, 0.5f), 6.0f, 1.0f);
+
+    if (flatLeft || flatRight || flatTop || flatBottom)
+    {
+        Path stroke;
+        stroke.addRoundedRectangle(0.5f, 0.5f, width - 1.f, height - 1.f,
+                                   6.0f, 6.0f,  // corner size
+                                   !(flatLeft  || flatTop),
+                                   !(flatRight || flatTop),
+                                   !(flatLeft  || flatBottom),
+                                   !(flatRight || flatBottom));
+        g.strokePath(stroke, PathStrokeType(1.0f));
+    }
+    else
+    {
+        g.drawRoundedRectangle(bounds.reduced(0.5f, 0.5f), 6.0f, 1.0f);
+    }
 
     if (shouldDrawButtonAsDown || getToggleState())
     {
         g.setColour(Colour(0xFFDFCEA1));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f, 1.0f), 5.0f);
+        if (flatLeft || flatRight || flatTop || flatBottom)
+        {
+            Path fill;
+            fill.addRoundedRectangle(1.f, 1.f, width - 2.f, height - 2.f,
+                                    5.0f, 5.0f,  // corner size
+                                    !(flatLeft  || flatTop),
+                                    !(flatRight || flatTop),
+                                    !(flatLeft  || flatBottom),
+                                    !(flatRight || flatBottom));
+            g.fillPath(fill);
+        }
+        else
+        {
+            g.fillRoundedRectangle(bounds.reduced(1.0f, 1.0f), 5.0f);
+        }
     }
 
-    String strCC = "CC  ";
-    if (currentCC == -1) strCC += "---";
+    String strCC = "CC ";
+    if (currentCC == -1) strCC += "-";
     else                 strCC += String(currentCC);
 
-    String strChannel = "CH  ";
-    if (currentChannel == -2)      strChannel += "--";
+    String strChannel = "CH ";
+    if (currentChannel == -2)      strChannel += "-";
     else if (currentChannel == -1) strChannel += "OM";
     else                           strChannel += String(currentChannel + 1);
 
-    g.setColour(Colour(0xFF000000));
-    g.drawText(strCC, bounds, Justification::centredTop);
-    g.setColour(Colour(0x7F000000));
-    g.drawText(strChannel, bounds, Justification::centredBottom);
+    // Vertical layout (default)
+    Rectangle<float> ccTextRect(0.f, 0.f, width, height / 2.f);
+    Rectangle<float> channelTextRect(0.f, height / 2.f, width, height / 2.f);
+    if (height < 32.f && width >= 64.f)
+    {
+        // Horizontal layout
+        ccTextRect.setSize(width / 2.f, height);
+        channelTextRect.setBounds(width / 2.f, 0.f, width / 2.f, height);
+    }
+
+    g.setFont(standardFont);
+
+    g.setColour(Colour(0x9F000000));
+    g.drawText(strCC, ccTextRect, Justification::centred);
+    g.setColour(Colour(0x6F000000));
+    g.drawText(strChannel, channelTextRect, Justification::centred);
 }
