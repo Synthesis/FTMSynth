@@ -43,29 +43,29 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
 #endif
     tree(*this, nullptr, "Parameters",
     {
-        std::make_unique<AudioParameterChoice>("algorithm", "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
-        std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
-        std::make_unique<AudioParameterFloat>("attack", "Attack", NormalisableRange<float>(0.0f, 1.0f), 1.0f),
-        std::make_unique<AudioParameterFloat>("pitch", "Pitch", NormalisableRange<float>(-24.0f, 24.0f, 0.001f), 0.0f,  // in semitones
+        std::make_unique<AudioParameterChoice>(ParameterID("algorithm", 1), "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
+        std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
+        std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack", NormalisableRange<float>(0.0f, 1.0f), 1.0f),
+        std::make_unique<AudioParameterFloat>(ParameterID("pitch", 1), "Pitch", NormalisableRange<float>(-24.0f, 24.0f, 0.001f), 0.0f,  // in semitones
                                               AudioParameterFloatAttributes().withStringFromValueFunction([] (auto value, auto) { return String(value, 3); })),
-        std::make_unique<AudioParameterBool>("kbTrack", "Keyboard Tracking", true),
-        std::make_unique<AudioParameterFloat>("sustain", "Sustain", NormalisableRange<float>(0.01f, 0.8f, 0.0f, log(0.5f)/log(0.19f/0.79f)), 0.07f),
-        std::make_unique<AudioParameterBool>("susGate", "Sustain Gate", false),
-        std::make_unique<AudioParameterFloat>("release", "Release", NormalisableRange<float>(0.01f, 0.8f, 0.0f, log(0.5f)/log(0.19f/0.79f)), 0.07f),
-        std::make_unique<AudioParameterFloat>("damp", "Damp", NormalisableRange<float>(0.0f, 0.5f, 0.0f, log(0.5f)/log(0.1f/0.5f)), 0.0f),
-        std::make_unique<AudioParameterBool>("dampGate", "Damp Gate", false),
-        std::make_unique<AudioParameterFloat>("ring", "Ring", NormalisableRange<float>(0.0f, 0.5f, 0.0f, log(0.5f)/log(0.1f/0.5f)), 0.0f),
-        std::make_unique<AudioParameterFloat>("dispersion", "Inharmonicity", NormalisableRange<float>(0.0f, 5.0f, 0.0f, log(0.5f)/log(1.0f/5.0f)), 0.06f),
-        std::make_unique<AudioParameterFloat>("squareness", "Squareness", NormalisableRange<float>(0.01f, 1.0f), 0.5f),
-        std::make_unique<AudioParameterFloat>("cubeness", "Cubeness", NormalisableRange<float>(0.01f, 1.0f), 0.5f),
-        std::make_unique<AudioParameterFloat>("r1", "Impulse X", NormalisableRange<float>(0.005f, 0.995f), 0.5f),
-        std::make_unique<AudioParameterFloat>("r2", "Impulse Y", NormalisableRange<float>(0.005f, 0.995f), 0.5f),
-        std::make_unique<AudioParameterFloat>("r3", "Impulse Z", NormalisableRange<float>(0.005f, 0.995f), 0.5f),
-        std::make_unique<AudioParameterInt>("m1", "Modes X", 1, MAX_M1, 5),
-        std::make_unique<AudioParameterInt>("m2", "Modes Y", 1, MAX_M2, 5),
-        std::make_unique<AudioParameterInt>("m3", "Modes Z", 1, MAX_M3, 5),
-        std::make_unique<AudioParameterInt>("dimensions", "Dimensions", 1, 3, 2),
-        std::make_unique<AudioParameterInt>("voices", "Polyphony voices", 1, 16, 4)
+        std::make_unique<AudioParameterBool>(ParameterID("kbTrack", 1), "Keyboard Tracking", true),
+        std::make_unique<AudioParameterFloat>(ParameterID("sustain", 1), "Sustain", NormalisableRange<float>(0.01f, 0.8f, 0.0f, log(0.5f)/log(0.19f/0.79f)), 0.07f),
+        std::make_unique<AudioParameterBool>(ParameterID("susGate", 1), "Sustain Gate", false),
+        std::make_unique<AudioParameterFloat>(ParameterID("release", 1), "Release", NormalisableRange<float>(0.01f, 0.8f, 0.0f, log(0.5f)/log(0.19f/0.79f)), 0.07f),
+        std::make_unique<AudioParameterFloat>(ParameterID("damp", 1), "Damp", NormalisableRange<float>(0.0f, 0.5f, 0.0f, log(0.5f)/log(0.1f/0.5f)), 0.0f),
+        std::make_unique<AudioParameterBool>(ParameterID("dampGate", 1), "Damp Gate", false),
+        std::make_unique<AudioParameterFloat>(ParameterID("ring", 1), "Ring", NormalisableRange<float>(0.0f, 0.5f, 0.0f, log(0.5f)/log(0.1f/0.5f)), 0.0f),
+        std::make_unique<AudioParameterFloat>(ParameterID("dispersion", 1), "Inharmonicity", NormalisableRange<float>(0.0f, 5.0f, 0.0f, log(0.5f)/log(1.0f/5.0f)), 0.06f),
+        std::make_unique<AudioParameterFloat>(ParameterID("squareness", 1), "Squareness", NormalisableRange<float>(0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat>(ParameterID("cubeness", 1), "Cubeness", NormalisableRange<float>(0.01f, 1.0f), 0.5f),
+        std::make_unique<AudioParameterFloat>(ParameterID("r1", 1), "Impulse X", NormalisableRange<float>(0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterFloat>(ParameterID("r2", 1), "Impulse Y", NormalisableRange<float>(0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterFloat>(ParameterID("r3", 1), "Impulse Z", NormalisableRange<float>(0.005f, 0.995f), 0.5f),
+        std::make_unique<AudioParameterInt>(ParameterID("m1", 1), "Modes X", 1, MAX_M1, 5),
+        std::make_unique<AudioParameterInt>(ParameterID("m2", 1), "Modes Y", 1, MAX_M2, 5),
+        std::make_unique<AudioParameterInt>(ParameterID("m3", 1), "Modes Z", 1, MAX_M3, 5),
+        std::make_unique<AudioParameterInt>(ParameterID("dimensions", 1), "Dimensions", 1, 3, 2),
+        std::make_unique<AudioParameterInt>(ParameterID("voices", 1), "Polyphony voices", 1, 16, 4)
     })
 {
     SynthVoice::computeSinLUT();

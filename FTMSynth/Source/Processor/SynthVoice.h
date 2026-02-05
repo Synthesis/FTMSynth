@@ -43,7 +43,7 @@ enum Algorithm {
 class SynthVoice : public SynthesiserVoice
 {
 public:
-    bool canPlaySound(SynthesiserSound* sound);
+    bool canPlaySound(SynthesiserSound* sound) override;
 
     //==================================
     static void computeSinLUT();
