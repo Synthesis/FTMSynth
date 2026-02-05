@@ -31,6 +31,7 @@
 #include "../Processor/PluginProcessor.h"
 #include "../LookAndFeel/CustomLookAndFeel.h"
 #include "VisualPanel.h"
+#include "HelpPanel.h"
 
 //==============================================================================
 class MainView : public juce::Component
@@ -41,6 +42,8 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
+
+    void showHelp(bool show);
 
 private:
     void setDimensions(int dimensions, bool btnToSlider);
@@ -91,6 +94,8 @@ private:
     Label thisIsALabel;
     Label nameLabel;
     VisualPanel visualPanel;
+    Label aboutLabel;
+    HelpPanel helpPanel;
 
     // Attachments from model to components
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;

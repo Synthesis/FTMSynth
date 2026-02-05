@@ -52,14 +52,17 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
 
     // Buttons
     Image helpImg = ImageCache::getFromMemory(BinaryData::question_png, BinaryData::question_pngSize);
-    Image helpOff = helpImg.getClippedImage(Rectangle<int>(0, 0, helpImg.getWidth()/2, helpImg.getHeight()));
-    Image helpHovered = helpImg.getClippedImage(Rectangle<int>(helpImg.getWidth()/2, 0, helpImg.getWidth()/2, helpImg.getHeight()));
+    Image helpOff = helpImg.getClippedImage(Rectangle<int>(0, 0, helpImg.getWidth()/3, helpImg.getHeight()));
+    Image helpHovered = helpImg.getClippedImage(Rectangle<int>(helpImg.getWidth()/3, 0, helpImg.getWidth()/3, helpImg.getHeight()));
+    Image helpOn = helpImg.getClippedImage(Rectangle<int>(helpImg.getWidth()*2/3, 0, helpImg.getWidth()/3, helpImg.getHeight()));
     helpButton.setImages(false, true, true,
                          helpOff, 1.0f, Colours::transparentBlack,
                          helpHovered, 1.0f, Colours::transparentBlack,
-                         helpHovered, 1.0f, Colours::transparentBlack,
+                         helpOn, 1.0f, Colours::transparentBlack,
                          0.8f);
-    helpButton.setTooltip("Information\n\nThis is a drum synth implemented with physical modeling. You may switch between the three available physical models - string, rectangular drum and cuboid box. Each of the knobs controls a combination of the underlying physical parameters, examined based on qualities of the sound produced.\n\n(Hover the mouse over the knob labels for more informations)");
+    helpButton.setClickingTogglesState(true);
+    helpButton.onClick = [this] { mainView.showHelp(helpButton.getToggleState()); };
+    helpButton.setTooltip("About FTMSynth");
     addAndMakeVisible(helpButton);
 
 #if JucePlugin_Build_Standalone
@@ -101,12 +104,14 @@ void FTMSynthAudioProcessorEditor::switchViews()
 {
     if (midiButton.getToggleState())
     {
+        helpButton.setEnabled(false);
         labelView.setOpaqueLabels(true);
         mainView.setVisible(false);
         midiConfigView.setVisible(true);
     }
     else
     {
+        helpButton.setEnabled(true);
         labelView.setOpaqueLabels(false);
         midiConfigView.setVisible(false);
         mainView.setVisible(true);

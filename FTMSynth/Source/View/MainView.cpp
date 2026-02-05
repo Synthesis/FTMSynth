@@ -227,12 +227,20 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     thisIsALabel.setText("this is\na", dontSendNotification);
     thisIsALabel.setJustificationType(Justification::topLeft);
     thisIsALabel.setColour(Label::textColourId, Colour(0xFF5F5F5F));
-    addChildComponent(thisIsALabel);
+    addAndMakeVisible(thisIsALabel);
     nameLabel.setLookAndFeel(&funnyFont);
     nameLabel.setJustificationType(Justification::topLeft);
-    addChildComponent(nameLabel);
+    addAndMakeVisible(nameLabel);
 
     addAndMakeVisible(visualPanel);
+
+    aboutLabel.setLookAndFeel(&funnyFont);
+    aboutLabel.setText("about\nftmsynth.", dontSendNotification);
+    aboutLabel.setJustificationType(Justification::topLeft);
+    aboutLabel.setColour(Label::textColourId, Colour(0xFF5F5F5F));
+    addChildComponent(aboutLabel);
+
+    addChildComponent(helpPanel);
 
 
     // Needs to be placed over the view panel in order to be clickable
@@ -277,6 +285,25 @@ MainView::~MainView()
     algoComboBox.setLookAndFeel(nullptr);
 }
 
+void MainView::showHelp(bool show)
+{
+    if (show)
+    {
+        thisIsALabel.setVisible(false);
+        nameLabel.setVisible(false);
+        visualPanel.setVisible(false);
+        aboutLabel.setVisible(true);
+        helpPanel.setVisible(true);
+    }
+    else
+    {
+        aboutLabel.setVisible(false);
+        helpPanel.setVisible(false);
+        thisIsALabel.setVisible(true);
+        nameLabel.setVisible(true);
+        visualPanel.setVisible(true);
+    }
+}
 
 void MainView::setDimensions(int dimensions, bool btnToSlider)
 {
@@ -343,18 +370,6 @@ void MainView::updateDimensionComponents()
 
     nameLabel.setText(strObj, dontSendNotification);
 
-    if (dimensions >= 1 && dimensions <= 3)
-    {
-        if (!thisIsALabel.isVisible()) thisIsALabel.setVisible(true);
-        if (!nameLabel.isVisible()) nameLabel.setVisible(true);
-    }
-    else
-    {
-        if (thisIsALabel.isVisible()) thisIsALabel.setVisible(false);
-        if (nameLabel.isVisible()) nameLabel.setVisible(false);
-    }
-
-
     visualPanel.setDimensions(dimensions);
     updateVisualization();
 }
@@ -408,10 +423,11 @@ void MainView::resized()
     m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
     m3Slider.setBounds(xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
 
-    // visualPanel.setBounds(16, 180, 352, 212);
-    thisIsALabel.setBounds(32,      278,      96, 64);
-    nameLabel.setBounds(   32 + 20, 278 + 28, 80, 40);
-    visualPanel.setBounds(152, 176, 224, 224);
+    thisIsALabel.setBounds(  32,      278,  96,  64);
+    nameLabel.setBounds(32 + 20, 278 + 28,  80,  40);
+    visualPanel.setBounds(  152,      176, 224, 224);
+    aboutLabel.setBounds(    32,      278, 128,  64);
+    helpPanel.setBounds(    116,      188, 280, 200);
 
     voicesSlider.setBounds( 16,  16,  80, 24);
     algoComboBox.setBounds(488, 368, 136, 24);

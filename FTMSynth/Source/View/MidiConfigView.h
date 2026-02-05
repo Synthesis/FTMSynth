@@ -187,6 +187,10 @@ private:
     DrawableButton learnCCButton;
     DrawableButton learnChannelButton;
 
+    ImageButton loadButton;
+    ImageButton saveButton;
+    ImageButton resetButton;
+
     bool isDragging = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MidiConfigView)

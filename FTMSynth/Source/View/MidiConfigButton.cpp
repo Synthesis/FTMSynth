@@ -84,21 +84,25 @@ void MidiConfigButton::paintButton(Graphics &g,
     if (shouldDrawButtonAsDown || getToggleState())
     {
         g.setColour(Colour(0xFFDFCEA1));
-        if (flatLeft || flatRight || flatTop || flatBottom)
-        {
-            Path fill;
-            fill.addRoundedRectangle(1.f, 1.f, width - 2.f, height - 2.f,
-                                    5.0f, 5.0f,  // corner size
-                                    !(flatLeft  || flatTop),
-                                    !(flatRight || flatTop),
-                                    !(flatLeft  || flatBottom),
-                                    !(flatRight || flatBottom));
-            g.fillPath(fill);
-        }
-        else
-        {
-            g.fillRoundedRectangle(bounds.reduced(1.0f, 1.0f), 5.0f);
-        }
+    }
+    else
+    {
+        g.setColour(Colour(0xFFD6C59A));
+    }
+    if (flatLeft || flatRight || flatTop || flatBottom)
+    {
+        Path fill;
+        fill.addRoundedRectangle(1.f, 1.f, width - 2.f, height - 2.f,
+                                5.0f, 5.0f,  // corner size
+                                !(flatLeft  || flatTop),
+                                !(flatRight || flatTop),
+                                !(flatLeft  || flatBottom),
+                                !(flatRight || flatBottom));
+        g.fillPath(fill);
+    }
+    else
+    {
+        g.fillRoundedRectangle(bounds.reduced(1.0f, 1.0f), 5.0f);
     }
 
     String strCC = "CC ";

@@ -31,6 +31,8 @@
         <FILE id="ygNX7Y" name="MainView.h" compile="0" resource="0" file="Source/View/MainView.h"/>
         <FILE id="PHhHpv" name="VisualPanel.cpp" compile="1" resource="0" file="Source/View/VisualPanel.cpp"/>
         <FILE id="cRvdwc" name="VisualPanel.h" compile="0" resource="0" file="Source/View/VisualPanel.h"/>
+        <FILE id="zLx4Em" name="HelpPanel.cpp" compile="1" resource="0" file="Source/View/HelpPanel.cpp"/>
+        <FILE id="TSSfRR" name="HelpPanel.h" compile="0" resource="0" file="Source/View/HelpPanel.h"/>
         <FILE id="vGo9Cp" name="LabelView.cpp" compile="1" resource="0" file="Source/View/LabelView.cpp"/>
         <FILE id="Xn7E18" name="LabelView.h" compile="0" resource="0" file="Source/View/LabelView.h"/>
         <FILE id="B2BQ8E" name="MidiConfigView.cpp" compile="1" resource="0"
@@ -51,6 +53,7 @@
       <FILE id="u4ndxp" name="drum_skin.png" compile="0" resource="1" file="Assets/drum_skin.png"/>
       <FILE id="hZ400v" name="question.png" compile="0" resource="1" file="Assets/question.png"/>
       <FILE id="alFNSq" name="midi.png" compile="0" resource="1" file="Assets/midi.png"/>
+      <FILE id="oGmLO2" name="midiMapping.png" compile="0" resource="1" file="Assets/midiMapping.png"/>
       <FILE id="yq1gwZ" name="midiReset.png" compile="0" resource="1" file="Assets/midiReset.png"/>
       <FILE id="KX4dHo" name="midiLearn.png" compile="0" resource="1" file="Assets/midiLearn.png"/>
       <FILE id="j5P3Sn" name="arial_narrow_7.ttf" compile="0" resource="1"

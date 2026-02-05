@@ -27,6 +27,7 @@
 
 #include "MidiConfigView.h"
 #include "../LookAndFeel/CustomLookAndFeel.h"
+#include "BinaryData.h"
 
 //==============================================================================
 static String getParamID(int buttonID)
@@ -355,15 +356,52 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     // Initialize buttons with current processor state
     for (int i=0; i < juce::numElementsInArray(midiConfigButtons); ++i)
     {
-         if (auto* btn = midiConfigButtons[i])
-         {
-             String paramID = getParamID(i + 1);
-             if (auto* entry = processor.midiMappings[paramID].get())
-             {
-                 btn->setMapping(entry->cc->get(), entry->channel->get());
-             }
-         }
+        if (auto* btn = midiConfigButtons[i])
+        {
+            String paramID = getParamID(i + 1);
+            if (auto* entry = processor.midiMappings[paramID].get())
+            {
+                btn->setMapping(entry->cc->get(), entry->channel->get());
+            }
+        }
     }
+
+    Image mappingImg = ImageCache::getFromMemory(BinaryData::midiMapping_png, BinaryData::midiMapping_pngSize);
+    Image loadOff = mappingImg.getClippedImage(Rectangle<int>(0, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    Image loadHovered = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()/3, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    Image loadDown = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()*2/3, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    loadButton.setImages(false, true, true,
+                         loadOff, 1.0f, Colours::transparentBlack,
+                         loadHovered, 1.0f, Colours::transparentBlack,
+                         loadDown, 1.0f, Colours::transparentBlack,
+                         0.8f);
+    loadButton.setTooltip("Load MIDI mapping");
+    loadButton.onClick = [this] { /* TODO */ };
+    addAndMakeVisible(loadButton);
+
+    Image saveOff = mappingImg.getClippedImage(Rectangle<int>(0, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    Image saveHovered = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()/3, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    Image saveDown = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()*2/3, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    saveButton.setImages(false, true, true,
+                         saveOff, 1.0f, Colours::transparentBlack,
+                         saveHovered, 1.0f, Colours::transparentBlack,
+                         saveDown, 1.0f, Colours::transparentBlack,
+                         0.8f);
+    saveButton.setTooltip("Save MIDI mapping");
+    saveButton.onClick = [this] { /* TODO */ };
+    addAndMakeVisible(saveButton);
+
+    Image resetOff = mappingImg.getClippedImage(Rectangle<int>(0, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    Image resetHovered = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()/3, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    Image resetDown = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()*2/3, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
+    resetButton.setImages(false, true, true,
+                         resetOff, 1.0f, Colours::transparentBlack,
+                         resetHovered, 1.0f, Colours::transparentBlack,
+                         resetDown, 1.0f, Colours::transparentBlack,
+                         0.8f);
+    resetButton.setTooltip("Reset MIDI mapping");
+    resetButton.onClick = [this] { /* TODO */ };
+    addAndMakeVisible(resetButton);
 
     processor.addChangeListener(this);
 }
@@ -453,9 +491,9 @@ void MidiConfigView::paint(juce::Graphics& g)
     if (!current_button_id)
     {
         g.setColour(Colour(0x7F000000));
-        g.drawMultiLineText("Please select a control\nto change its MIDI mapping",
+        g.drawMultiLineText("Select a control\nto change its MIDI mapping",
                             configControls.getX(),
-                            configControls.getCentreY() - 32,
+                            configControls.getCentreY() - 40,
                             configControls.getWidth(),
                             Justification::centred);
     }
@@ -494,20 +532,24 @@ void MidiConfigView::resized()
     m2Button.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
     m3Button.setBounds(xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
 
-    voicesButton.setBounds( 16,  16,  80, 24);
-    algoButton.setBounds(488, 368, 136, 24);
+    voicesButton.setBounds(16,  16,  80, 24);
+    algoButton.setBounds( 488, 368, 136, 24);
 
     configLabel.setBounds(32, 278, 96, 64);
 
-    paramNameLabel.setBounds(    configControls.getCentreX() -  48, configControls.getY()       + 25, 96, 14);
-    midiCCLabel.setBounds(       configControls.getCentreX() - 128, configControls.getCentreY() - 23, 96, 14);
-    resetCCButton.setBounds(     configControls.getCentreX() -  24, configControls.getCentreY() - 28, 24, 24);
-    midiCCSlider.setBounds(      configControls.getCentreX() +   4, configControls.getCentreY() - 28, 64, 24);
-    learnCCButton.setBounds(     configControls.getCentreX() +  72, configControls.getCentreY() - 28, 24, 24);
-    midiChannelLabel.setBounds(  configControls.getCentreX() - 128, configControls.getCentreY() +  9, 96, 14);
-    resetChannelButton.setBounds(configControls.getCentreX() -  24, configControls.getCentreY() +  4, 24, 24);
-    midiChannelSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() +  4, 64, 24);
-    learnChannelButton.setBounds(configControls.getCentreX() +  72, configControls.getCentreY() +  4, 24, 24);
-    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getCentreY() + 41, 96, 14);
-    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() + 36, 64, 24);
+    paramNameLabel.setBounds(    configControls.getCentreX() -  48, configControls.getY()            + 25, 96, 14);
+    midiCCLabel.setBounds(       configControls.getCentreX() - 128, configControls.getCentreY() - 23 - 12, 96, 14);
+    resetCCButton.setBounds(     configControls.getCentreX() -  24, configControls.getCentreY() - 28 - 12, 24, 24);
+    midiCCSlider.setBounds(      configControls.getCentreX() +   4, configControls.getCentreY() - 28 - 12, 64, 24);
+    learnCCButton.setBounds(     configControls.getCentreX() +  72, configControls.getCentreY() - 28 - 12, 24, 24);
+    midiChannelLabel.setBounds(  configControls.getCentreX() - 128, configControls.getCentreY() +  9 - 12, 96, 14);
+    resetChannelButton.setBounds(configControls.getCentreX() -  24, configControls.getCentreY() +  4 - 12, 24, 24);
+    midiChannelSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() +  4 - 12, 64, 24);
+    learnChannelButton.setBounds(configControls.getCentreX() +  72, configControls.getCentreY() +  4 - 12, 24, 24);
+    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getCentreY() + 41 - 12, 96, 14);
+    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() + 36 - 12, 64, 24);
+
+    loadButton.setBounds( configControls.getCentreX() - 64, 344, 48, 48);
+    saveButton.setBounds( configControls.getCentreX() - 24, 344, 48, 48);
+    resetButton.setBounds(configControls.getCentreX() + 16, 344, 48, 48);
 }
