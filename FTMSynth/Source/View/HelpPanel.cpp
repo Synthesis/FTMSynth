@@ -27,7 +27,6 @@
 
 #include <JuceHeader.h>
 #include "HelpPanel.h"
-#include "juce_core/juce_core.h"
 
 //==============================================================================
 HelpPanel::HelpPanel()
@@ -38,7 +37,7 @@ HelpPanel::~HelpPanel()
 {
 }
 
-void HelpPanel::paint(juce::Graphics& g)
+void HelpPanel::paint(Graphics& g)
 {
     g.setColour(Colour(0x9F000000));
     g.drawMultiLineText(CharPointer_UTF8(

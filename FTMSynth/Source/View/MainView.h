@@ -34,13 +34,13 @@
 #include "HelpPanel.h"
 
 //==============================================================================
-class MainView : public juce::Component
+class MainView : public Component
 {
 public:
     MainView(FTMSynthAudioProcessor& p);
     ~MainView() override;
 
-    void paint(juce::Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
 
     void showHelp(bool show);

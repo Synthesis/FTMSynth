@@ -63,10 +63,10 @@ static String getParamID(int buttonID)
 //==============================================================================
 MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     : processor(p),
-      resetCCButton("resetCC", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize),
-      resetChannelButton("resetChannel", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize),
-      learnCCButton("learnCC", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize),
-      learnChannelButton("learnChannel", juce::DrawableButton::ImageOnButtonBackgroundOriginalSize)
+      resetCCButton("resetCC", DrawableButton::ImageOnButtonBackgroundOriginalSize),
+      resetChannelButton("resetChannel", DrawableButton::ImageOnButtonBackgroundOriginalSize),
+      learnCCButton("learnCC", DrawableButton::ImageOnButtonBackgroundOriginalSize),
+      learnChannelButton("learnChannel", DrawableButton::ImageOnButtonBackgroundOriginalSize)
 {
     setSize(640, 400);
     setInterceptsMouseClicks(false, true);
@@ -210,6 +210,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     addChildComponent(midiCCLabel);
 
     midiCCSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
+    midiCCSlider.setMouseDragSensitivity(500); // default is 250
     midiCCSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     midiCCSlider.setLookAndFeel(&draggableBox);
     midiCCSlider.setRange(-1, 127, 1);
@@ -354,17 +355,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     addAndMakeVisible(midiDefaultSlider);
 
     // Initialize buttons with current processor state
-    for (int i=0; i < juce::numElementsInArray(midiConfigButtons); ++i)
-    {
-        if (auto* btn = midiConfigButtons[i])
-        {
-            String paramID = getParamID(i + 1);
-            if (auto* entry = processor.midiMappings[paramID].get())
-            {
-                btn->setMapping(entry->cc->get(), entry->channel->get());
-            }
-        }
-    }
+    updateAllButtons();
 
     Image mappingImg = ImageCache::getFromMemory(BinaryData::midiMapping_png, BinaryData::midiMapping_pngSize);
     Image loadOff = mappingImg.getClippedImage(Rectangle<int>(0, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
@@ -376,7 +367,32 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
                          loadDown, 1.0f, Colours::transparentBlack,
                          0.8f);
     loadButton.setTooltip("Load MIDI mapping");
-    loadButton.onClick = [this] { /* TODO */ };
+    loadButton.onClick = [this]
+    {
+        auto fc = std::make_shared<FileChooser>("Load MIDI configuration",
+                                                File::getSpecialLocation(File::userHomeDirectory),
+                                                "*.xml");
+
+        fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                        [this, fc](const FileChooser& chooser)
+                        {
+                            File result = chooser.getResult();
+                            if (result != File{})
+                            {
+                                XmlDocument doc(result);
+                                if (auto xml = doc.getDocumentElement())
+                                {
+                                    processor.restoreMidiMappingsFromXml(*xml);
+                                    processor.saveGlobalMidiMappings();
+                                    updateAllButtons();
+                                    updateView();
+
+                                    // Update Manual Default Channel Slider
+                                    midiDefaultSlider.setValue(processor.defaultChannelParam->get(), dontSendNotification);
+                                }
+                            }
+                        });
+    };
     addAndMakeVisible(loadButton);
 
     Image saveOff = mappingImg.getClippedImage(Rectangle<int>(0, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
@@ -388,7 +404,29 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
                          saveDown, 1.0f, Colours::transparentBlack,
                          0.8f);
     saveButton.setTooltip("Save MIDI mapping");
-    saveButton.onClick = [this] { /* TODO */ };
+    saveButton.onClick = [this]
+    {
+        auto fc = std::make_shared<FileChooser>("Save MIDI configuration",
+                                                File::getSpecialLocation(File::userHomeDirectory),
+                                                "*.xml");
+
+        fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+                        [this, fc](const FileChooser& chooser)
+                        {
+                            File result = chooser.getResult();
+                            if (result != File{})
+                            {
+                                // Ensure extension
+                                if (!result.hasFileExtension(".xml"))
+                                    result = result.withFileExtension(".xml");
+
+                                if (auto xml = processor.getMidiMappingsAsXml())
+                                {
+                                    xml->writeTo(result);
+                                }
+                            }
+                        });
+    };
     addAndMakeVisible(saveButton);
 
     Image resetOff = mappingImg.getClippedImage(Rectangle<int>(0, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
@@ -400,7 +438,32 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
                          resetDown, 1.0f, Colours::transparentBlack,
                          0.8f);
     resetButton.setTooltip("Reset MIDI mapping");
-    resetButton.onClick = [this] { /* TODO */ };
+    resetButton.onClick = [this]
+    {
+        NativeMessageBox::showYesNoBox(AlertWindow::QuestionIcon,
+            "Reset MIDI configuration",
+            "Reset all MIDI mapping?\nThis operation cannot be undone.",
+            this,
+            ModalCallbackFunction::create([this](int result)
+            {
+                if (result != 0)  // Yes
+                {
+                    // Reset all mappings
+                    for (auto const& [id, entry] : processor.midiMappings)
+                    {
+                        *entry->cc = -1;       // OFF
+                        *entry->channel = -2;  // MAIN
+                    }
+                    *processor.defaultChannelParam = -1;  // OMNI
+
+                    processor.saveGlobalMidiMappings();
+                    
+                    updateAllButtons();
+                    updateView();
+                    midiDefaultSlider.setValue(-1, dontSendNotification);
+                }
+            }));
+    };
     addAndMakeVisible(resetButton);
 
     processor.addChangeListener(this);
@@ -441,52 +504,70 @@ void MidiConfigView::updateView(int button_id)
     learnChannelButton.setToggleState(false, sendNotification);
     processor.setMidiLearn(getParamID(current_button_id), false, false);
 
-    if (current_button_id == button_id)
+    if (button_id > 0)
     {
-        midiConfigButtons[current_button_id-1]->setToggleState(false, dontSendNotification);
-        current_button_id = 0;
+        if (current_button_id == button_id)
+        {
+            midiConfigButtons[current_button_id-1]->setToggleState(false, dontSendNotification);
+            current_button_id = 0;
 
-        paramNameLabel.setText("(NONE)", dontSendNotification);
+            paramNameLabel.setText("(NONE)", dontSendNotification);
 
-        if (paramNameLabel.isVisible()) paramNameLabel.setVisible(false);
-        if (midiCCLabel.isVisible()) midiCCLabel.setVisible(false);
-        if (midiCCSlider.isVisible()) midiCCSlider.setVisible(false);
-        if (resetCCButton.isVisible()) resetCCButton.setVisible(false);
-        if (learnCCButton.isVisible()) learnCCButton.setVisible(false);
-        if (midiChannelLabel.isVisible()) midiChannelLabel.setVisible(false);
-        if (midiChannelSlider.isVisible()) midiChannelSlider.setVisible(false);
-        if (resetChannelButton.isVisible()) resetChannelButton.setVisible(false);
-        if (learnChannelButton.isVisible()) learnChannelButton.setVisible(false);
-    }
-    else
-    {
-        current_button_id = button_id;
-        // Manual sync
-        String paramID = getParamID(current_button_id);
-        MidiMappingEntry* entry = processor.midiMappings[paramID].get();
-        midiCCSlider.setValue(entry->cc->get(), dontSendNotification);
-        midiChannelSlider.setValue(entry->channel->get(), dontSendNotification);
+            if (paramNameLabel.isVisible()) paramNameLabel.setVisible(false);
+            if (midiCCLabel.isVisible()) midiCCLabel.setVisible(false);
+            if (midiCCSlider.isVisible()) midiCCSlider.setVisible(false);
+            if (resetCCButton.isVisible()) resetCCButton.setVisible(false);
+            if (learnCCButton.isVisible()) learnCCButton.setVisible(false);
+            if (midiChannelLabel.isVisible()) midiChannelLabel.setVisible(false);
+            if (midiChannelSlider.isVisible()) midiChannelSlider.setVisible(false);
+            if (resetChannelButton.isVisible()) resetChannelButton.setVisible(false);
+            if (learnChannelButton.isVisible()) learnChannelButton.setVisible(false);
+        }
+        else
+        {
+            current_button_id = button_id;
+            // Manual sync
+            String paramID = getParamID(current_button_id);
+            MidiMappingEntry* entry = processor.midiMappings[paramID].get();
+            midiCCSlider.setValue(entry->cc->get(), dontSendNotification);
+            midiChannelSlider.setValue(entry->channel->get(), dontSendNotification);
 
-        paramNameLabel.setText(paramName[button_id-1], dontSendNotification);
+            paramNameLabel.setText(paramName[button_id-1], dontSendNotification);
 
-        if (!paramNameLabel.isVisible()) paramNameLabel.setVisible(true);
-        if (!midiCCLabel.isVisible()) midiCCLabel.setVisible(true);
-        if (!midiCCSlider.isVisible()) midiCCSlider.setVisible(true);
-        if (!resetCCButton.isVisible()) resetCCButton.setVisible(true);
-        if (!learnCCButton.isVisible()) learnCCButton.setVisible(true);
-        if (!midiChannelLabel.isVisible()) midiChannelLabel.setVisible(true);
-        if (!midiChannelSlider.isVisible()) midiChannelSlider.setVisible(true);
-        if (!resetChannelButton.isVisible()) resetChannelButton.setVisible(true);
-        if (!learnChannelButton.isVisible()) learnChannelButton.setVisible(true);
+            if (!paramNameLabel.isVisible()) paramNameLabel.setVisible(true);
+            if (!midiCCLabel.isVisible()) midiCCLabel.setVisible(true);
+            if (!midiCCSlider.isVisible()) midiCCSlider.setVisible(true);
+            if (!resetCCButton.isVisible()) resetCCButton.setVisible(true);
+            if (!learnCCButton.isVisible()) learnCCButton.setVisible(true);
+            if (!midiChannelLabel.isVisible()) midiChannelLabel.setVisible(true);
+            if (!midiChannelSlider.isVisible()) midiChannelSlider.setVisible(true);
+            if (!resetChannelButton.isVisible()) resetChannelButton.setVisible(true);
+            if (!learnChannelButton.isVisible()) learnChannelButton.setVisible(true);
 
-        // Button update
-        midiConfigButtons[current_button_id-1]->setMapping((int)midiCCSlider.getValue(), (int)midiChannelSlider.getValue());
+            // Button update
+            midiConfigButtons[current_button_id-1]->setMapping((int)midiCCSlider.getValue(), (int)midiChannelSlider.getValue());
+        }
     }
 
     repaint();
 }
 
-void MidiConfigView::paint(juce::Graphics& g)
+void MidiConfigView::updateAllButtons()
+{
+    for (int i=0; i < numElementsInArray(midiConfigButtons); i++)
+    {
+        if (MidiConfigButton* btn = midiConfigButtons[i])
+        {
+            String paramID = getParamID(i + 1);
+            if (MidiMappingEntry* entry = processor.midiMappings[paramID].get())
+            {
+                btn->setMapping(entry->cc->get(), entry->channel->get());
+            }
+        }
+    }
+}
+
+void MidiConfigView::paint(Graphics& g)
 {
     if (!current_button_id)
     {

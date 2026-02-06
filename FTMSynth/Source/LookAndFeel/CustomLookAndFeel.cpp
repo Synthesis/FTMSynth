@@ -159,13 +159,13 @@ void WithTextBox::drawLabel(Graphics& g, Label& label)
 
     if (!label.isBeingEdited())
     {
-        auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+        float alpha = label.isEnabled() ? 1.0f : 0.5f;
         const Font font(getLabelFont(label));
 
         g.setColour(findColour(Label::textColourId).withMultipliedAlpha(alpha));
         g.setFont(font);
 
-        auto textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
+        Rectangle<int> textArea = getLabelBorderSize(label).subtractedFrom(label.getLocalBounds());
 
         g.drawFittedText(label.getText(), textArea, label.getJustificationType(),
                          jmax(1, int(float(textArea.getHeight()) / font.getHeight())),

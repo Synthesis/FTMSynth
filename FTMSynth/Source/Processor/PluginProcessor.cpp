@@ -314,9 +314,9 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     MidiBuffer filteredMidi;
     int defaultCh = defaultChannelParam->get();
 
-    for (const auto metadata : midiMessages)
+    for (const MidiMessageMetadata metadata : midiMessages)
     {
-        auto message = metadata.getMessage();
+        MidiMessage message = metadata.getMessage();
         int inCh = message.getChannel() - 1; // 0-15
 
         // --- Synth Events (Notes, Pitch, Aftertouch) ---
@@ -384,7 +384,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
                     if (channelMatch)
                     {
-                        auto* param = tree.getParameter(paramID);
+                        RangedAudioParameter* param = tree.getParameter(paramID);
                         if (param != nullptr)
                         {
                             // Map 0-127 to 0.0-1.0
@@ -507,21 +507,11 @@ void FTMSynthAudioProcessor::saveGlobalMidiMappings()
     ApplicationProperties props;
     props.setStorageParameters(getGlobalSettingsOptions());
 
-    std::unique_ptr<XmlElement> xml(new XmlElement("MidiMappings"));
-
-    // Default Channel
-    xml->setAttribute("defaultChannel", defaultChannelParam->get());
-
-    for (auto const& [id, entry] : midiMappings)
+    if (auto xml = getMidiMappingsAsXml())
     {
-        auto* e = xml->createNewChildElement("Mapping");
-        e->setAttribute("paramID", id);
-        e->setAttribute("cc", entry->cc->get());
-        e->setAttribute("channel", entry->channel->get());
+        props.getUserSettings()->setValue("midi-mapping", xml->toString());
+        props.saveIfNeeded();
     }
-
-    props.getUserSettings()->setValue("MidiMappings", xml->toString());
-    props.saveIfNeeded();
 }
 
 void FTMSynthAudioProcessor::loadGlobalMidiMappings()
@@ -529,24 +519,50 @@ void FTMSynthAudioProcessor::loadGlobalMidiMappings()
     ApplicationProperties props;
     props.setStorageParameters(getGlobalSettingsOptions());
 
-    auto xmlString = props.getUserSettings()->getValue("MidiMappings");
+    String xmlString = props.getUserSettings()->getValue("midi-mapping");
     if (xmlString.isNotEmpty())
     {
         std::unique_ptr<XmlElement> xml(XmlDocument::parse(xmlString));
-        if (xml != nullptr && xml->hasTagName("MidiMappings"))
+        if (xml != nullptr)
         {
-            *defaultChannelParam = xml->getIntAttribute("defaultChannel", -1);
+            restoreMidiMappingsFromXml(*xml);
+        }
+    }
+}
 
-            for (auto* child : xml->getChildIterator())
+std::unique_ptr<XmlElement> FTMSynthAudioProcessor::getMidiMappingsAsXml()
+{
+    auto xml = std::make_unique<XmlElement>("midiconfig");
+
+    // Default Channel
+    xml->setAttribute("mainchannel", defaultChannelParam->get());
+
+    for (auto const& [id, entry] : midiMappings)
+    {
+        XmlElement* e = xml->createNewChildElement("mapping");
+        e->setAttribute("id", id);
+        e->setAttribute("cc", entry->cc->get());
+        e->setAttribute("channel", entry->channel->get());
+    }
+
+    return xml;
+}
+
+void FTMSynthAudioProcessor::restoreMidiMappingsFromXml(const XmlElement& xml)
+{
+    if (xml.hasTagName("midiconfig"))
+    {
+        *defaultChannelParam = xml.getIntAttribute("mainchannel", -1);
+
+        for (auto* child : xml.getChildIterator())
+        {
+            if (child->hasTagName("mapping"))
             {
-                if (child->hasTagName("Mapping"))
+                String id = child->getStringAttribute("id");
+                if (midiMappings.find(id) != midiMappings.end())
                 {
-                    String id = child->getStringAttribute("paramID");
-                    if (midiMappings.find(id) != midiMappings.end())
-                    {
-                        *midiMappings[id]->cc = child->getIntAttribute("cc");
-                        *midiMappings[id]->channel = child->getIntAttribute("channel");
-                    }
+                    *midiMappings[id]->cc = child->getIntAttribute("cc");
+                    *midiMappings[id]->channel = child->getIntAttribute("channel");
                 }
             }
         }
@@ -557,7 +573,7 @@ void FTMSynthAudioProcessor::loadGlobalMidiMappings()
 //==============================================================================
 void FTMSynthAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
-    auto state = tree.copyState();
+    ValueTree state = tree.copyState();
     std::unique_ptr<XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }

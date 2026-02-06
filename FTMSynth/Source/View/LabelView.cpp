@@ -125,7 +125,7 @@ LabelView::~LabelView()
 {
 }
 
-void LabelView::paint(juce::Graphics&)
+void LabelView::paint(Graphics&)
 {
 }
 

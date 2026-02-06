@@ -60,13 +60,13 @@
 const Rectangle<int> configControls(128, 184, 256, 208);
 
 //==============================================================================
-class MidiConfigView : public juce::Component, public ChangeListener
+class MidiConfigView : public Component, public ChangeListener
 {
 public:
     MidiConfigView(FTMSynthAudioProcessor& p);
     ~MidiConfigView() override;
 
-    void paint(juce::Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
 
     // ChangeListener callback
@@ -75,7 +75,8 @@ public:
     void createDefaultSliderListener();
 
 private:
-    void updateView(int button_id);
+    void updateView(int button_id = 0);
+    void updateAllButtons();
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

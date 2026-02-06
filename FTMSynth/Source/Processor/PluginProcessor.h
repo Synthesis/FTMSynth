@@ -109,6 +109,9 @@ public:
     static PropertiesFile::Options getGlobalSettingsOptions();
     void saveGlobalMidiMappings();
     void loadGlobalMidiMappings();
+
+    std::unique_ptr<XmlElement> getMidiMappingsAsXml();
+    void restoreMidiMappingsFromXml(const XmlElement& xml);
 #endif
 
     //==============================================================================

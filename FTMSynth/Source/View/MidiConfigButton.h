@@ -30,7 +30,7 @@
 #include <JuceHeader.h>
 
 //==============================================================================
-class MidiConfigButton : public juce::ToggleButton
+class MidiConfigButton : public ToggleButton
 {
 public:
     MidiConfigButton();

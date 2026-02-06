@@ -32,7 +32,7 @@
 #include "../LookAndFeel/CustomLookAndFeel.h"
 
 //==============================================================================
-class VisualPanel : public juce::Component
+class VisualPanel : public Component
 {
 public:
     VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attachedX, Slider& attachedY, Slider& attachedZ);

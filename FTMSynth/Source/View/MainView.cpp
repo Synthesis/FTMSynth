@@ -380,7 +380,7 @@ void MainView::updateVisualization(bool updateMouseBounds)
     visualPanel.repaint();
 }
 
-void MainView::paint(juce::Graphics&)
+void MainView::paint(Graphics&)
 {
     updateDimensionComponents();
 }

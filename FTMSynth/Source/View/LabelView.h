@@ -31,13 +31,13 @@
 #include "../Processor/PluginProcessor.h"
 
 //==============================================================================
-class LabelView : public juce::Component
+class LabelView : public Component
 {
 public:
     LabelView(FTMSynthAudioProcessor& p);
     ~LabelView() override;
 
-    void paint(juce::Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
 
     void setOpaqueLabels(bool opaqueLabels);

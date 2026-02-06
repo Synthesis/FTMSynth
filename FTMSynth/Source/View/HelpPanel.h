@@ -30,13 +30,13 @@
 #include <JuceHeader.h>
 
 //==============================================================================
-class HelpPanel  : public juce::Component
+class HelpPanel  : public Component
 {
 public:
     HelpPanel();
     ~HelpPanel() override;
 
-    void paint(juce::Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
 
 private:
