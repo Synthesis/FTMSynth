@@ -91,6 +91,15 @@ void CustomLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, i
     float imgCenterY = float(myKnob.getHeight()) / 2.0f;
     Image knob = myKnob.getClippedImage(knobArea);
     Image indicator = myKnob.getClippedImage(indicatorArea);
+    Image indicatorExpanded(indicator.getFormat(), int(float(indicator.getWidth()) * 1.5f), int(float(indicator.getHeight()) * 1.5f), true);
+    Graphics indicatorGraphics(indicatorExpanded);
+    indicatorGraphics.fillAll(Colours::transparentBlack);
+    indicatorGraphics.drawImage(indicator,
+                                indicatorGraphics.getClipBounds().getCentreX() - indicator.getWidth()/2,
+                                indicatorGraphics.getClipBounds().getCentreY() - indicator.getHeight()/2,
+                                indicator.getWidth(),
+                                indicator.getHeight(),
+                                0, 0, indicator.getWidth(), indicator.getHeight());
     Image shadow = myKnob.getClippedImage(shadowArea);
 
     float scale = float(jmax(myKnob.getWidth()/3, myKnob.getHeight()));
@@ -107,8 +116,8 @@ void CustomLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, i
     NamedValueSet properties = slider.getProperties();
     if (properties.contains("colour"))
         g.setColour(Colours::white.overlaidWith(Colour(int(properties["colour"]))));
-    g.drawImageTransformed(indicator, AffineTransform::
-        translation(-imgCenterX, -imgCenterY)
+    g.drawImageTransformed(indicatorExpanded, AffineTransform::
+        translation(-float(indicatorExpanded.getWidth())/2.0f, -float(indicatorExpanded.getHeight())/2.0f)
         .scaled(scale, scale)
         .rotated(angle)
         .translated(centerX, centerY),
