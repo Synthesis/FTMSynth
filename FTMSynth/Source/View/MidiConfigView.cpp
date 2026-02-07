@@ -210,7 +210,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     addChildComponent(midiCCLabel);
 
     midiCCSlider.setSliderStyle(Slider::SliderStyle::RotaryVerticalDrag);
-    midiCCSlider.setMouseDragSensitivity(500); // default is 250
+    midiCCSlider.setMouseDragSensitivity(500);  // default is 250
     midiCCSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     midiCCSlider.setLookAndFeel(&draggableBox);
     midiCCSlider.setRange(-1, 127, 1);
@@ -224,9 +224,9 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         if (current_button_id > 0)
         {
             MidiMappingEntry* entry = processor.midiMappings[getParamID(current_button_id)].get();
-            *entry->cc = (int)midiCCSlider.getValue(); // Manual update
+            *entry->cc = (int)midiCCSlider.getValue();  // Manual update
             midiConfigButtons[current_button_id-1]->setMapping(entry->cc->get(), entry->channel->get());
-            if (!isDragging) // Save on click/scroll
+            if (!isDragging)  // Save on click/scroll
                 processor.saveGlobalMidiMappings();
         }
     };
@@ -284,7 +284,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         if (current_button_id > 0)
         {
             MidiMappingEntry* entry = processor.midiMappings[getParamID(current_button_id)].get();
-            *entry->channel = (int)midiChannelSlider.getValue(); // Manual update
+            *entry->channel = (int)midiChannelSlider.getValue();  // Manual update
             midiConfigButtons[current_button_id-1]->setMapping(entry->cc->get(), entry->channel->get());
             if (!isDragging)
                 processor.saveGlobalMidiMappings();
@@ -340,7 +340,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     };
     midiDefaultSlider.onValueChange = [this]
     {
-        *processor.defaultChannelParam = (int)midiDefaultSlider.getValue(); // Manual update
+        *processor.defaultChannelParam = (int)midiDefaultSlider.getValue();  // Manual update
         if (!isDragging)
             processor.saveGlobalMidiMappings();
     };
@@ -457,7 +457,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
                     *processor.defaultChannelParam = -1;  // OMNI
 
                     processor.saveGlobalMidiMappings();
-                    
+
                     updateAllButtons();
                     updateView();
                     midiDefaultSlider.setValue(-1, dontSendNotification);

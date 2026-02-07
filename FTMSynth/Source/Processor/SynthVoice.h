@@ -26,14 +26,14 @@
 */
 
 #pragma once
+#include <vector>
 #include <JuceHeader.h>
 #include "SynthSound.h"
 
-#define MAX_M1  16
-#define MAX_M2  16
-#define MAX_M3  16
-#define SIN_LUT_MODULO     65535
-#define SIN_LUT_RESOLUTION 65536
+#define MAX_M1  20
+#define MAX_M2  20
+#define MAX_M3  20
+#define SIN_LUT_RESOLUTION    0x40000
 
 enum Algorithm {
     ivan, rabenstein
@@ -106,7 +106,12 @@ private:
     // Common methods
     void findmax();
     void initDecayampn();
-    double finaloutput();
+    // Optimization methods
+    void prepareActiveModes();
+    void updateActiveDecays();
+    // Synthesis methods
+    void synthesizeBlock(int numSamples);
+    void advanceTime(int numSamples);
 
 
     //==================================
@@ -119,34 +124,34 @@ private:
     // note parameters
     double level;
     bool bkbTrack;
-    double fpitch; // in semitones (plugin's pitch knob)
-    double pitchBend; // in octaves (pitch bend MIDI CC)
+    double fpitch;  // in semitones (plugin's pitch knob)
+    double pitchBend;  // in octaves (pitch bend MIDI CC)
 
     // time-related variables
     bool trig;
     double t;
     double nsamp;
-    double dur; // in seconds
+    double dur;  // in seconds
     double sr = 44100;
 
     // FTM model parameters
-    double fomega;            // frequency
-    double ftau, frel;        // sustain
+    double fomega;             // frequency
+    double ftau, frel;         // sustain
     bool bgate;
-    double fp, fring;         // damping
+    double fp, fring;          // damping
     bool bpGate;
-    double fd  = 0,   nextd;  // inharmonicity
-    double fa  = 0.5, nexta;  // squareness
-    double fa2 = 0.5, nexta2; // cubeness
+    double fd  = 0,   nextd;   // inharmonicity
+    double fa  = 0.5, nexta;   // squareness
+    double fa2 = 0.5, nexta2;  // cubeness
 
-    double r1, r2, r3;    // coordinates
+    double r1, r2, r3;         // coordinates
 
-    int m1 = 5; // shouldn't be bigger than MAX_M1
-    int m2 = 5; // shouldn't be bigger than MAX_M2
-    int m3 = 5; // shouldn't be bigger than MAX_M3
-    int nextm1 = 5; // shouldn't be bigger than MAX_M1
-    int nextm2 = 5; // shouldn't be bigger than MAX_M2
-    int nextm3 = 5; // shouldn't be bigger than MAX_M3
+    int m1 = 5;      // shouldn't be bigger than MAX_M1
+    int m2 = 5;      // shouldn't be bigger than MAX_M2
+    int m3 = 5;      // shouldn't be bigger than MAX_M3
+    int nextm1 = 5;  // shouldn't be bigger than MAX_M1
+    int nextm2 = 5;  // shouldn't be bigger than MAX_M2
+    int nextm3 = 5;  // shouldn't be bigger than MAX_M3
 
     int dim, nextDim;
 
@@ -154,7 +159,7 @@ private:
     // ===== Variables used for the Ivan method
     int tau = 300;
 
-    double fx1[301]; // tau
+    double fx1[301];  // tau
     double fx2[301];
     double fx3[301];
     double f1[MAX_M1];
@@ -187,5 +192,14 @@ private:
     double decayamp[MAX_M1*MAX_M2*MAX_M3];
     double decayampn[MAX_M1*MAX_M2*MAX_M3];
 
-    double maxh = 1; // the max of h for each set of parameters
+    double maxh = 1;  // the max of h for each set of parameters
+
+    // Optimization structures
+    std::vector<uint32_t> activePhases;
+    std::vector<uint32_t> activeIncrements;
+    std::vector<double> activeGains;
+    std::vector<double> activeDecays;
+    std::vector<double> activeEnvStates;
+
+    std::vector<double> buffer;
 };

@@ -48,13 +48,11 @@ void SynthVoice::computeSinLUT()
     }
 }
 
-#define fastSin(x) sinLUT[int(x*lutScale) & SIN_LUT_MODULO]
-
 
 // some function that grabs value from the slider, and then either returns or set the signal of my synthesized drum sound
 // IMPORTANT NOTE: the parameters need to be passed as std::atomic<float>*, from tree.getRawParameterValue("name"),
 //                 otherwise they'll be applied AFTER the next note press, instead of before, which means the
-//                 parameters will be updated one hit too late, which is what we *don't* want.
+//                 parameters will be updated one hit too late, which is *not* what we want.
 void SynthVoice::getcusParam(std::atomic<float>* algo,
                              std::atomic<float>* volume,
                              std::atomic<float>* pitch,
@@ -108,7 +106,7 @@ void SynthVoice::getcusParam(std::atomic<float>* algo,
 // define f(x) as a gaussian distribution with mean at the middle point l/2
 void SynthVoice::ivan_deff()
 {
-    double s = 0.4; // standard deviation
+    double s = 0.4;  // standard deviation
     // 1D
     if (dim >= 0)
     {
@@ -155,7 +153,7 @@ void SynthVoice::ivan_getf()
             integ = 0;
             for (int i=0; i<tau; i++)
             {
-                integ += (fx1[i+1]*sin((i+1)*h*M_PI*(j+1)/l) + fx1[i]*sin(i*h*M_PI*(j+1)/l))*h/2.0; //(f(b)+f(a))*(b-a)/2
+                integ += (fx1[i+1]*sin((i+1)*h*M_PI*(j+1)/l) + fx1[i]*sin(i*h*M_PI*(j+1)/l))*h/2.0;  // (f(b)+f(a))*(b-a)/2
             }
             f1[j] = 2*integ/l;
         }
@@ -171,7 +169,7 @@ void SynthVoice::ivan_getf()
             integ = 0;
             for (int i=0; i<tau; i++)
             {
-                integ += (fx2[i+1]*sin((i+1)*h*M_PI*(j+1)/l) + fx2[i]*sin(i*h*M_PI*(j+1)/l))*h/2.0; //(f(b)+f(a))*(b-a)/2
+                integ += (fx2[i+1]*sin((i+1)*h*M_PI*(j+1)/l) + fx2[i]*sin(i*h*M_PI*(j+1)/l))*h/2.0;  // (f(b)+f(a))*(b-a)/2
             }
             f2[j] = 2*integ/l;
         }
@@ -187,7 +185,7 @@ void SynthVoice::ivan_getf()
             integ = 0;
             for (int i=0; i<tau; i++)
             {
-                integ += (fx3[i+1]*sin((i+1)*h*M_PI*(j+1)/l) + fx3[i]*sin(i*h*M_PI*(j+1)/l))*h/2.0; //(f(b)+f(a))*(b-a)/2
+                integ += (fx3[i+1]*sin((i+1)*h*M_PI*(j+1)/l) + fx3[i]*sin(i*h*M_PI*(j+1)/l))*h/2.0;  // (f(b)+f(a))*(b-a)/2
             }
             f3[j] = 2*integ/l;
         }
@@ -249,7 +247,7 @@ void SynthVoice::ivan_getw(double p)
         double fsigma = -1/ftau;
         for (int i=0; i<m1; i++)
         {
-            double interm = pow(i+1,2); //M^2
+            double interm = pow(i+1,2);  // M^2
             omega[i] = sqrt(pow(fd*fomega*interm, 2) + interm * (pow(fsigma*(1-p), 2) + pow(fomega,2)*(1-pow(fd, 2))) - pow(fsigma*(1-p), 2));
 
             // remove aliasing by checking whether the mode frequency is above Nyquist
@@ -357,7 +355,7 @@ void SynthVoice::ivan_getK()
 
 void SynthVoice::rabenstein_getCoefficients(double _tau, double p)
 {
-    double l0 = M_PI; // constant
+    double l0 = M_PI;  // constant
 
     // 1D
     if (dim == 0)
@@ -567,53 +565,145 @@ void SynthVoice::initDecayampn()
 }
 
 
-// this function synthesizes the signal value at each sample
-double SynthVoice::finaloutput()
+//==================================
+void SynthVoice::prepareActiveModes()
 {
-    if (trig == false) return 0;
+    activePhases.clear();
+    activeIncrements.clear();
+    activeGains.clear();
+    activeDecays.clear();
+    activeEnvStates.clear();
 
-    double h = 0;
-    double lutScale = SIN_LUT_RESOLUTION / (2.0*M_PI);
+    if (!trig) return;
+
+    double lvl = level;
+    if (currentAlgorithm == Algorithm::rabenstein) lvl = 1.0 / fN;
+    double gainScale = lvl / maxh;
 
     int maxIndex = 0;
     if (dim >= 0) maxIndex = m1;
     if (dim >= 1) maxIndex *= m2;
     if (dim >= 2) maxIndex *= m3;
 
-    // synthesize the sound at time t
-    for (int i=0; i<maxIndex; i++)
+    for (int i = 0; i < maxIndex; i++)
     {
-        double y = 1.0;
-
-        if (currentAlgorithm == Algorithm::rabenstein) y = yi[i];
-
         if (!mode_rejected[i])
         {
-            // designate the exponential envelope
-            decayampn[i] *= decayamp[i];
+            // Initial phase is always 0 for now as we start at t=0
+            activePhases.push_back(0);
 
-            // synthesize the sound
-            h += knd[i] * decayampn[i] * fastSin(omega[i]*t) * y;
+            // Calculate phase increment per sample
+            // omega is angular frequency (rad/s)
+            // Map 2pi -> 2^32 (4294967296.0)
+            // inc = (omega / (sr * 2.0 * M_PI)) * 4294967296.0
+            double increment = (omega[i] / (sr * 2.0 * M_PI)) * 4294967296.0;
+            activeIncrements.push_back(static_cast<uint32_t>(increment));
+
+            // Combined Gain
+            double y = 1.0;
+            if (currentAlgorithm == Algorithm::rabenstein) y = yi[i];
+            activeGains.push_back(knd[i] * y * gainScale);
+
+            // Decay
+            activeDecays.push_back(decayamp[i]);
+            activeEnvStates.push_back(1.0);  // Starts at 1.0
         }
     }
+}
 
-    double lvl = level;
-    if (currentAlgorithm == Algorithm::rabenstein) lvl = 1/fN;
+void SynthVoice::updateActiveDecays()
+{
+    // This is called when decay rates change (e.g. release, sample rate change)
+    // We need to re-match the active modes with their new decay rates.
+    // Since activeModes list order corresponds to the linear iteration of valid modes,
+    // we can re-iterate to find them.
 
-    double output = (h*lvl) / maxh;
+    int activeIdx = 0;
+    int maxIndex = 0;
+    if (dim >= 0) maxIndex = m1;
+    if (dim >= 1) maxIndex *= m2;
+    if (dim >= 2) maxIndex *= m3;
 
-    nsamp += pow(2.0, pitchBend);
-    t = nsamp/sr; // t advancing one sample
+    for (int i = 0; i < maxIndex; i++)
+    {
+        if (!mode_rejected[i])
+        {
+            if (activeIdx < activeDecays.size())
+            {
+                activeDecays[activeIdx] = decayamp[i];
+                activeIdx++;
+            }
+        }
+    }
+}
+
+//==================================
+// this function synthesizes the signal value at each sample
+void SynthVoice::synthesizeBlock(int numSamples)
+{
+    // ensure scratch buffer is large enough
+    if (buffer.size() < (size_t)numSamples)
+        buffer.resize(numSamples);
+
+    // clear scratch buffer
+    std::fill(buffer.begin(), buffer.begin() + numSamples, 0.0);
+
+    // block processing: iterate active modes
+    size_t numActive = activePhases.size();
+
+    // update pitch bend if needed (assuming constant per block for now)
+    double currentPitchMultiplier = pow(2.0, pitchBend);
+    bool applyGainScaling = (currentAlgorithm == Algorithm::rabenstein);
+    uint32_t nyquistInc = 0x80000000;  // corresponding to SR/2
+
+    for (size_t i = 0; i < numActive; i++)
+    {
+        // apply pitch bend to increment
+        uint64_t largeInc = static_cast<uint64_t>(static_cast<double>(activeIncrements[i]) * currentPitchMultiplier);
+
+        // anti-aliasing check: if frequency exceeds Nyquist, skip this mode
+        if (largeInc >= nyquistInc) continue;
+
+        uint32_t inc = static_cast<uint32_t>(largeInc);
+        uint32_t phase = activePhases[i];
+
+        double gain = activeGains[i];
+        if (applyGainScaling) gain /= currentPitchMultiplier;
+
+        double decay = activeDecays[i];
+        double amp = activeEnvStates[i];
+
+        for (int s = 0; s < numSamples; s++)
+        {
+            // direct lookup (truncation) for 256k LUT
+            // top 18 bits = integer index
+            // bottom 14 bits = fractional part (discarded)
+            uint32_t index = phase >> 14;
+
+            double value = sinLUT[index];
+            buffer[s] += gain * amp * value;
+
+            phase += inc;
+            amp *= decay;
+        }
+
+        // write back state
+        activePhases[i] = phase;
+        activeEnvStates[i] = amp;
+    }
+}
+
+void SynthVoice::advanceTime(int numSamples)
+{
+    nsamp += numSamples;
+    t = nsamp / sr;
 
     if (t >= dur)
     {
         trig = false;
         clearCurrentNote();
     }
-
-    return output * mainVolume;
 }
-
 
 
 //==================================
@@ -670,6 +760,8 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     nsamp = 0;
     trig = true;
     setKeyDown(true);
+
+    prepareActiveModes();
 }
 
 //==================================
@@ -685,8 +777,8 @@ void SynthVoice::stopNote(float /*velocity*/, bool allowTailOff)
     {
         if (bgate)
         {
-            double elapsed = t/dur; // percentage of the elapsed duration
-            double remaining = 1.0 - elapsed; // percentage of the remaining duration
+            double elapsed = t/dur;  // percentage of the elapsed duration
+            double remaining = 1.0 - elapsed;  // percentage of the remaining duration
             double newDur = log(1-frel) / log(1-0.075);
             dur = dur*elapsed + newDur*remaining;
         }
@@ -702,6 +794,7 @@ void SynthVoice::stopNote(float /*velocity*/, bool allowTailOff)
             {
                 rabenstein_getCoefficients(_tau, p);
             }
+            updateActiveDecays();
         }
         setKeyDown(false);
     }
@@ -734,26 +827,41 @@ void SynthVoice::channelPressureChanged(int /*newChannelPressureValue*/)
 //==================================
 void SynthVoice::renderNextBlock(AudioBuffer<float> &outputBuffer, int startSample, int numSamples)
 {
-    for (int sample=0; sample<numSamples; sample++)
+    if (!trig) return;
+
+    synthesizeBlock(numSamples);
+
+    // copy to output
+    for (int channel = 0; channel < outputBuffer.getNumChannels(); channel++)
     {
-        float drumSound = float(finaloutput());
-        for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
+        float* outData = outputBuffer.getWritePointer(channel, startSample);
+        for (int s = 0; s < numSamples; s++)
         {
-            outputBuffer.addSample(channel, startSample+sample, drumSound);
+            outData[s] += (float)(buffer[s] * mainVolume);
         }
     }
+
+    advanceTime(numSamples);
 }
+
 //==================================
 void SynthVoice::renderNextBlock(AudioBuffer<double> &outputBuffer, int startSample, int numSamples)
 {
-    for (int sample=0; sample<numSamples; sample++)
+    if (!trig) return;
+
+    synthesizeBlock(numSamples);
+
+    // copy to output
+    for (int channel = 0; channel < outputBuffer.getNumChannels(); channel++)
     {
-        double drumSound = finaloutput();
-        for (int channel=0; channel<outputBuffer.getNumChannels(); channel++)
+        double* outData = outputBuffer.getWritePointer(channel, startSample);
+        for (int s = 0; s < numSamples; s++)
         {
-            outputBuffer.addSample(channel, startSample+sample, drumSound);
+            outData[s] += buffer[s] * mainVolume;
         }
     }
+
+    advanceTime(numSamples);
 }
 
 //==================================
@@ -772,6 +880,7 @@ void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
         rabenstein_getCoefficients(_tau, p);
         rabenstein_getw();
     }
+    updateActiveDecays();
 }
 //==================================
 double SynthVoice::getSampleRate() const

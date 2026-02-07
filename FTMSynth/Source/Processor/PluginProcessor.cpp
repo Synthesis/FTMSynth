@@ -250,7 +250,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         int voice = mySynth.getNumVoices()-1;
         while (voice > 0)
         {
-            myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(voice));
+            SynthVoice* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(voice));
             if (myVoice != nullptr)
             {
                 if (!myVoice->isVoiceActive())
@@ -279,8 +279,8 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
                 for (int i = 0; i < voiceCount; i++)
                 {
-                    myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
-                    bool isOldest = true; // until proven otherwise
+                    SynthVoice* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
+                    bool isOldest = true;  // until proven otherwise
 
                     for (int j = 0; j < voiceCount; j++)
                     {
@@ -317,7 +317,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     for (const MidiMessageMetadata metadata : midiMessages)
     {
         MidiMessage message = metadata.getMessage();
-        int inCh = message.getChannel() - 1; // 0-15
+        int inCh = message.getChannel() - 1;  // 0-15
 
         // --- Synth Events (Notes, Pitch, Aftertouch) ---
         // Filter by Default Channel
@@ -401,7 +401,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     // Retrieve parameters from sliders and pass them to the model
     for (int i=0; i < mySynth.getNumVoices(); i++)
     {
-        myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
+        SynthVoice* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
         if (myVoice != nullptr)
         {
             // this is the actual step that gets values from the tree, which are linked to the sliders
@@ -444,7 +444,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 //==============================================================================
 bool FTMSynthAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return true;  // (change this to false if you choose to not supply an editor)
 }
 
 AudioProcessorEditor* FTMSynthAudioProcessor::createEditor()

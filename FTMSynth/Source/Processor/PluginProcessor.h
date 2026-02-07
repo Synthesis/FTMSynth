@@ -123,7 +123,6 @@ public:
 
 private:
     Synthesiser mySynth;
-    SynthVoice* myVoice;
 
     double lastSampleRate;
 

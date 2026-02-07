@@ -123,7 +123,7 @@ void VisualPanel::paint(Graphics& g)
         float alpha1 = tree.getRawParameterValue("squareness")->load();
         float r1 = tree.getRawParameterValue("r1")->load();
         float r2 = tree.getRawParameterValue("r2")->load();
-        r2 = 1-r2; // Y is inverted on a screen
+        r2 = 1-r2;  // Y is inverted on a screen
 
         float thickness = 3.0f;
 
@@ -162,7 +162,7 @@ void VisualPanel::paint(Graphics& g)
         float r1 = tree.getRawParameterValue("r1")->load();
         float r2 = tree.getRawParameterValue("r2")->load();
         float r3 = tree.getRawParameterValue("r3")->load();
-        r2 = 1-r2; // vertical direction is inverted on a screen
+        r2 = 1-r2;  // vertical direction is inverted on a screen
         r3 = 1-r3;
 
         float thickness = 3.0f;

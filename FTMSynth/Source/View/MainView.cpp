@@ -94,7 +94,7 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     addAndMakeVisible(volumeSlider);
 
     pitchSlider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
-    pitchSlider.setMouseDragSensitivity(1000); // default is 250
+    pitchSlider.setMouseDragSensitivity(1000);  // default is 250
     pitchSlider.setTextBoxStyle(Slider::TextBoxAbove, false, 66, 16);
     pitchSlider.setPopupDisplayEnabled(false, false, this);
     pitchSlider.setLookAndFeel(&withTextBox);
