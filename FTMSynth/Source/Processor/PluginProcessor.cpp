@@ -45,7 +45,27 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     {
         std::make_unique<AudioParameterChoice>(ParameterID("algorithm", 1), "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
         std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
-        std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack", NormalisableRange<float>(0.0f, 4.0f), 0.0f),
+        std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack",
+            NormalisableRange<float>(0.0f, 4.0f,
+                [](float start, float end, float normalizedSliderPos) 
+                {
+                    float value = start + normalizedSliderPos * (end - start);
+                    float nearestInt = std::round(value);
+                    float snapWidth = 0.1f;
+
+                    if (nearestInt < 1.0f || nearestInt > 3.0f) return value;
+                    if (std::abs(value - nearestInt) < snapWidth) return nearestInt;
+
+                    return value + (value > nearestInt ? -snapWidth : snapWidth);
+                },
+                [](float start, float end, float value) 
+                {
+                    float nearestInt = std::round(value), snapWidth = 0.1f;
+                    float valWithSnap = (nearestInt >= 1.0f && nearestInt <= 3.0f && value != nearestInt) 
+                                          ? value + (value > nearestInt ? snapWidth : -snapWidth) 
+                                          : value;
+                    return (valWithSnap - start) / (end - start);
+                }), 0.0f),
         std::make_unique<AudioParameterFloat>(ParameterID("pitch", 1), "Pitch", NormalisableRange<float>(-24.0f, 24.0f, 0.001f), 0.0f,  // in semitones
                                               AudioParameterFloatAttributes().withStringFromValueFunction([] (auto value, auto) { return String(value, 3); })),
         std::make_unique<AudioParameterBool>(ParameterID("kbTrack", 1), "Keyboard Tracking", true),
