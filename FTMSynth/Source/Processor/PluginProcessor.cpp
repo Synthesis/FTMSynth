@@ -45,7 +45,7 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     {
         std::make_unique<AudioParameterChoice>(ParameterID("algorithm", 1), "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
         std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
-        std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack", NormalisableRange<float>(0.0f, 1.0f), 1.0f),
+        std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack", NormalisableRange<float>(0.0f, 4.0f), 0.0f),
         std::make_unique<AudioParameterFloat>(ParameterID("pitch", 1), "Pitch", NormalisableRange<float>(-24.0f, 24.0f, 0.001f), 0.0f,  // in semitones
                                               AudioParameterFloatAttributes().withStringFromValueFunction([] (auto value, auto) { return String(value, 3); })),
         std::make_unique<AudioParameterBool>(ParameterID("kbTrack", 1), "Keyboard Tracking", true),
@@ -411,6 +411,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             //                 parameters will be updated one hit too late, which is what we *don't* want.
             myVoice->getcusParam(tree.getRawParameterValue("algorithm"),
                                  tree.getRawParameterValue("volume"),
+                                 tree.getRawParameterValue("attack"),
                                  tree.getRawParameterValue("pitch"),
                                  tree.getRawParameterValue("kbTrack"),
                                  tree.getRawParameterValue("sustain"),

@@ -47,7 +47,7 @@ LabelView::LabelView(FTMSynthAudioProcessor& p)
 
     attackLabel.setText("ATTACK", dontSendNotification);
     attackLabel.setJustificationType(Justification::centred);
-    attackLabel.setTooltip("Attack intensity");
+    attackLabel.setTooltip("Attack duration");
     addAndMakeVisible(attackLabel);
 
     pitchLabel.setText("PITCH", dontSendNotification);

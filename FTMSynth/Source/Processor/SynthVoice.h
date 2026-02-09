@@ -50,6 +50,7 @@ public:
 
     void getcusParam(std::atomic<float>* algo,
                      std::atomic<float>* volume,
+                     std::atomic<float>* attack,
                      std::atomic<float>* pitch,
                      std::atomic<float>* kbTrack,
                      std::atomic<float>* _tau,
@@ -120,6 +121,7 @@ private:
 
     Algorithm currentAlgorithm, nextAlgorithm;
     double mainVolume;
+    double atk = 1.0, nextAtk;  // attack windowing (1.0 = hard, 0.0 = soft)
 
     // note parameters
     double level;
@@ -200,6 +202,7 @@ private:
     std::vector<double> activeGains;
     std::vector<double> activeDecays;
     std::vector<double> activeEnvStates;
+    std::vector<uint8_t> activePeriodCount;
 
     std::vector<double> buffer;
 };

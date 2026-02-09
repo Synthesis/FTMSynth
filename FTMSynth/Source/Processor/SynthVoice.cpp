@@ -55,6 +55,7 @@ void SynthVoice::computeSinLUT()
 //                 parameters will be updated one hit too late, which is *not* what we want.
 void SynthVoice::getcusParam(std::atomic<float>* algo,
                              std::atomic<float>* volume,
+                             std::atomic<float>* attack,
                              std::atomic<float>* pitch,
                              std::atomic<float>* kbTrack,
                              std::atomic<float>* _tau,
@@ -78,6 +79,7 @@ void SynthVoice::getcusParam(std::atomic<float>* algo,
     // corresponding parameters in order to synthesize the sound
     nextAlgorithm = ((int(algo->load()) >= 1) ? Algorithm::rabenstein : Algorithm::ivan);
     mainVolume = volume->load();
+    nextAtk = attack->load();
 
     fpitch = pitch->load();
     bkbTrack = (kbTrack->load() >= 0.5f);
@@ -573,6 +575,7 @@ void SynthVoice::prepareActiveModes()
     activeGains.clear();
     activeDecays.clear();
     activeEnvStates.clear();
+    activePeriodCount.clear();
 
     if (!trig) return;
 
@@ -607,6 +610,7 @@ void SynthVoice::prepareActiveModes()
             // Decay
             activeDecays.push_back(decayamp[i]);
             activeEnvStates.push_back(1.0);  // Starts at 1.0
+            activePeriodCount.push_back(0);  // New note, period 0
         }
     }
 }
@@ -681,9 +685,43 @@ void SynthVoice::synthesizeBlock(int numSamples)
             uint32_t index = phase >> 14;
 
             double value = sinLUT[index];
+
+            // Apply Duration-Based Attack Windowing
+            if (atk > 0.0)
+            {
+               // Check if we are still within the attack duration
+               // Use precise floating point position: periods + fractional_phase
+               double currentPos = activePeriodCount[i] + (phase / 4294967296.0);
+
+               if (currentPos < atk)
+               {
+                   // Window function: sin^2( pi * t / (2 * dur) )
+                   // Maps t=0 -> 0, t=dur -> 1
+                   // Argument for sin is (pi/2) * (t/dur)
+                   // Map to LUT index [0 .. LUT_SIZE/4]
+
+                   double ratio = currentPos / atk;
+
+                   // LUT Size is 0x40000. Quarter is 0x10000.
+                   uint32_t attackIndex = static_cast<uint32_t>(ratio * 0x10000);
+
+                   // Clamp index just in case floating point errors push it slightly over
+                   if (attackIndex > 0x10000) attackIndex = 0x10000;
+
+                   double w = sinLUT[attackIndex];
+                   value *= (w * w);
+               }
+            }
+
             buffer[s] += gain * amp * value;
 
-            phase += inc;
+            uint32_t nextPhase = phase + inc;
+            if (nextPhase < phase)
+            {
+               if (activePeriodCount[i] < 255) // prevent overflow wrap-around
+                   activePeriodCount[i]++;
+            }
+            phase = nextPhase;
             amp *= decay;
         }
 
@@ -726,6 +764,8 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
         fomega = 440 * 2 * M_PI * pow(2.0, (fpitch - 9.0)/12.0);
     }
     pitchBend = (currentPitchWheelPosition - 8192) / 8192.0;
+
+    atk = nextAtk;
 
     // sound duration depending on sustain, tau = 0.075 means a 1-second output
     dur = log(1-ftau) / log(1-0.075);
