@@ -30,12 +30,9 @@
 #include <JuceHeader.h>
 #include "SynthSound.h"
 #include "SynthVoice.h"
-#if JucePlugin_Build_Standalone
 #include <map>
-#endif
 
 //==============================================================================
-#if JucePlugin_Build_Standalone
 struct MidiMappingEntry
 {
     std::unique_ptr<AudioParameterInt> cc;
@@ -47,14 +44,9 @@ struct MidiMapping
     int cc = -1;
     int channel = -2;
 };
-#endif
 
 //==============================================================================
-class FTMSynthAudioProcessor : public AudioProcessor
-#if JucePlugin_Build_Standalone
-                             , public ChangeBroadcaster
-                             , public AsyncUpdater
-#endif
+class FTMSynthAudioProcessor : public AudioProcessor, public ChangeBroadcaster, public AsyncUpdater
 {
 public:
     //==============================================================================
@@ -91,8 +83,7 @@ public:
     void changeProgramName(int index, const String& newName) override;
 
     //==============================================================================
-#if JucePlugin_Build_Standalone
-    // MIDI Mapping (Standalone only)
+    // MIDI Mapping
     std::map<String, std::unique_ptr<MidiMappingEntry>> midiMappings;
     std::unique_ptr<AudioParameterInt> defaultChannelParam;
     void setMidiMapping(String paramID, int cc, int channel);
@@ -112,7 +103,6 @@ public:
 
     std::unique_ptr<XmlElement> getMidiMappingsAsXml();
     void restoreMidiMappingsFromXml(const XmlElement& xml);
-#endif
 
     //==============================================================================
     void getStateInformation(MemoryBlock& destData) override;

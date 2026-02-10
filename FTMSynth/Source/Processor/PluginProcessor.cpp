@@ -102,7 +102,6 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
 
-#if JucePlugin_Build_Standalone
     // Helper to create mapping entry
     auto createMapping = [](String id)
     {
@@ -141,7 +140,6 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     defaultChannelParam = std::make_unique<AudioParameterInt>("default_ch", "Default Channel", -1, 15, -1);
 
     loadGlobalMidiMappings();
-#endif
 }
 
 
@@ -329,8 +327,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
-#if JucePlugin_Build_Standalone
-    // Unified MIDI message processing (Standalone only)
+    // Unified MIDI message processing
     MidiBuffer filteredMidi;
     int defaultCh = defaultChannelParam->get();
 
@@ -416,7 +413,6 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             }
         }
     }
-#endif
 
     // Retrieve parameters from sliders and pass them to the model
     for (int i=0; i < mySynth.getNumVoices(); i++)
@@ -455,11 +451,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     buffer.clear();
 
-#if JucePlugin_Build_Standalone
     mySynth.renderNextBlock(buffer, filteredMidi, 0, buffer.getNumSamples());
-#else
-    mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
-#endif
 }
 
 //==============================================================================
@@ -474,7 +466,6 @@ AudioProcessorEditor* FTMSynthAudioProcessor::createEditor()
 }
 
 //==============================================================================
-#if JucePlugin_Build_Standalone
 void FTMSynthAudioProcessor::setMidiMapping(String paramID, int cc, int channel)
 {
     if (midiMappings.find(paramID) != midiMappings.end())
@@ -589,7 +580,6 @@ void FTMSynthAudioProcessor::restoreMidiMappingsFromXml(const XmlElement& xml)
         }
     }
 }
-#endif
 
 //==============================================================================
 void FTMSynthAudioProcessor::getStateInformation(MemoryBlock& destData)

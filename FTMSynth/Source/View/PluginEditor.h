@@ -32,9 +32,7 @@
 #include "../LookAndFeel/CustomLookAndFeel.h"
 #include "LabelView.h"
 #include "MainView.h"
-#if JucePlugin_Build_Standalone
 #include "MidiConfigView.h"
-#endif
 
 //==============================================================================
 class FTMSynthAudioProcessorEditor : public AudioProcessorEditor
@@ -57,17 +55,13 @@ private:
     // Help tooltip
     SharedResourcePointer<TooltipWindow> tooltip;
     ImageButton helpButton;
+    ImageButton midiButton;
 
     LabelView labelView;
     MainView mainView;
-
-#if JucePlugin_Build_Standalone
-    ImageButton midiButton;
-
     MidiConfigView midiConfigView;
 
     void switchViews();
-#endif
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FTMSynthAudioProcessorEditor)
 };
