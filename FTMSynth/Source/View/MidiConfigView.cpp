@@ -28,34 +28,12 @@
 #include "MidiConfigView.h"
 
 //==============================================================================
-static String getParamID(int buttonID)
+// Helper: convert 1-based button index → param ID string
+static inline const char* getParamID(int buttonID)
 {
-    switch (buttonID)
-    {
-        case BUTTON_ID_VOLUME:     return "volume";
-        case BUTTON_ID_ATTACK:     return "attack";
-        case BUTTON_ID_DIMENSIONS: return "dimensions";
-        case BUTTON_ID_PITCH:      return "pitch";
-        case BUTTON_ID_KBTRACK:    return "kbTrack";
-        case BUTTON_ID_TAU:        return "sustain";
-        case BUTTON_ID_TAU_GATE:   return "susGate";
-        case BUTTON_ID_RELEASE:    return "release";
-        case BUTTON_ID_P:          return "damp";
-        case BUTTON_ID_P_GATE:     return "dampGate";
-        case BUTTON_ID_RING:       return "ring";
-        case BUTTON_ID_D:          return "dispersion";
-        case BUTTON_ID_ALPHA1:     return "squareness";
-        case BUTTON_ID_ALPHA2:     return "cubeness";
-        case BUTTON_ID_R1:         return "r1";
-        case BUTTON_ID_R2:         return "r2";
-        case BUTTON_ID_R3:         return "r3";
-        case BUTTON_ID_M1:         return "m1";
-        case BUTTON_ID_M2:         return "m2";
-        case BUTTON_ID_M3:         return "m3";
-        case BUTTON_ID_VOICES:     return "voices";
-        case BUTTON_ID_ALGO:       return "algorithm";
-        default: return "";
-    }
+    if (buttonID >= 1 && buttonID <= numMappableParams)
+        return paramTable[buttonID - 1].paramID;
+    return "";
 }
 
 //==============================================================================
@@ -66,103 +44,128 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
       learnCCButton("learnCC", DrawableButton::ImageOnButtonBackgroundOriginalSize),
       learnChannelButton("learnChannel", DrawableButton::ImageOnButtonBackgroundOriginalSize)
 {
+    // Button IDs use 1-based indexing into paramTable
+    enum {
+        ID_VOL = 1,
+        ID_ATTACK,
+        ID_DIMENSIONS,
+        ID_PITCH,
+        ID_KB_TRACK,
+        ID_TAU,
+        ID_TAU_GT,
+        ID_RELEASE,
+        ID_DAMP,
+        ID_DAMP_GT,
+        ID_RING,
+        ID_DISPERSION,
+        ID_ALPHA1,
+        ID_ALPHA2,
+        ID_R1,
+        ID_R2,
+        ID_R3,
+        ID_M1,
+        ID_M2,
+        ID_M3,
+        ID_VOICES,
+        ID_ALGORITHM
+    };
     setSize(640, 400);
     setInterceptsMouseClicks(false, true);
 
     // Parameter selectors
-    volumeButton.onClick = [this] { updateView(BUTTON_ID_VOLUME); };
+    volumeButton.onClick = [this] { updateView(ID_VOL); };
     volumeButton.setRadioGroupId(2);
     addAndMakeVisible(volumeButton);
 
-    attackButton.onClick = [this] { updateView(BUTTON_ID_ATTACK); };
+    attackButton.onClick = [this] { updateView(ID_ATTACK); };
     attackButton.setRadioGroupId(2);
     addAndMakeVisible(attackButton);
 
-    dimensionsButton.onClick = [this] { updateView(BUTTON_ID_DIMENSIONS); };
+    dimensionsButton.onClick = [this] { updateView(ID_DIMENSIONS); };
     dimensionsButton.setRadioGroupId(2);
     addAndMakeVisible(dimensionsButton);
 
-    pitchButton.onClick = [this] { updateView(BUTTON_ID_PITCH); };
+    pitchButton.onClick = [this] { updateView(ID_PITCH); };
     pitchButton.setRadioGroupId(2);
     pitchButton.setConnectedEdges(Button::ConnectedOnTop);
     addAndMakeVisible(pitchButton);
 
-    kbTrackButton.onClick = [this] { updateView(BUTTON_ID_KBTRACK); };
+    kbTrackButton.onClick = [this] { updateView(ID_KB_TRACK); };
     kbTrackButton.setRadioGroupId(2);
     kbTrackButton.setConnectedEdges(Button::ConnectedOnBottom);
     addAndMakeVisible(kbTrackButton);
 
-    tauButton.onClick = [this] { updateView(BUTTON_ID_TAU); };
+    tauButton.onClick = [this] { updateView(ID_TAU); };
     tauButton.setRadioGroupId(2);
     tauButton.setConnectedEdges(Button::ConnectedOnTop);
     addAndMakeVisible(tauButton);
 
-    tauGateButton.onClick = [this] { updateView(BUTTON_ID_TAU_GATE); };
+    tauGateButton.onClick = [this] { updateView(ID_TAU_GT); };
     tauGateButton.setRadioGroupId(2);
     tauGateButton.setConnectedEdges(Button::ConnectedOnTop | Button::ConnectedOnBottom);
     addAndMakeVisible(tauGateButton);
 
-    relButton.onClick = [this] { updateView(BUTTON_ID_RELEASE); };
+    relButton.onClick = [this] { updateView(ID_RELEASE); };
     relButton.setRadioGroupId(2);
     relButton.setConnectedEdges(Button::ConnectedOnBottom);
     addAndMakeVisible(relButton);
 
-    pButton.onClick = [this] { updateView(BUTTON_ID_P); };
+    pButton.onClick = [this] { updateView(ID_DAMP); };
     pButton.setRadioGroupId(2);
     pButton.setConnectedEdges(Button::ConnectedOnTop);
     addAndMakeVisible(pButton);
 
-    pGateButton.onClick = [this] { updateView(BUTTON_ID_P_GATE); };
+    pGateButton.onClick = [this] { updateView(ID_DAMP_GT); };
     pGateButton.setRadioGroupId(2);
     pGateButton.setConnectedEdges(Button::ConnectedOnTop | Button::ConnectedOnBottom);
     addAndMakeVisible(pGateButton);
 
-    ringButton.onClick = [this] { updateView(BUTTON_ID_RING); };
+    ringButton.onClick = [this] { updateView(ID_RING); };
     ringButton.setRadioGroupId(2);
     ringButton.setConnectedEdges(Button::ConnectedOnBottom);
     addAndMakeVisible(ringButton);
 
-    dButton.onClick = [this] { updateView(BUTTON_ID_D); };
+    dButton.onClick = [this] { updateView(ID_DISPERSION); };
     dButton.setRadioGroupId(2);
     addAndMakeVisible(dButton);
 
-    alpha1Button.onClick = [this] { updateView(BUTTON_ID_ALPHA1); };
+    alpha1Button.onClick = [this] { updateView(ID_ALPHA1); };
     alpha1Button.setRadioGroupId(2);
     addAndMakeVisible(alpha1Button);
 
-    alpha2Button.onClick = [this] { updateView(BUTTON_ID_ALPHA2); };
+    alpha2Button.onClick = [this] { updateView(ID_ALPHA2); };
     alpha2Button.setRadioGroupId(2);
     addAndMakeVisible(alpha2Button);
 
-    r1Button.onClick = [this] { updateView(BUTTON_ID_R1); };
+    r1Button.onClick = [this] { updateView(ID_R1); };
     r1Button.setRadioGroupId(2);
     addAndMakeVisible(r1Button);
 
-    r2Button.onClick = [this] { updateView(BUTTON_ID_R2); };
+    r2Button.onClick = [this] { updateView(ID_R2); };
     r2Button.setRadioGroupId(2);
     addAndMakeVisible(r2Button);
 
-    r3Button.onClick = [this] { updateView(BUTTON_ID_R3); };
+    r3Button.onClick = [this] { updateView(ID_R3); };
     r3Button.setRadioGroupId(2);
     addAndMakeVisible(r3Button);
 
-    m1Button.onClick = [this] { updateView(BUTTON_ID_M1); };
+    m1Button.onClick = [this] { updateView(ID_M1); };
     m1Button.setRadioGroupId(2);
     addAndMakeVisible(m1Button);
 
-    m2Button.onClick = [this] { updateView(BUTTON_ID_M2); };
+    m2Button.onClick = [this] { updateView(ID_M2); };
     m2Button.setRadioGroupId(2);
     addAndMakeVisible(m2Button);
 
-    m3Button.onClick = [this] { updateView(BUTTON_ID_M3); };
+    m3Button.onClick = [this] { updateView(ID_M3); };
     m3Button.setRadioGroupId(2);
     addAndMakeVisible(m3Button);
 
-    voicesButton.onClick = [this] { updateView(BUTTON_ID_VOICES); };
+    voicesButton.onClick = [this] { updateView(ID_VOICES); };
     voicesButton.setRadioGroupId(2);
     addAndMakeVisible(voicesButton);
 
-    algoButton.onClick = [this] { updateView(BUTTON_ID_ALGO); };
+    algoButton.onClick = [this] { updateView(ID_ALGORITHM); };
     algoButton.setRadioGroupId(2);
     addAndMakeVisible(algoButton);
 
@@ -222,8 +225,8 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         if (current_button_id > 0)
         {
             MidiMappingEntry* entry = processor.midiMappings[getParamID(current_button_id)].get();
-            *entry->cc = (int)midiCCSlider.getValue();  // Manual update
-            midiConfigButtons[current_button_id-1]->setMapping(entry->cc->get(), entry->channel->get());
+            entry->cc.store((int)midiCCSlider.getValue());  // Manual update
+            midiConfigButtons[current_button_id-1]->setMapping(entry->cc.load(), entry->channel.load());
             if (!isDragging)  // Save on click/scroll
                 processor.saveGlobalMidiMappings();
         }
@@ -282,8 +285,8 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         if (current_button_id > 0)
         {
             MidiMappingEntry* entry = processor.midiMappings[getParamID(current_button_id)].get();
-            *entry->channel = (int)midiChannelSlider.getValue();  // Manual update
-            midiConfigButtons[current_button_id-1]->setMapping(entry->cc->get(), entry->channel->get());
+            entry->channel.store((int)midiChannelSlider.getValue());  // Manual update
+            midiConfigButtons[current_button_id-1]->setMapping(entry->cc.load(), entry->channel.load());
             if (!isDragging)
                 processor.saveGlobalMidiMappings();
         }
@@ -338,7 +341,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     };
     midiDefaultSlider.onValueChange = [this]
     {
-        *processor.defaultChannelParam = (int)midiDefaultSlider.getValue();  // Manual update
+        processor.defaultChannel.store((int)midiDefaultSlider.getValue());  // Manual update
         if (!isDragging)
             processor.saveGlobalMidiMappings();
     };
@@ -349,7 +352,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         processor.saveGlobalMidiMappings();
     };
     // Manual initial sync
-    midiDefaultSlider.setValue(processor.defaultChannelParam->get(), dontSendNotification);
+    midiDefaultSlider.setValue(processor.defaultChannel.load(), dontSendNotification);
     addAndMakeVisible(midiDefaultSlider);
 
     // Initialize buttons with current processor state
@@ -370,7 +373,8 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         menu->setLookAndFeel(&customLookAndFeel);
         menu->addItem("Reset MIDI mapping",
             [this] {
-                NativeMessageBox::showYesNoBox(AlertWindow::WarningIcon,
+                NativeMessageBox::showYesNoBox(
+                    AlertWindow::WarningIcon,
                     "Reset MIDI configuration",
                     "Reset all MIDI mapping?\nThis operation cannot be undone.",
                     this,
@@ -381,10 +385,10 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
                             // Reset all mappings
                             for (auto const& [id, entry] : processor.midiMappings)
                             {
-                                *entry->cc = -1;       // OFF
-                                *entry->channel = -2;  // MAIN
+                                entry->cc.store(-1);       // OFF
+                                entry->channel.store(-2);  // MAIN
                             }
-                            *processor.defaultChannelParam = -1;  // OMNI
+                            processor.defaultChannel.store(-1);  // OMNI
 
                             processor.saveGlobalMidiMappings();
 
@@ -396,41 +400,42 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
             });
         menu->addItem("Load MIDI mapping",
             [this] {
-                auto fc = std::make_shared<FileChooser>("Load MIDI configuration",
-                                                        File::getSpecialLocation(File::userHomeDirectory),
-                                                        "*.xml");
+                auto fc = std::make_shared<FileChooser>(
+                    "Load MIDI configuration",
+                    File::getSpecialLocation(File::userHomeDirectory),
+                    "*.xml");
 
                 fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
                                 [this, fc](const FileChooser& chooser)
                                 {
                                     File result = chooser.getResult();
-                                    if (result != File{})
+                                    if (result != File())
                                     {
                                         XmlDocument doc(result);
                                         if (auto xml = doc.getDocumentElement())
                                         {
                                             processor.restoreMidiMappingsFromXml(*xml);
                                             processor.saveGlobalMidiMappings();
+
                                             updateAllButtons();
                                             updateView();
-
-                                            // Update Manual Default Channel Slider
-                                            midiDefaultSlider.setValue(processor.defaultChannelParam->get(), dontSendNotification);
+                                            midiDefaultSlider.setValue(processor.defaultChannel.load(), dontSendNotification);
                                         }
                                     }
                                 });
             });
         menu->addItem("Save MIDI mapping",
             [this] {
-                auto fc = std::make_shared<FileChooser>("Save MIDI configuration",
-                                                        File::getSpecialLocation(File::userHomeDirectory),
-                                                        "*.xml");
+                auto fc = std::make_shared<FileChooser>(
+                    "Save MIDI configuration",
+                    File::getSpecialLocation(File::userHomeDirectory),
+                    "*.xml");
 
                 fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                                 [this, fc](const FileChooser& chooser)
                                 {
                                     File result = chooser.getResult();
-                                    if (result != File{})
+                                    if (result != File())
                                     {
                                         // Ensure extension
                                         if (!result.hasFileExtension(".xml"))
@@ -466,15 +471,17 @@ void MidiConfigView::changeListenerCallback(ChangeBroadcaster* source)
 
         if (current_button_id > 0)
         {
-            MidiMapping mapping = processor.getMidiMapping(getParamID(current_button_id));
+            MidiMappingEntry* entry = processor.midiMappings[getParamID(current_button_id)].get();
+            int cc = entry->cc.load();
+            int ch = entry->channel.load();
 
-            if ((int)midiCCSlider.getValue() != mapping.cc)
-                midiCCSlider.setValue(mapping.cc, dontSendNotification);
+            if ((int)midiCCSlider.getValue() != cc)
+                midiCCSlider.setValue(cc, dontSendNotification);
 
-            if ((int)midiChannelSlider.getValue() != mapping.channel)
-                midiChannelSlider.setValue(mapping.channel, dontSendNotification);
+            if ((int)midiChannelSlider.getValue() != ch)
+                midiChannelSlider.setValue(ch, dontSendNotification);
 
-            midiConfigButtons[current_button_id-1]->setMapping(mapping.cc, mapping.channel);
+            midiConfigButtons[current_button_id-1]->setMapping(cc, ch);
         }
     }
 }
@@ -511,10 +518,10 @@ void MidiConfigView::updateView(int button_id)
             // Manual sync
             String paramID = getParamID(current_button_id);
             MidiMappingEntry* entry = processor.midiMappings[paramID].get();
-            midiCCSlider.setValue(entry->cc->get(), dontSendNotification);
-            midiChannelSlider.setValue(entry->channel->get(), dontSendNotification);
+            midiCCSlider.setValue(entry->cc.load(), dontSendNotification);
+            midiChannelSlider.setValue(entry->channel.load(), dontSendNotification);
 
-            paramNameLabel.setText(paramName[button_id-1], dontSendNotification);
+            paramNameLabel.setText(paramTable[button_id-1].displayName, dontSendNotification);
 
             if (!paramNameLabel.isVisible()) paramNameLabel.setVisible(true);
             if (!midiCCLabel.isVisible()) midiCCLabel.setVisible(true);
@@ -543,7 +550,7 @@ void MidiConfigView::updateAllButtons()
             String paramID = getParamID(i + 1);
             if (MidiMappingEntry* entry = processor.midiMappings[paramID].get())
             {
-                btn->setMapping(entry->cc->get(), entry->channel->get());
+                btn->setMapping(entry->cc.load(), entry->channel.load());
             }
         }
     }

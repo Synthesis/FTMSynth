@@ -47,7 +47,7 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
         std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
         std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack",
             NormalisableRange<float>(0.0f, 4.0f,
-                [](float start, float end, float normalizedSliderPos) 
+                [](float start, float end, float normalizedSliderPos)
                 {
                     float value = start + normalizedSliderPos * (end - start);
                     float nearestInt = std::round(value);
@@ -58,11 +58,11 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
 
                     return value + (value > nearestInt ? -snapWidth : snapWidth);
                 },
-                [](float start, float end, float value) 
+                [](float start, float end, float value)
                 {
                     float nearestInt = std::round(value), snapWidth = 0.1f;
-                    float valWithSnap = (nearestInt >= 1.0f && nearestInt <= 3.0f && value != nearestInt) 
-                                          ? value + (value > nearestInt ? snapWidth : -snapWidth) 
+                    float valWithSnap = (nearestInt >= 1.0f && nearestInt <= 3.0f && value != nearestInt)
+                                          ? value + (value > nearestInt ? snapWidth : -snapWidth)
                                           : value;
                     return (valWithSnap - start) / (end - start);
                 }), 0.0f),
@@ -102,42 +102,9 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
 
-    // Helper to create mapping entry
-    auto createMapping = [](String id)
-    {
-        auto entry = std::make_unique<MidiMappingEntry>();
-
-        entry->cc = std::make_unique<AudioParameterInt>(id + "_cc", "CC", -1, 127, -1);
-        entry->channel = std::make_unique<AudioParameterInt>(id + "_ch", "Channel", -2, 15, -2);
-
-        return entry;
-    };
-
-    // Initialize MIDI Mappings
-    midiMappings["volume"] = createMapping("volume");
-    midiMappings["attack"] = createMapping("attack");
-    midiMappings["dimensions"] = createMapping("dimensions");
-    midiMappings["pitch"] = createMapping("pitch");
-    midiMappings["kbTrack"] = createMapping("kbTrack");
-    midiMappings["sustain"] = createMapping("sustain");
-    midiMappings["susGate"] = createMapping("susGate");
-    midiMappings["release"] = createMapping("release");
-    midiMappings["damp"] = createMapping("damp");
-    midiMappings["dampGate"] = createMapping("dampGate");
-    midiMappings["ring"] = createMapping("ring");
-    midiMappings["dispersion"] = createMapping("dispersion");
-    midiMappings["squareness"] = createMapping("squareness");
-    midiMappings["cubeness"] = createMapping("cubeness");
-    midiMappings["r1"] = createMapping("r1");
-    midiMappings["r2"] = createMapping("r2");
-    midiMappings["r3"] = createMapping("r3");
-    midiMappings["m1"] = createMapping("m1");
-    midiMappings["m2"] = createMapping("m2");
-    midiMappings["m3"] = createMapping("m3");
-    midiMappings["voices"] = createMapping("voices");
-    midiMappings["algorithm"] = createMapping("algorithm");
-
-    defaultChannelParam = std::make_unique<AudioParameterInt>("default_ch", "Default Channel", -1, 15, -1);
+    // Initialize MIDI Mappings from shared table
+    for (int i = 0; i < numMappableParams; ++i)
+        midiMappings[paramTable[i].paramID] = std::make_unique<MidiMappingEntry>();
 
     loadGlobalMidiMappings();
 }
@@ -329,7 +296,7 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     // Unified MIDI message processing
     MidiBuffer filteredMidi;
-    int defaultCh = defaultChannelParam->get();
+    int defaultCh = defaultChannel.load();
 
     for (const MidiMessageMetadata metadata : midiMessages)
     {
@@ -361,13 +328,13 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
                     bool changed = false;
                     if (learningCC)
                     {
-                        *midiMappings[learningParamID]->cc = inCC;
+                        midiMappings[learningParamID]->cc.store(inCC);
                         learningCC = false;
                         changed = true;
                     }
                     if (learningChannel)
                     {
-                        *midiMappings[learningParamID]->channel = inCh;
+                        midiMappings[learningParamID]->channel.store(inCh);
                         learningChannel = false;
                         changed = true;
                     }
@@ -384,10 +351,10 @@ void FTMSynthAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             // Parameter Dispatch
             for (auto const& [paramID, entry] : midiMappings)
             {
-                if (entry->cc->get() == inCC)
+                if (entry->cc.load() == inCC)
                 {
                     bool channelMatch = false;
-                    int mappedCh = entry->channel->get();
+                    int mappedCh = entry->channel.load();
 
                     if (mappedCh == -1)  // OMNI
                         channelMatch = true;
@@ -466,17 +433,17 @@ AudioProcessorEditor* FTMSynthAudioProcessor::createEditor()
 }
 
 //==============================================================================
-void FTMSynthAudioProcessor::setMidiMapping(String paramID, int cc, int channel)
+void FTMSynthAudioProcessor::setMidiMapping(const String& paramID, int cc, int channel)
 {
     if (midiMappings.find(paramID) != midiMappings.end())
     {
-        *midiMappings[paramID]->cc = cc;
-        *midiMappings[paramID]->channel = channel;
+        midiMappings[paramID]->cc.store(cc);
+        midiMappings[paramID]->channel.store(channel);
         saveGlobalMidiMappings();
     }
 }
 
-void FTMSynthAudioProcessor::setMidiLearn(String paramID, bool learnCC, bool learnChannel)
+void FTMSynthAudioProcessor::setMidiLearn(const String& paramID, bool learnCC, bool learnChannel)
 {
     if (paramID.isNotEmpty())
         learningParamID = paramID;
@@ -485,17 +452,6 @@ void FTMSynthAudioProcessor::setMidiLearn(String paramID, bool learnCC, bool lea
     if (learnChannel) learningChannel = !learningChannel;
 
     sendChangeMessage();  // Notify view of state change
-}
-
-MidiMapping FTMSynthAudioProcessor::getMidiMapping(String paramID)
-{
-    MidiMapping m;
-    if (midiMappings.find(paramID) != midiMappings.end())
-    {
-        m.cc = midiMappings[paramID]->cc->get();
-        m.channel = midiMappings[paramID]->channel->get();
-    }
-    return m;
 }
 
 void FTMSynthAudioProcessor::handleAsyncUpdate()
@@ -547,14 +503,14 @@ std::unique_ptr<XmlElement> FTMSynthAudioProcessor::getMidiMappingsAsXml()
     auto xml = std::make_unique<XmlElement>("midiconfig");
 
     // Default Channel
-    xml->setAttribute("mainchannel", defaultChannelParam->get());
+    xml->setAttribute("mainchannel", defaultChannel.load());
 
     for (auto const& [id, entry] : midiMappings)
     {
         XmlElement* e = xml->createNewChildElement("mapping");
         e->setAttribute("id", id);
-        e->setAttribute("cc", entry->cc->get());
-        e->setAttribute("channel", entry->channel->get());
+        e->setAttribute("cc", entry->cc.load());
+        e->setAttribute("channel", entry->channel.load());
     }
 
     return xml;
@@ -564,7 +520,7 @@ void FTMSynthAudioProcessor::restoreMidiMappingsFromXml(const XmlElement& xml)
 {
     if (xml.hasTagName("midiconfig"))
     {
-        *defaultChannelParam = xml.getIntAttribute("mainchannel", -1);
+        defaultChannel.store(xml.getIntAttribute("mainchannel", -1));
 
         for (auto* child : xml.getChildIterator())
         {
@@ -573,8 +529,8 @@ void FTMSynthAudioProcessor::restoreMidiMappingsFromXml(const XmlElement& xml)
                 String id = child->getStringAttribute("id");
                 if (midiMappings.find(id) != midiMappings.end())
                 {
-                    *midiMappings[id]->cc = child->getIntAttribute("cc");
-                    *midiMappings[id]->channel = child->getIntAttribute("channel");
+                    midiMappings[id]->cc.store(child->getIntAttribute("cc"));
+                    midiMappings[id]->channel.store(child->getIntAttribute("channel"));
                 }
             }
         }
@@ -584,17 +540,45 @@ void FTMSynthAudioProcessor::restoreMidiMappingsFromXml(const XmlElement& xml)
 //==============================================================================
 void FTMSynthAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
-    ValueTree state = tree.copyState();
-    std::unique_ptr<XmlElement> xml(state.createXml());
-    copyXmlToBinary(*xml, destData);
+    auto root = std::make_unique<XmlElement>("FTMSynthState");
+
+    // Patch parameters
+    root->addChildElement(tree.copyState().createXml().release());
+
+    // MIDI mapping meta-parameters
+    root->addChildElement(getMidiMappingsAsXml().release());
+
+    copyXmlToBinary(*root, destData);
 }
 
 void FTMSynthAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
-    if (xmlState.get() != nullptr)
-        if (xmlState->hasTagName(tree.state.getType()))
-            tree.replaceState(ValueTree::fromXml(*xmlState));
+    auto root = getXmlFromBinary(data, sizeInBytes);
+    if (root == nullptr) return;
+
+    if (root->hasTagName("FTMSynthState"))
+    {
+        // New format: root wrapper with children
+        if (auto* paramXml = root->getChildByName(tree.state.getType()))
+            tree.replaceState(ValueTree::fromXml(*paramXml));
+
+        if (auto* midiXml = root->getChildByName("midiconfig"))
+            restoreMidiMappingsFromXml(*midiXml);
+    }
+    else if (root->hasTagName(tree.state.getType()))
+    {
+        // Legacy format: just APVTS state (backward compat)
+        tree.replaceState(ValueTree::fromXml(*root));
+    }
+}
+
+void FTMSynthAudioProcessor::resetAllParametersToDefault()
+{
+    for (auto* param : getParameters())
+    {
+        if (auto* rangedParam = dynamic_cast<RangedAudioParameter*>(param))
+            rangedParam->setValueNotifyingHost(rangedParam->getDefaultValue());
+    }
 }
 
 //==============================================================================

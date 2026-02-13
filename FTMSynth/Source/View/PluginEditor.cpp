@@ -26,6 +26,10 @@
 */
 
 #include "PluginEditor.h"
+#include "juce_core/juce_core.h"
+#include <memory>
+
+#define PRESET_EXTENSION ".ftmpreset"
 
 //==============================================================================
 FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor& p)
@@ -74,9 +78,67 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     {
         auto menu = std::make_shared<PopupMenu>();
         menu->setLookAndFeel(&customLookAndFeel);
-        menu->addItem("Init", [&] { /* TODO */ });
-        menu->addItem("Open preset", [&] { /* TODO */ });
-        menu->addItem("Save preset", [&] { /* TODO */ });
+        menu->addItem("Init",
+            [this] {
+                NativeMessageBox::showYesNoBox(
+                    AlertWindow::WarningIcon,
+                    "Reinitialize patch",
+                    "Reset current patch to default?",
+                    this,
+                    ModalCallbackFunction::create([this](int result)
+                    {
+                        if (result != 0)  // Yes
+                        {
+                            processor.resetAllParametersToDefault();
+                        }
+                    }));
+            });
+        menu->addItem("Open preset",
+            [this] {
+                auto fc = std::make_shared<FileChooser>(
+                    "Open preset",
+                    File::getSpecialLocation(File::userHomeDirectory),
+                    PRESET_EXTENSION);
+
+                fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                                [this, fc](const FileChooser& chooser)
+                                {
+                                    File result = chooser.getResult();
+                                    if (result != File())
+                                    {
+                                        XmlDocument doc(result);
+                                        if (auto xml = doc.getDocumentElement())
+                                        {
+                                            if (xml->hasTagName(processor.tree.state.getType()))
+                                            {
+                                                processor.tree.replaceState(ValueTree::fromXml(*xml));
+                                            }
+                                        }
+                                    }
+                                });
+            });
+        menu->addItem("Save preset",
+            [this] {
+                auto fc = std::make_shared<FileChooser>(
+                    "Save preset",
+                    File::getSpecialLocation(File::userHomeDirectory),
+                    PRESET_EXTENSION);
+
+                fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+                                [this, fc](const FileChooser& chooser)
+                                {
+                                    File result = chooser.getResult();
+                                    if (result != File())
+                                    {
+                                        // Ensure extension
+                                        if (!result.hasFileExtension(PRESET_EXTENSION))
+                                            result = result.withFileExtension(PRESET_EXTENSION);
+
+                                        std::unique_ptr<XmlElement> xml(processor.tree.copyState().createXml());
+                                        xml->writeTo(result);
+                                    }
+                                });
+            });
         menu->showMenuAsync(PopupMenu::Options().withTargetScreenArea(presetFileButton.getScreenBounds().reduced(8)));
     };
     presetFileButton.setTooltip("Load/Save preset");

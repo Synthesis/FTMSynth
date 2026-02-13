@@ -33,30 +33,6 @@
 #include "MidiConfigButton.h"
 
 //==============================================================================
-#define BUTTON_ID_VOLUME      1
-#define BUTTON_ID_ATTACK      2
-#define BUTTON_ID_DIMENSIONS  3
-#define BUTTON_ID_PITCH       4
-#define BUTTON_ID_KBTRACK     5
-#define BUTTON_ID_TAU         6
-#define BUTTON_ID_TAU_GATE    7
-#define BUTTON_ID_RELEASE     8
-#define BUTTON_ID_P           9
-#define BUTTON_ID_P_GATE     10
-#define BUTTON_ID_RING       11
-#define BUTTON_ID_D          12
-#define BUTTON_ID_ALPHA1     13
-#define BUTTON_ID_ALPHA2     14
-#define BUTTON_ID_R1         15
-#define BUTTON_ID_R2         16
-#define BUTTON_ID_R3         17
-#define BUTTON_ID_M1         18
-#define BUTTON_ID_M2         19
-#define BUTTON_ID_M3         20
-#define BUTTON_ID_VOICES     21
-#define BUTTON_ID_ALGO       22
-
-//==============================================================================
 const Rectangle<int> configControls(128, 184, 256, 208);
 
 //==============================================================================
@@ -115,7 +91,7 @@ private:
     MidiConfigButton algoButton;
 
     int current_button_id = 0;
-    MidiConfigButton* midiConfigButtons[22] = {
+    MidiConfigButton* midiConfigButtons[numMappableParams] = {
         &volumeButton,
         &attackButton,
         &dimensionsButton,
@@ -138,31 +114,6 @@ private:
         &m3Button,
         &voicesButton,
         &algoButton
-    };
-
-    String paramName[22] = {
-        "VOLUME",
-        "ATTACK",
-        "DIMENSIONS",
-        "PITCH",
-        "KB TRACK",
-        "SUSTAIN",
-        "SUSTAIN GATE",
-        "RELEASE",
-        "DAMP",
-        "DAMP GATE",
-        "RING",
-        "INHARMONICITY",
-        "SQUARENESS",
-        "CUBENESS",
-        "IMPULSE X",
-        "IMPULSE Y",
-        "IMPULSE Z",
-        "MODES X",
-        "MODES Y",
-        "MODES Z",
-        "POLY VOICES",
-        "ALGORITHM"
     };
 
     // Extra labels

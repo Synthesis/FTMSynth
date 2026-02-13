@@ -35,15 +35,43 @@
 //==============================================================================
 struct MidiMappingEntry
 {
-    std::unique_ptr<AudioParameterInt> cc;
-    std::unique_ptr<AudioParameterInt> channel;
+    std::atomic<int> cc { -1 };       // -1 = OFF
+    std::atomic<int> channel { -2 };  // -2 = MAIN, -1 = OMNI, 0-15 = channels 1-16
 };
 
-struct MidiMapping
+//==============================================================================
+struct ParamInfo
 {
-    int cc = -1;
-    int channel = -2;
+    const char* paramID;
+    const char* displayName;
 };
+
+static constexpr ParamInfo paramTable[] = {
+    { "volume",     "VOLUME" },
+    { "attack",     "ATTACK" },
+    { "dimensions", "DIMENSIONS" },
+    { "pitch",      "PITCH" },
+    { "kbTrack",    "KB TRACK" },
+    { "sustain",    "SUSTAIN" },
+    { "susGate",    "SUSTAIN GATE" },
+    { "release",    "RELEASE" },
+    { "damp",       "DAMP" },
+    { "dampGate",   "DAMP GATE" },
+    { "ring",       "RING" },
+    { "dispersion", "INHARMONICITY" },
+    { "squareness", "SQUARENESS" },
+    { "cubeness",   "CUBENESS" },
+    { "r1",         "IMPULSE X" },
+    { "r2",         "IMPULSE Y" },
+    { "r3",         "IMPULSE Z" },
+    { "m1",         "MODES X" },
+    { "m2",         "MODES Y" },
+    { "m3",         "MODES Z" },
+    { "voices",     "POLY VOICES" },
+    { "algorithm",  "ALGORITHM" },
+};
+
+static constexpr int numMappableParams = (int)std::size(paramTable);
 
 //==============================================================================
 class FTMSynthAudioProcessor : public AudioProcessor, public ChangeBroadcaster, public AsyncUpdater
@@ -85,15 +113,14 @@ public:
     //==============================================================================
     // MIDI Mapping
     std::map<String, std::unique_ptr<MidiMappingEntry>> midiMappings;
-    std::unique_ptr<AudioParameterInt> defaultChannelParam;
-    void setMidiMapping(String paramID, int cc, int channel);
-    MidiMapping getMidiMapping(String paramID);
+    std::atomic<int> defaultChannel { -1 };  // -1 = OMNI, 0-15 = channels 1-16
+    void setMidiMapping(const String& paramID, int cc, int channel);
 
     // Learn Mode
     std::atomic<bool> learningCC { false };
     std::atomic<bool> learningChannel { false };
     String learningParamID;
-    void setMidiLearn(String paramID, bool learnCC, bool learnChannel);
+    void setMidiLearn(const String& paramID, bool learnCC, bool learnChannel);
     void handleAsyncUpdate() override;
 
     // Persistence
@@ -107,6 +134,8 @@ public:
     //==============================================================================
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
+
+    void resetAllParametersToDefault();
 
     //==============================================================================
     AudioProcessorValueTreeState tree;  // to link values from the slider to processor
