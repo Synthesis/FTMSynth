@@ -53,6 +53,7 @@ CustomLookAndFeel::CustomLookAndFeel()
     setColour(ComboBox::outlineColourId, Colour(0x80000000));
     setColour(PopupMenu::backgroundColourId, Colour(0xFF8F815B));
     setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xFF50462B));
+    setColour(PopupMenu::headerTextColourId, Colour(0xFF50462B));
 
     setColour(BubbleComponent::backgroundColourId, Colour(0xFF8F815B));
     setColour(BubbleComponent::outlineColourId, Colour(0xFF8F815B));
@@ -150,6 +151,18 @@ BorderSize<int> CustomLookAndFeel::getLabelBorderSize(Label&)
     return BorderSize<int>(0, 0, 0, 0);
 }
 
+void CustomLookAndFeel::drawPopupMenuBackground(Graphics& g, int, int)
+{
+    g.fillAll(findColour(PopupMenu::backgroundColourId));
+}
+
+void CustomLookAndFeel::drawPopupMenuBackgroundWithOptions(Graphics& g,
+                                                            int width,
+                                                            int height,
+                                                            const PopupMenu::Options&)
+{
+    drawPopupMenuBackground(g, width, height);
+}
 
 //==============================================================================
 WithTextBox::WithTextBox()

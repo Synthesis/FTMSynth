@@ -60,6 +60,28 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
     helpButton.setTooltip("About FTMSynth");
     addAndMakeVisible(helpButton);
 
+    Image presetFileImg = ImageCache::getFromMemory(BinaryData::savePreset_png, BinaryData::savePreset_pngSize);
+    Image presetFileOff = presetFileImg.getClippedImage(Rectangle<int>(0, 0, presetFileImg.getWidth()/3, presetFileImg.getHeight()));
+    Image presetFileHovered = presetFileImg.getClippedImage(Rectangle<int>(presetFileImg.getWidth()/3, 0, presetFileImg.getWidth()/3, presetFileImg.getHeight()));
+    Image presetFileDown = presetFileImg.getClippedImage(Rectangle<int>(presetFileImg.getWidth()*2/3, 0, presetFileImg.getWidth()/3, presetFileImg.getHeight()));
+    presetFileButton.setImages(false, true, true,
+                               presetFileOff, 1.0f, Colours::transparentBlack,
+                               presetFileHovered, 1.0f, Colours::transparentBlack,
+                               presetFileDown, 1.0f, Colours::transparentBlack,
+                               0.8f);
+    presetFileButton.setClickingTogglesState(false);
+    presetFileButton.onClick = [&]
+    {
+        auto menu = std::make_shared<PopupMenu>();
+        menu->setLookAndFeel(&customLookAndFeel);
+        menu->addItem("Init", [&] { /* TODO */ });
+        menu->addItem("Open preset", [&] { /* TODO */ });
+        menu->addItem("Save preset", [&] { /* TODO */ });
+        menu->showMenuAsync(PopupMenu::Options().withTargetScreenArea(presetFileButton.getScreenBounds().reduced(8)));
+    };
+    presetFileButton.setTooltip("Load/Save preset");
+    addAndMakeVisible(presetFileButton);
+
     Image midiImg = ImageCache::getFromMemory(BinaryData::midi_png, BinaryData::midi_pngSize);
     Image midiOff = midiImg.getClippedImage(Rectangle<int>(0, 0, midiImg.getWidth()/3, midiImg.getHeight()));
     Image midiHovered = midiImg.getClippedImage(Rectangle<int>(midiImg.getWidth()/3, 0, midiImg.getWidth()/3, midiImg.getHeight()));
@@ -114,6 +136,7 @@ void FTMSynthAudioProcessorEditor::resized()
 {
     setSize(640, 400);
 
-    helpButton.setBounds(16, 344, 48, 48);
-    midiButton.setBounds(52, 344, 48, 48);
+    helpButton.setBounds(      16, 344, 48, 48);
+    presetFileButton.setBounds(48, 344, 48, 48);
+    midiButton.setBounds(      80, 344, 48, 48);
 }

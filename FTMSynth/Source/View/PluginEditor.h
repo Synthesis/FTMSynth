@@ -55,6 +55,7 @@ private:
     // Help tooltip
     SharedResourcePointer<TooltipWindow> tooltip;
     ImageButton helpButton;
+    ImageButton presetFileButton;
     ImageButton midiButton;
 
     LabelView labelView;

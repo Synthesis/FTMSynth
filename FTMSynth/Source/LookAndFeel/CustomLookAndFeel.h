@@ -53,6 +53,12 @@ public:
     Font getLabelFont(Label&) override;
     BorderSize<int> getLabelBorderSize(Label&) override;
 
+    void drawPopupMenuBackground(Graphics& g, int width, int height) override;
+    void drawPopupMenuBackgroundWithOptions(Graphics& g,
+                                            int width,
+                                            int height,
+                                            const PopupMenu::Options&) override;
+
 protected:
     Font standardFont;
 };

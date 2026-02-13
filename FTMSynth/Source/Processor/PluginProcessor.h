@@ -27,10 +27,10 @@
 
 #pragma once
 
+#include <map>
 #include <JuceHeader.h>
 #include "SynthSound.h"
 #include "SynthVoice.h"
-#include <map>
 
 //==============================================================================
 struct MidiMappingEntry

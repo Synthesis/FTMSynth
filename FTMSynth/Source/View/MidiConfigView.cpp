@@ -26,8 +26,6 @@
 */
 
 #include "MidiConfigView.h"
-#include "../LookAndFeel/CustomLookAndFeel.h"
-#include "BinaryData.h"
 
 //==============================================================================
 static String getParamID(int buttonID)
@@ -356,115 +354,99 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
 
     // Initialize buttons with current processor state
     updateAllButtons();
-
-    Image mappingImg = ImageCache::getFromMemory(BinaryData::midiMapping_png, BinaryData::midiMapping_pngSize);
-    Image loadOff = mappingImg.getClippedImage(Rectangle<int>(0, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    Image loadHovered = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()/3, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    Image loadDown = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()*2/3, 0, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    loadButton.setImages(false, true, true,
-                         loadOff, 1.0f, Colours::transparentBlack,
-                         loadHovered, 1.0f, Colours::transparentBlack,
-                         loadDown, 1.0f, Colours::transparentBlack,
-                         0.8f);
-    loadButton.setTooltip("Load MIDI mapping");
-    loadButton.onClick = [this]
+    Image mappingFileImg = ImageCache::getFromMemory(BinaryData::saveMapping_png, BinaryData::saveMapping_pngSize);
+    Image mappingFileOff = mappingFileImg.getClippedImage(Rectangle<int>(0, 0, mappingFileImg.getWidth()/3, mappingFileImg.getHeight()));
+    Image mappingFileHovered = mappingFileImg.getClippedImage(Rectangle<int>(mappingFileImg.getWidth()/3, 0, mappingFileImg.getWidth()/3, mappingFileImg.getHeight()));
+    Image mappingFileDown = mappingFileImg.getClippedImage(Rectangle<int>(mappingFileImg.getWidth()*2/3, 0, mappingFileImg.getWidth()/3, mappingFileImg.getHeight()));
+    mappingFileButton.setImages(false, true, true,
+                               mappingFileOff, 1.0f, Colours::transparentBlack,
+                               mappingFileHovered, 1.0f, Colours::transparentBlack,
+                               mappingFileDown, 1.0f, Colours::transparentBlack,
+                               0.8f);
+    mappingFileButton.setClickingTogglesState(false);
+    mappingFileButton.onClick = [&]
     {
-        auto fc = std::make_shared<FileChooser>("Load MIDI configuration",
-                                                File::getSpecialLocation(File::userHomeDirectory),
-                                                "*.xml");
-
-        fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                        [this, fc](const FileChooser& chooser)
-                        {
-                            File result = chooser.getResult();
-                            if (result != File{})
-                            {
-                                XmlDocument doc(result);
-                                if (auto xml = doc.getDocumentElement())
-                                {
-                                    processor.restoreMidiMappingsFromXml(*xml);
-                                    processor.saveGlobalMidiMappings();
-                                    updateAllButtons();
-                                    updateView();
-
-                                    // Update Manual Default Channel Slider
-                                    midiDefaultSlider.setValue(processor.defaultChannelParam->get(), dontSendNotification);
-                                }
-                            }
-                        });
-    };
-    addAndMakeVisible(loadButton);
-
-    Image saveOff = mappingImg.getClippedImage(Rectangle<int>(0, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    Image saveHovered = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()/3, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    Image saveDown = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()*2/3, mappingImg.getHeight()/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    saveButton.setImages(false, true, true,
-                         saveOff, 1.0f, Colours::transparentBlack,
-                         saveHovered, 1.0f, Colours::transparentBlack,
-                         saveDown, 1.0f, Colours::transparentBlack,
-                         0.8f);
-    saveButton.setTooltip("Save MIDI mapping");
-    saveButton.onClick = [this]
-    {
-        auto fc = std::make_shared<FileChooser>("Save MIDI configuration",
-                                                File::getSpecialLocation(File::userHomeDirectory),
-                                                "*.xml");
-
-        fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
-                        [this, fc](const FileChooser& chooser)
-                        {
-                            File result = chooser.getResult();
-                            if (result != File{})
-                            {
-                                // Ensure extension
-                                if (!result.hasFileExtension(".xml"))
-                                    result = result.withFileExtension(".xml");
-
-                                if (auto xml = processor.getMidiMappingsAsXml())
-                                {
-                                    xml->writeTo(result);
-                                }
-                            }
-                        });
-    };
-    addAndMakeVisible(saveButton);
-
-    Image resetOff = mappingImg.getClippedImage(Rectangle<int>(0, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    Image resetHovered = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()/3, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    Image resetDown = mappingImg.getClippedImage(Rectangle<int>(mappingImg.getWidth()*2/3, mappingImg.getHeight()*2/3, mappingImg.getWidth()/3, mappingImg.getHeight()/3));
-    resetButton.setImages(false, true, true,
-                         resetOff, 1.0f, Colours::transparentBlack,
-                         resetHovered, 1.0f, Colours::transparentBlack,
-                         resetDown, 1.0f, Colours::transparentBlack,
-                         0.8f);
-    resetButton.setTooltip("Reset MIDI mapping");
-    resetButton.onClick = [this]
-    {
-        NativeMessageBox::showYesNoBox(AlertWindow::QuestionIcon,
-            "Reset MIDI configuration",
-            "Reset all MIDI mapping?\nThis operation cannot be undone.",
-            this,
-            ModalCallbackFunction::create([this](int result)
-            {
-                if (result != 0)  // Yes
-                {
-                    // Reset all mappings
-                    for (auto const& [id, entry] : processor.midiMappings)
+        auto menu = std::make_shared<PopupMenu>();
+        menu->setLookAndFeel(&customLookAndFeel);
+        menu->addItem("Reset MIDI mapping",
+            [this] {
+                NativeMessageBox::showYesNoBox(AlertWindow::WarningIcon,
+                    "Reset MIDI configuration",
+                    "Reset all MIDI mapping?\nThis operation cannot be undone.",
+                    this,
+                    ModalCallbackFunction::create([this](int result)
                     {
-                        *entry->cc = -1;       // OFF
-                        *entry->channel = -2;  // MAIN
-                    }
-                    *processor.defaultChannelParam = -1;  // OMNI
+                        if (result != 0)  // Yes
+                        {
+                            // Reset all mappings
+                            for (auto const& [id, entry] : processor.midiMappings)
+                            {
+                                *entry->cc = -1;       // OFF
+                                *entry->channel = -2;  // MAIN
+                            }
+                            *processor.defaultChannelParam = -1;  // OMNI
 
-                    processor.saveGlobalMidiMappings();
+                            processor.saveGlobalMidiMappings();
 
-                    updateAllButtons();
-                    updateView();
-                    midiDefaultSlider.setValue(-1, dontSendNotification);
-                }
-            }));
+                            updateAllButtons();
+                            updateView();
+                            midiDefaultSlider.setValue(-1, dontSendNotification);
+                        }
+                    }));
+            });
+        menu->addItem("Load MIDI mapping",
+            [this] {
+                auto fc = std::make_shared<FileChooser>("Load MIDI configuration",
+                                                        File::getSpecialLocation(File::userHomeDirectory),
+                                                        "*.xml");
+
+                fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                                [this, fc](const FileChooser& chooser)
+                                {
+                                    File result = chooser.getResult();
+                                    if (result != File{})
+                                    {
+                                        XmlDocument doc(result);
+                                        if (auto xml = doc.getDocumentElement())
+                                        {
+                                            processor.restoreMidiMappingsFromXml(*xml);
+                                            processor.saveGlobalMidiMappings();
+                                            updateAllButtons();
+                                            updateView();
+
+                                            // Update Manual Default Channel Slider
+                                            midiDefaultSlider.setValue(processor.defaultChannelParam->get(), dontSendNotification);
+                                        }
+                                    }
+                                });
+            });
+        menu->addItem("Save MIDI mapping",
+            [this] {
+                auto fc = std::make_shared<FileChooser>("Save MIDI configuration",
+                                                        File::getSpecialLocation(File::userHomeDirectory),
+                                                        "*.xml");
+
+                fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+                                [this, fc](const FileChooser& chooser)
+                                {
+                                    File result = chooser.getResult();
+                                    if (result != File{})
+                                    {
+                                        // Ensure extension
+                                        if (!result.hasFileExtension(".xml"))
+                                            result = result.withFileExtension(".xml");
+
+                                        if (auto xml = processor.getMidiMappingsAsXml())
+                                        {
+                                            xml->writeTo(result);
+                                        }
+                                    }
+                                });
+            });
+        menu->showMenuAsync(PopupMenu::Options().withTargetScreenArea(mappingFileButton.getScreenBounds().reduced(8)));
     };
-    addAndMakeVisible(resetButton);
+    mappingFileButton.setTooltip("Load/Save MIDI configuration");
+    addAndMakeVisible(mappingFileButton);
 
     processor.addChangeListener(this);
 }
@@ -630,7 +612,5 @@ void MidiConfigView::resized()
     midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getCentreY() + 41 - 12, 96, 14);
     midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() + 36 - 12, 64, 24);
 
-    loadButton.setBounds( configControls.getCentreX() - 64, 344, 48, 48);
-    saveButton.setBounds( configControls.getCentreX() - 24, 344, 48, 48);
-    resetButton.setBounds(configControls.getCentreX() + 16, 344, 48, 48);
+    mappingFileButton.setBounds(112, 344, 48, 48);
 }

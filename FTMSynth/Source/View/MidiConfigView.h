@@ -83,6 +83,7 @@ private:
     FTMSynthAudioProcessor& processor;
 
     // Custom look-and-feel
+    CustomLookAndFeel customLookAndFeel;
     DraggableBox draggableBox;
     FunnyFont funnyFont;
 
@@ -188,9 +189,7 @@ private:
     DrawableButton learnCCButton;
     DrawableButton learnChannelButton;
 
-    ImageButton loadButton;
-    ImageButton saveButton;
-    ImageButton resetButton;
+    ImageButton mappingFileButton;
 
     bool isDragging = false;
 

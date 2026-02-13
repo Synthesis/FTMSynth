@@ -26,6 +26,7 @@
 */
 
 #pragma once
+
 #include <vector>
 #include <JuceHeader.h>
 #include "SynthSound.h"

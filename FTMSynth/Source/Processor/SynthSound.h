@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 class SynthSound : public SynthesiserSound
 {
 public:
