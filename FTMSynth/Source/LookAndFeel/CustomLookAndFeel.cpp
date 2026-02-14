@@ -29,11 +29,12 @@
 
 //==============================================================================
 CustomLookAndFeel::CustomLookAndFeel()
-    : standardFont(Typeface::createSystemTypefaceFor(BinaryData::arial_narrow_7_ttf, BinaryData::arial_narrow_7_ttfSize))
+    : standardFont(FontOptions(Typeface::createSystemTypefaceFor(BinaryData::arial_narrow_7_ttf, BinaryData::arial_narrow_7_ttfSize)))
 {
-    standardFont.setHeight(standardFont.getHeight() * 1.2f);
+    standardFont.setPointHeight(15.0f);
     standardFont.setHorizontalScale(1.0625f);
-    standardFont.setExtraKerningFactor(1.0f/32.0f);
+    standardFont.setExtraKerningFactor(1.0f/64.0f);
+    standardFont.setAscentOverride(0.9f);
 
     setColour(ResizableWindow::backgroundColourId, Colour(0xFFD6C59A));
 
@@ -73,7 +74,24 @@ void CustomLookAndFeel::drawToggleButton(Graphics& g, ToggleButton& button, bool
                                          bool shouldDrawButtonAsDown)
 {
     g.setFont(standardFont);
-    LookAndFeel_V4::drawToggleButton(g, button, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+    float tickWidth = jmin(15.0f, float(button.getHeight()) * 0.75f) * 1.1f;
+
+    drawTickBox(g, button, 4.0f, (float(button.getHeight()) - tickWidth) * 0.5f,
+                tickWidth, tickWidth,
+                button.getToggleState(),
+                button.isEnabled(),
+                shouldDrawButtonAsHighlighted,
+                shouldDrawButtonAsDown);
+
+    g.setColour(button.findColour(ToggleButton::textColourId));
+
+    if (!button.isEnabled())
+        g.setOpacity(0.5f);
+
+    g.drawFittedText(button.getButtonText(),
+                     button.getLocalBounds().withTrimmedLeft(roundToInt(tickWidth) + 10)
+                                             .withTrimmedRight(2),
+                     Justification::centredLeft, 10);
 }
 
 void CustomLookAndFeel::drawRotarySlider(Graphics& g, int x, int y, int width, int height, float sliderPos,
@@ -260,9 +278,9 @@ void CustomComboBox::drawLabel(Graphics& g, Label& label)
 
 //==============================================================================
 FunnyFont::FunnyFont()
-    : funnyFont(Typeface::createSystemTypefaceFor(BinaryData::_123Marker_ttf, BinaryData::_123Marker_ttfSize))
+    : funnyFont(FontOptions(Typeface::createSystemTypefaceFor(BinaryData::_123Marker_ttf, BinaryData::_123Marker_ttfSize)))
 {
-    funnyFont.setHeight(funnyFont.getHeight() * 2.0f);
+    funnyFont.setHeight(28.0f);
 }
 
 Font FunnyFont::getLabelFont(Label&)

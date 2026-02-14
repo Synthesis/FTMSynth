@@ -165,7 +165,7 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     alpha1Slider.setPopupDisplayEnabled(true, true, this);
     alpha1Slider.getProperties().set("colour", var(int(0x8000FF44)));
     alpha1Slider.onValueChange = [this] { updateVisualization(true); };
-    alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "squareness", alpha1Slider));
+    alpha1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "alpha2d", alpha1Slider));
     alpha1Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha1Slider);
 
@@ -174,7 +174,7 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     alpha2Slider.setPopupDisplayEnabled(true, true, this);
     alpha2Slider.getProperties().set("colour", var(int(0x8067FF00)));
     alpha2Slider.onValueChange = [this] { updateVisualization(true); };
-    alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "cubeness", alpha2Slider));
+    alpha2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "alpha3d", alpha2Slider));
     alpha2Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(alpha2Slider);
 
@@ -407,7 +407,7 @@ void MainView::resized()
     kbTrackButton.setBounds(mainControls.getX() +  10, mainControls.getY() + toggleOffY - 24, 72, 24);
 
     tauSlider.setBounds(    mainControls.getX() +  98, mainControls.getY() +   knobOffY,      64, 64);
-    tauGateButton.setBounds(mainControls.getX() +  98, mainControls.getY() + toggleOffY,      64, 24);
+    tauGateButton.setBounds(mainControls.getX() +  94, mainControls.getY() + toggleOffY,      72, 24);
     relSlider.setBounds(    mainControls.getX() + 106, mainControls.getY() +  knob2OffY,      48, 48);
     pSlider.setBounds(      mainControls.getX() + 182, mainControls.getY() +   knobOffY,      64, 64);
     pGateButton.setBounds(  mainControls.getX() + 182, mainControls.getY() + toggleOffY,      64, 24);
@@ -431,5 +431,5 @@ void MainView::resized()
     helpPanel.setBounds(    116,      188, 280, 200);
 
     voicesSlider.setBounds( 16,  16,  80, 24);
-    algoComboBox.setBounds(488, 368, 136, 24);
+    algoComboBox.setBounds(496, 368, 128, 24);
 }

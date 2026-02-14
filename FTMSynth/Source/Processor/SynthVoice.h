@@ -144,8 +144,8 @@ private:
     double fp, fring;          // damping
     bool bpGate;
     double fd  = 0,   nextd;   // inharmonicity
-    double fa  = 0.5, nexta;   // squareness
-    double fa2 = 0.5, nexta2;  // cubeness
+    double fa  = 0.5, nexta;   // 2d ratio (aka squareness/height)
+    double fa2 = 0.5, nexta2;  // 3d ratio (aka cubeness/depth)
 
     double r1, r2, r3;         // coordinates
 

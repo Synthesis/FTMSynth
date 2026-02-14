@@ -56,6 +56,7 @@ private:
     SharedResourcePointer<TooltipWindow> tooltip;
     ImageButton helpButton;
     ImageButton presetFileButton;
+    PopupMenu presetMenu;
     ImageButton midiButton;
 
     LabelView labelView;

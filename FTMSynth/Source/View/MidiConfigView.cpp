@@ -366,89 +366,97 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
                                mappingFileHovered, 1.0f, Colours::transparentBlack,
                                mappingFileDown, 1.0f, Colours::transparentBlack,
                                0.8f);
-    mappingFileButton.setClickingTogglesState(false);
-    mappingFileButton.onClick = [&]
-    {
-        auto menu = std::make_shared<PopupMenu>();
-        menu->setLookAndFeel(&customLookAndFeel);
-        menu->addItem("Reset MIDI mapping",
-            [this] {
-                NativeMessageBox::showYesNoBox(
-                    AlertWindow::WarningIcon,
-                    "Reset MIDI configuration",
-                    "Reset all MIDI mapping?\nThis operation cannot be undone.",
-                    this,
-                    ModalCallbackFunction::create([this](int result)
+    mappingFileButton.setClickingTogglesState(true);
+    mappingFileButton.setTriggeredOnMouseDown(true);
+
+    mappingMenu.setLookAndFeel(&customLookAndFeel);
+    mappingMenu.addItem("Reset MIDI mapping",
+        [this] {
+            NativeMessageBox::showYesNoBox(
+                AlertWindow::WarningIcon,
+                "Reset MIDI configuration",
+                "Reset all MIDI mapping?\nThis operation cannot be undone.",
+                this,
+                ModalCallbackFunction::create([this](int result)
+                {
+                    if (result != 0)  // Yes
                     {
-                        if (result != 0)  // Yes
+                        // Reset all mappings
+                        for (auto const& [id, entry] : processor.midiMappings)
                         {
-                            // Reset all mappings
-                            for (auto const& [id, entry] : processor.midiMappings)
-                            {
-                                entry->cc.store(-1);       // OFF
-                                entry->channel.store(-2);  // MAIN
-                            }
-                            processor.defaultChannel.store(-1);  // OMNI
-
-                            processor.saveGlobalMidiMappings();
-
-                            updateAllButtons();
-                            updateView();
-                            midiDefaultSlider.setValue(-1, dontSendNotification);
+                            entry->cc.store(-1);       // OFF
+                            entry->channel.store(-2);  // MAIN
                         }
-                    }));
-            });
-        menu->addItem("Load MIDI mapping",
-            [this] {
-                auto fc = std::make_shared<FileChooser>(
-                    "Load MIDI configuration",
-                    File::getSpecialLocation(File::userHomeDirectory),
-                    "*.xml");
+                        processor.defaultChannel.store(-1);  // OMNI
 
-                fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                                [this, fc](const FileChooser& chooser)
+                        processor.saveGlobalMidiMappings();
+
+                        updateAllButtons();
+                        updateView();
+                        midiDefaultSlider.setValue(-1, dontSendNotification);
+                    }
+                }));
+        });
+    mappingMenu.addItem("Load MIDI mapping",
+        [this] {
+            auto fc = std::make_shared<FileChooser>(
+                "Load MIDI configuration",
+                File::getSpecialLocation(File::userHomeDirectory),
+                "*.xml");
+
+            fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                            [this, fc](const FileChooser& chooser)
+                            {
+                                File result = chooser.getResult();
+                                if (result != File())
                                 {
-                                    File result = chooser.getResult();
-                                    if (result != File())
+                                    XmlDocument doc(result);
+                                    if (auto xml = doc.getDocumentElement())
                                     {
-                                        XmlDocument doc(result);
-                                        if (auto xml = doc.getDocumentElement())
-                                        {
-                                            processor.restoreMidiMappingsFromXml(*xml);
-                                            processor.saveGlobalMidiMappings();
+                                        processor.restoreMidiMappingsFromXml(*xml);
+                                        processor.saveGlobalMidiMappings();
 
-                                            updateAllButtons();
-                                            updateView();
-                                            midiDefaultSlider.setValue(processor.defaultChannel.load(), dontSendNotification);
-                                        }
+                                        updateAllButtons();
+                                        updateView();
+                                        midiDefaultSlider.setValue(processor.defaultChannel.load(), dontSendNotification);
                                     }
-                                });
-            });
-        menu->addItem("Save MIDI mapping",
-            [this] {
-                auto fc = std::make_shared<FileChooser>(
-                    "Save MIDI configuration",
-                    File::getSpecialLocation(File::userHomeDirectory),
-                    "*.xml");
+                                }
+                            });
+        });
+    mappingMenu.addItem("Save MIDI mapping",
+        [this] {
+            auto fc = std::make_shared<FileChooser>(
+                "Save MIDI configuration",
+                File::getSpecialLocation(File::userHomeDirectory),
+                "*.xml");
 
-                fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
-                                [this, fc](const FileChooser& chooser)
+            fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+                            [this, fc](const FileChooser& chooser)
+                            {
+                                File result = chooser.getResult();
+                                if (result != File())
                                 {
-                                    File result = chooser.getResult();
-                                    if (result != File())
-                                    {
-                                        // Ensure extension
-                                        if (!result.hasFileExtension(".xml"))
-                                            result = result.withFileExtension(".xml");
+                                    // Ensure extension
+                                    if (!result.hasFileExtension(".xml"))
+                                        result = result.withFileExtension(".xml");
 
-                                        if (auto xml = processor.getMidiMappingsAsXml())
-                                        {
-                                            xml->writeTo(result);
-                                        }
+                                    if (auto xml = processor.getMidiMappingsAsXml())
+                                    {
+                                        xml->writeTo(result);
                                     }
-                                });
-            });
-        menu->showMenuAsync(PopupMenu::Options().withTargetScreenArea(mappingFileButton.getScreenBounds().reduced(8)));
+                                }
+                            });
+        });
+
+    mappingFileButton.onClick = [this]
+    {
+        mappingFileButton.setInterceptsMouseClicks(false, false);
+        mappingMenu.showMenuAsync(PopupMenu::Options().withTargetScreenArea(mappingFileButton.getScreenBounds().reduced(8)),
+                                  [this](int)
+                                  {
+                                      mappingFileButton.setInterceptsMouseClicks(true, true);
+                                      mappingFileButton.setToggleState(false, dontSendNotification);
+                                  });
     };
     mappingFileButton.setTooltip("Load/Save MIDI configuration");
     addAndMakeVisible(mappingFileButton);
@@ -458,6 +466,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
 
 MidiConfigView::~MidiConfigView()
 {
+    mappingMenu.setLookAndFeel(nullptr);
     processor.removeChangeListener(this);
 }
 
@@ -603,7 +612,7 @@ void MidiConfigView::resized()
     m3Button.setBounds(xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
 
     voicesButton.setBounds(16,  16,  80, 24);
-    algoButton.setBounds( 488, 368, 136, 24);
+    algoButton.setBounds( 496, 368, 128, 24);
 
     configLabel.setBounds(32, 278, 96, 64);
 

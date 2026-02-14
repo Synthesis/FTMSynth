@@ -30,9 +30,10 @@
 //==============================================================================
 MidiConfigButton::MidiConfigButton()
     : ToggleButton(),
-      standardFont(Typeface::createSystemTypefaceFor(BinaryData::arial_narrow_7_ttf, BinaryData::arial_narrow_7_ttfSize))
+      standardFont(FontOptions(Typeface::createSystemTypefaceFor(BinaryData::arial_narrow_7_ttf, BinaryData::arial_narrow_7_ttfSize)))
 {
-    standardFont.setHeight(standardFont.getHeight() * 1.2f);
+    standardFont.setPointHeight(15.0f);
+    standardFont.setAscentOverride(0.9f);
 }
 
 MidiConfigButton::~MidiConfigButton()

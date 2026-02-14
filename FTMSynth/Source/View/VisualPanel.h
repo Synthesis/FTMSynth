@@ -29,7 +29,6 @@
 
 #include <JuceHeader.h>
 #include "../Processor/PluginProcessor.h"
-#include "../LookAndFeel/CustomLookAndFeel.h"
 
 //==============================================================================
 class VisualPanel : public Component

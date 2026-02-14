@@ -67,14 +67,14 @@ void VisualPanel::updateMouseBounds()
     }
     if (dimensions == 2)
     {
-        float alpha1 = tree.getRawParameterValue("squareness")->load();
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
         mouseBounds.setBounds(center.x - 96.0f, center.y - (96.0f*alpha1),
                               192.0f, 192.0f*alpha1);
     }
     if (dimensions == 3)
     {
-        float alpha1 = tree.getRawParameterValue("squareness")->load();
-        float alpha2 = tree.getRawParameterValue("cubeness")->load();
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
+        float alpha2 = tree.getRawParameterValue("alpha3d")->load();
         float r3 = tree.getRawParameterValue("r3")->load();
         float height = 128.0f*alpha1;
         float depth = 64.0f*alpha2;
@@ -119,7 +119,7 @@ void VisualPanel::paint(Graphics& g)
     }
     else if (dimensions == 2)
     {
-        float alpha1 = tree.getRawParameterValue("squareness")->load();
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
         float r1 = tree.getRawParameterValue("r1")->load();
         float r2 = tree.getRawParameterValue("r2")->load();
         r2 = 1-r2;  // Y is inverted on a screen
@@ -156,8 +156,8 @@ void VisualPanel::paint(Graphics& g)
     }
     else if (dimensions == 3)
     {
-        float alpha1 = tree.getRawParameterValue("squareness")->load();
-        float alpha2 = tree.getRawParameterValue("cubeness")->load();
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
+        float alpha2 = tree.getRawParameterValue("alpha3d")->load();
         float r1 = tree.getRawParameterValue("r1")->load();
         float r2 = tree.getRawParameterValue("r2")->load();
         float r3 = tree.getRawParameterValue("r3")->load();

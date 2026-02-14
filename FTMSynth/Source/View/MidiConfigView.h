@@ -141,6 +141,7 @@ private:
     DrawableButton learnChannelButton;
 
     ImageButton mappingFileButton;
+    PopupMenu mappingMenu;
 
     bool isDragging = false;
 

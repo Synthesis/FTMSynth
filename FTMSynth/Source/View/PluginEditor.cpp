@@ -74,73 +74,81 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
                                presetFileHovered, 1.0f, Colours::transparentBlack,
                                presetFileDown, 1.0f, Colours::transparentBlack,
                                0.8f);
-    presetFileButton.setClickingTogglesState(false);
-    presetFileButton.onClick = [&]
-    {
-        auto menu = std::make_shared<PopupMenu>();
-        menu->setLookAndFeel(&customLookAndFeel);
-        menu->addItem("Init",
-            [this] {
-                NativeMessageBox::showYesNoBox(
-                    AlertWindow::WarningIcon,
-                    "Reinitialize patch",
-                    "Reset current patch to default?",
-                    this,
-                    ModalCallbackFunction::create([this](int result)
-                    {
-                        if (result != 0)  // Yes
-                        {
-                            processor.resetAllParametersToDefault();
-                        }
-                    }));
-            });
-        menu->addItem("Open preset",
-            [this] {
-                auto fc = std::make_shared<FileChooser>(
-                    "Open preset",
-                    File::getSpecialLocation(File::userHomeDirectory),
-                    PRESET_EXTENSION_FILTER);
+    presetFileButton.setClickingTogglesState(true);
+    presetFileButton.setTriggeredOnMouseDown(true);
 
-                fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
-                                [this, fc](const FileChooser& chooser)
+    presetMenu.setLookAndFeel(&customLookAndFeel);
+    presetMenu.addItem("Init",
+        [this] {
+            NativeMessageBox::showYesNoBox(
+                AlertWindow::WarningIcon,
+                "Reinitialize patch",
+                "Reset current patch to default?",
+                this,
+                ModalCallbackFunction::create([this](int result)
+                {
+                    if (result != 0)  // Yes
+                    {
+                        processor.resetAllParametersToDefault();
+                    }
+                }));
+        });
+    presetMenu.addItem("Open preset",
+        [this] {
+            auto fc = std::make_shared<FileChooser>(
+                "Open preset",
+                File::getSpecialLocation(File::userHomeDirectory),
+                PRESET_EXTENSION_FILTER);
+
+            fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
+                            [this, fc](const FileChooser& chooser)
+                            {
+                                File result = chooser.getResult();
+                                if (result != File())
                                 {
-                                    File result = chooser.getResult();
-                                    if (result != File())
+                                    XmlDocument doc(result);
+                                    if (auto xml = doc.getDocumentElement())
                                     {
-                                        XmlDocument doc(result);
-                                        if (auto xml = doc.getDocumentElement())
+                                        if (xml->hasTagName(processor.tree.state.getType()))
                                         {
-                                            if (xml->hasTagName(processor.tree.state.getType()))
-                                            {
-                                                processor.tree.replaceState(ValueTree::fromXml(*xml));
-                                            }
+                                            processor.tree.replaceState(ValueTree::fromXml(*xml));
                                         }
                                     }
-                                });
-            });
-        menu->addItem("Save preset",
-            [this] {
-                auto fc = std::make_shared<FileChooser>(
-                    "Save preset",
-                    File::getSpecialLocation(File::userHomeDirectory),
-                    PRESET_EXTENSION_FILTER);
+                                }
+                            });
+        });
+    presetMenu.addItem("Save preset",
+        [this] {
+            auto fc = std::make_shared<FileChooser>(
+                "Save preset",
+                File::getSpecialLocation(File::userHomeDirectory),
+                PRESET_EXTENSION_FILTER);
 
-                fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
-                                [this, fc](const FileChooser& chooser)
+            fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+                            [this, fc](const FileChooser& chooser)
+                            {
+                                File result = chooser.getResult();
+                                if (result != File())
                                 {
-                                    File result = chooser.getResult();
-                                    if (result != File())
-                                    {
-                                        // Ensure extension
-                                        if (!result.hasFileExtension(PRESET_EXTENSION))
-                                            result = result.withFileExtension(PRESET_EXTENSION);
+                                    // Ensure extension
+                                    if (!result.hasFileExtension(PRESET_EXTENSION))
+                                        result = result.withFileExtension(PRESET_EXTENSION);
 
-                                        std::unique_ptr<XmlElement> xml(processor.tree.copyState().createXml());
-                                        xml->writeTo(result);
-                                    }
-                                });
-            });
-        menu->showMenuAsync(PopupMenu::Options().withTargetScreenArea(presetFileButton.getScreenBounds().reduced(8)));
+                                    std::unique_ptr<XmlElement> xml(processor.tree.copyState().createXml());
+                                    xml->writeTo(result);
+                                }
+                            });
+        });
+
+    presetFileButton.onClick = [this]
+    {
+        presetFileButton.setInterceptsMouseClicks(false, false);
+        presetMenu.showMenuAsync(PopupMenu::Options().withTargetScreenArea(presetFileButton.getScreenBounds().reduced(8)),
+                                 [this](int)
+                                 {
+                                     presetFileButton.setInterceptsMouseClicks(true, true);
+                                     presetFileButton.setToggleState(false, dontSendNotification);
+                                 });
     };
     presetFileButton.setTooltip("Load/Save preset");
     addAndMakeVisible(presetFileButton);
@@ -163,6 +171,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
 FTMSynthAudioProcessorEditor::~FTMSynthAudioProcessorEditor()
 {
     tooltip->setLookAndFeel(nullptr);
+    presetMenu.setLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
 }
 
@@ -177,11 +186,14 @@ void FTMSynthAudioProcessorEditor::paint(Graphics& g)
     g.drawImage(background, Rectangle<float>(0, 0, 640, 400), RectanglePlacement::stretchToFit);
 }
 
+
+//==============================================================================
 void FTMSynthAudioProcessorEditor::switchViews()
 {
     if (midiButton.getToggleState())
     {
         helpButton.setEnabled(false);
+        presetFileButton.setEnabled(false);
         labelView.setOpaqueLabels(true);
         mainView.setVisible(false);
         midiConfigView.setVisible(true);
@@ -189,6 +201,7 @@ void FTMSynthAudioProcessorEditor::switchViews()
     else
     {
         helpButton.setEnabled(true);
+        presetFileButton.setEnabled(true);
         labelView.setOpaqueLabels(false);
         midiConfigView.setVisible(false);
         mainView.setVisible(true);
