@@ -29,7 +29,8 @@
 #include "juce_core/juce_core.h"
 #include <memory>
 
-#define PRESET_EXTENSION ".ftmpreset"
+#define PRESET_EXTENSION        ".ftmpreset"
+#define PRESET_EXTENSION_FILTER "*" PRESET_EXTENSION
 
 //==============================================================================
 FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor& p)
@@ -98,7 +99,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
                 auto fc = std::make_shared<FileChooser>(
                     "Open preset",
                     File::getSpecialLocation(File::userHomeDirectory),
-                    PRESET_EXTENSION);
+                    PRESET_EXTENSION_FILTER);
 
                 fc->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles,
                                 [this, fc](const FileChooser& chooser)
@@ -122,7 +123,7 @@ FTMSynthAudioProcessorEditor::FTMSynthAudioProcessorEditor(FTMSynthAudioProcesso
                 auto fc = std::make_shared<FileChooser>(
                     "Save preset",
                     File::getSpecialLocation(File::userHomeDirectory),
-                    PRESET_EXTENSION);
+                    PRESET_EXTENSION_FILTER);
 
                 fc->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                                 [this, fc](const FileChooser& chooser)
