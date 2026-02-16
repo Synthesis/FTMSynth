@@ -31,6 +31,7 @@
 #include "../Processor/PluginProcessor.h"
 #include "../LookAndFeel/CustomLookAndFeel.h"
 #include "MidiConfigButton.h"
+#include "CustomDrawableButton.h"
 
 //==============================================================================
 const Rectangle<int> configControls(128, 184, 256, 208);
@@ -135,10 +136,10 @@ private:
     Slider midiChannelSlider;
     Slider midiDefaultSlider;
 
-    DrawableButton resetCCButton;
-    DrawableButton resetChannelButton;
-    DrawableButton learnCCButton;
-    DrawableButton learnChannelButton;
+    CustomDrawableButton resetCCButton;
+    CustomDrawableButton resetChannelButton;
+    CustomDrawableButton learnCCButton;
+    CustomDrawableButton learnChannelButton;
 
     ImageButton mappingFileButton;
     PopupMenu mappingMenu;

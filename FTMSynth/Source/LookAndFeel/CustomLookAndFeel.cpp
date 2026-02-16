@@ -229,7 +229,10 @@ void DraggableBox::drawRotarySlider(Graphics& g, int x, int y, int width, int he
     Rectangle<int> boxBounds(x, y, width, height);
 
     g.setFont(standardFont);
-    g.setColour(slider.findColour(Slider::backgroundColourId).withAlpha(1.0f));
+    Colour bgColor = slider.findColour(Slider::backgroundColourId).withAlpha(1.0f);
+    if (slider.isMouseOverOrDragging())
+        bgColor = bgColor.contrasting(slider.isMouseButtonDown() ? 0.075f : 0.05f);
+    g.setColour(bgColor);
     g.fillRoundedRectangle(boxBounds.toFloat(), 6.0f);
     g.setColour(slider.findColour(Slider::rotarySliderOutlineColourId).withAlpha(0.5f));
     g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f), 6.0f, 1.0f);

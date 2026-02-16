@@ -43,6 +43,10 @@
               file="Source/View/MidiConfigButton.cpp"/>
         <FILE id="mPB68l" name="MidiConfigButton.h" compile="0" resource="0"
               file="Source/View/MidiConfigButton.h"/>
+        <FILE id="xPp4gP" name="CustomDrawableButton.cpp" compile="1" resource="0"
+              file="Source/View/CustomDrawableButton.cpp"/>
+        <FILE id="khGzbx" name="CustomDrawableButton.h" compile="0" resource="0"
+              file="Source/View/CustomDrawableButton.h"/>
       </GROUP>
     </GROUP>
     <GROUP id="{C61A0867-1E87-1969-876A-3CC9E304CA3B}" name="Assets">

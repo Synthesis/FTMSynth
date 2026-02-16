@@ -248,10 +248,12 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     attackSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     attackSlider.setPopupDisplayEnabled(true, true, this);
     attackTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "attack", attackSlider));
-    attackSlider.onValueChange = [this] {
-        attackSlider.setAlpha((attackSlider.getValue() == attackSlider.getMinimum()) ? alphaOff : 1);
+    auto setAttackSliderAlpha = [this]
+    {
+        attackSlider.setAlpha((attackSlider.getValue() == attackSlider.getMinimum()) ? alphaOff : 1.0f);
     };
-    attackSlider.setAlpha((attackSlider.getValue() == attackSlider.getMinimum()) ? alphaOff : 1);
+    attackSlider.onValueChange = setAttackSliderAlpha;
+    setAttackSliderAlpha();
     attackSlider.textFromValueFunction = [] (double value) { return String(value, 3); };
     attackSlider.setTextValueSuffix(" periods");
     addAndMakeVisible(attackSlider);

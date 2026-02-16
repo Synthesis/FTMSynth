@@ -98,7 +98,7 @@ void VisualPanel::paint(Graphics& g)
 
         // draw string
         for (int i = left; i < right; i += 16)
-            g.drawImageAt(wire, i, y);
+            g.drawImageWithin(wire, i, y, 16, 16, RectanglePlacement::stretchToFit);
 
         float length = float(right - left);
         float posX = float(left) + r1*length;
@@ -114,8 +114,8 @@ void VisualPanel::paint(Graphics& g)
         g.setColour(Colours::black);
 
         // draw ends
-        g.drawImageAt(delimiter, left - 8, y);
-        g.drawImageAt(delimiter, right - 8, y);
+        g.drawImageWithin(delimiter, left - 8, y, 16, 16, RectanglePlacement::stretchToFit);
+        g.drawImageWithin(delimiter, right - 8, y, 16, 16, RectanglePlacement::stretchToFit);
     }
     else if (dimensions == 2)
     {

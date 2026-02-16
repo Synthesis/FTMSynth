@@ -39,10 +39,10 @@ static inline const char* getParamID(int buttonID)
 //==============================================================================
 MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     : processor(p),
-      resetCCButton("resetCC", DrawableButton::ImageOnButtonBackgroundOriginalSize),
-      resetChannelButton("resetChannel", DrawableButton::ImageOnButtonBackgroundOriginalSize),
-      learnCCButton("learnCC", DrawableButton::ImageOnButtonBackgroundOriginalSize),
-      learnChannelButton("learnChannel", DrawableButton::ImageOnButtonBackgroundOriginalSize)
+      resetCCButton("resetCC"),
+      resetChannelButton("resetChannel"),
+      learnCCButton("learnCC"),
+      learnChannelButton("learnChannel")
 {
     // Button IDs use 1-based indexing into paramTable
     enum {
@@ -200,12 +200,13 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     paramNameLabel.setJustificationType(Justification::centred);
     addChildComponent(paramNameLabel);
 
-    // CC selector
+    // Drawables
     DrawableImage resetDrawable(ImageCache::getFromMemory(BinaryData::midiReset_png, BinaryData::midiReset_pngSize));
     Image midiLearnImage = ImageCache::getFromMemory(BinaryData::midiLearn_png, BinaryData::midiLearn_pngSize);
     DrawableImage midiLearnDrawable(midiLearnImage.getClippedImage(Rectangle<int>(0, 0, midiLearnImage.getWidth()/2, midiLearnImage.getHeight())));
     DrawableImage midiLearnDrawableOn(midiLearnImage.getClippedImage(Rectangle<int>(midiLearnImage.getWidth()/2, 0, midiLearnImage.getWidth()/2, midiLearnImage.getHeight())));
 
+    // CC selector
     midiCCLabel.setText("CC", dontSendNotification);
     midiCCLabel.setJustificationType(Justification::centredRight);
     addChildComponent(midiCCLabel);
