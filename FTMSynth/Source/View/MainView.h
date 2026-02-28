@@ -1,9 +1,9 @@
 /*
   ==============================================================================
 
-    PluginEditor.h
-    Created: 10 Oct 2019 10:03:03am
-    Authors: Lily H, Loïc J
+    MainView.h
+    Created: 4 Oct 2024 12:03:18am
+    Author:  Loïc J
 
   ==============================================================================
 
@@ -27,29 +27,41 @@
 
 #pragma once
 
-#include "../JuceLibraryCode/JuceHeader.h"
-#include "PluginProcessor.h"
+#include <JuceHeader.h>
+#include "../Processor/PluginProcessor.h"
+#include "../LookAndFeel/CustomLookAndFeel.h"
 #include "VisualPanel.h"
+#include "HelpPanel.h"
 
 //==============================================================================
-class FTMSynthAudioProcessorEditor : public AudioProcessorEditor
+class MainView : public Component
 {
 public:
-    FTMSynthAudioProcessorEditor(FTMSynthAudioProcessor&);
-    ~FTMSynthAudioProcessorEditor();
+    MainView(FTMSynthAudioProcessor& p);
+    ~MainView() override;
 
-    //==============================================================================
     void paint(Graphics&) override;
     void resized() override;
+
+    void showHelp(bool show);
 
 private:
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
-    void updateVisualization(bool updateBounds = false);
+    void updateVisualization(bool updateMouseBounds = false);
 
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FTMSynthAudioProcessor& processor;
+
+    // Custom look-and-feel
+    WithTextBox withTextBox;
+    DraggableBox draggableBox;
+    CustomComboBox customComboBox;
+    FunnyFont funnyFont;
+
+    // Help tooltip
+    SharedResourcePointer<TooltipWindow> tooltip;
 
     // UI components
     Slider dimensionsSlider;
@@ -57,9 +69,8 @@ private:
     ImageButton drumButton;
     ImageButton boxButton;
 
-    float alphaOff;
-
     Slider volumeSlider;
+    Slider attackSlider;
     Slider pitchSlider;
     ToggleButton kbTrackButton;
     Slider tauSlider;
@@ -80,30 +91,16 @@ private:
     Slider voicesSlider;
     ComboBox algoComboBox;
 
+    Label thisIsALabel;
+    Label nameLabel;
     VisualPanel visualPanel;
-
-    // Labels
-    Label volumeLabel;
-    Label pitchLabel;
-    Label tauLabel;
-    Label pLabel;
-    Label dLabel;
-    Label alpha1Label;
-    Label alpha2Label;
-    Label rLabel;
-    Label mLabel;
-    Label xLabel;
-    Label yLabel;
-    Label zLabel;
-    Label voicesLabel;
-    Label algoLabel;
-
-    Rectangle<int> mainControls;
-    Rectangle<int> xyzControls;
+    Label aboutLabel;
+    HelpPanel helpPanel;
 
     // Attachments from model to components
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> dimTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> volumeTree;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> attackTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> pitchTree;
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> kbTrackTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> tauTree;
@@ -124,9 +121,5 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> voicesTree;
     std::unique_ptr<AudioProcessorValueTreeState::ComboBoxAttachment> algoTree;
 
-    // Help tooltip
-    ImageButton helpButton;
-    SharedResourcePointer<TooltipWindow> tooltip;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FTMSynthAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainView)
 };

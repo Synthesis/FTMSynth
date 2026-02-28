@@ -1,83 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="ez6eyY" projectType="audioplug" jucerFormatVersion="1" name="FTMSynth"
-              companyName="LS2N" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
+              companyName="LS2N" companyWebsite="audio.ls2n.fr" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
               pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
-              pluginAUMainType="'aumu'" pluginVST3Category="Drum,Instrument,Synth"
+              aaxIdentifier="fr.ljankowiak.ftmsynth" pluginAUMainType="'aumu'"
+              pluginVST3Category="Drum,Instrument,Synth" lv2Uri="urn:uuid:01927853-bb20-7c91-9a67-ab4786345508"
               cppLanguageStandard="20">
   <MAINGROUP id="RvdlOT" name="FTMSynth">
     <GROUP id="{1E368382-AFE3-B851-6460-B81F306FAB88}" name="Source">
-      <FILE id="Jqe2qa" name="PluginProcessor.cpp" compile="1" resource="0"
-            file="Source/PluginProcessor.cpp"/>
-      <FILE id="UrgEKj" name="PluginProcessor.h" compile="0" resource="0"
-            file="Source/PluginProcessor.h"/>
-      <FILE id="qb5Q4m" name="PluginEditor.cpp" compile="1" resource="0"
-            file="Source/PluginEditor.cpp"/>
-      <FILE id="eL5b01" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="PHhHpv" name="VisualPanel.cpp" compile="1" resource="0" file="Source/VisualPanel.cpp"/>
-      <FILE id="cRvdwc" name="VisualPanel.h" compile="0" resource="0" file="Source/VisualPanel.h"/>
-      <FILE id="B8sfSH" name="CustomLookAndFeel.h" compile="0" resource="0"
-            file="Source/CustomLookAndFeel.h"/>
-      <FILE id="dCh6Jz" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>
-      <FILE id="QicNHS" name="SynthVoice.cpp" compile="1" resource="0" file="Source/SynthVoice.cpp"/>
-      <FILE id="SnWXSu" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
+      <GROUP id="{F81754AA-F3CE-6E35-9FEC-7783362619FA}" name="Processor">
+        <FILE id="Jqe2qa" name="PluginProcessor.cpp" compile="1" resource="0"
+              file="Source/Processor/PluginProcessor.cpp"/>
+        <FILE id="UrgEKj" name="PluginProcessor.h" compile="0" resource="0"
+              file="Source/Processor/PluginProcessor.h"/>
+        <FILE id="dCh6Jz" name="SynthSound.h" compile="0" resource="0" file="Source/Processor/SynthSound.h"/>
+        <FILE id="QicNHS" name="SynthVoice.cpp" compile="1" resource="0" file="Source/Processor/SynthVoice.cpp"/>
+        <FILE id="SnWXSu" name="SynthVoice.h" compile="0" resource="0" file="Source/Processor/SynthVoice.h"/>
+      </GROUP>
+      <GROUP id="{6AC72B15-FB0D-1D25-4BBA-71D86C2FABAF}" name="LookAndFeel">
+        <FILE id="wiXLu7" name="CustomLookAndFeel.cpp" compile="1" resource="0"
+              file="Source/LookAndFeel/CustomLookAndFeel.cpp"/>
+        <FILE id="B8sfSH" name="CustomLookAndFeel.h" compile="0" resource="0"
+              file="Source/LookAndFeel/CustomLookAndFeel.h"/>
+      </GROUP>
+      <GROUP id="{5E2CB162-D231-4A1C-28FA-6C490014346C}" name="View">
+        <FILE id="qb5Q4m" name="PluginEditor.cpp" compile="1" resource="0"
+              file="Source/View/PluginEditor.cpp"/>
+        <FILE id="eL5b01" name="PluginEditor.h" compile="0" resource="0" file="Source/View/PluginEditor.h"/>
+        <FILE id="IPb2Qo" name="MainView.cpp" compile="1" resource="0" file="Source/View/MainView.cpp"/>
+        <FILE id="ygNX7Y" name="MainView.h" compile="0" resource="0" file="Source/View/MainView.h"/>
+        <FILE id="PHhHpv" name="VisualPanel.cpp" compile="1" resource="0" file="Source/View/VisualPanel.cpp"/>
+        <FILE id="cRvdwc" name="VisualPanel.h" compile="0" resource="0" file="Source/View/VisualPanel.h"/>
+        <FILE id="zLx4Em" name="HelpPanel.cpp" compile="1" resource="0" file="Source/View/HelpPanel.cpp"/>
+        <FILE id="TSSfRR" name="HelpPanel.h" compile="0" resource="0" file="Source/View/HelpPanel.h"/>
+        <FILE id="vGo9Cp" name="LabelView.cpp" compile="1" resource="0" file="Source/View/LabelView.cpp"/>
+        <FILE id="Xn7E18" name="LabelView.h" compile="0" resource="0" file="Source/View/LabelView.h"/>
+        <FILE id="B2BQ8E" name="MidiConfigView.cpp" compile="1" resource="0"
+              file="Source/View/MidiConfigView.cpp"/>
+        <FILE id="cmqvrD" name="MidiConfigView.h" compile="0" resource="0"
+              file="Source/View/MidiConfigView.h"/>
+        <FILE id="xdm9su" name="MidiConfigButton.cpp" compile="1" resource="0"
+              file="Source/View/MidiConfigButton.cpp"/>
+        <FILE id="mPB68l" name="MidiConfigButton.h" compile="0" resource="0"
+              file="Source/View/MidiConfigButton.h"/>
+        <FILE id="xPp4gP" name="CustomDrawableButton.cpp" compile="1" resource="0"
+              file="Source/View/CustomDrawableButton.cpp"/>
+        <FILE id="khGzbx" name="CustomDrawableButton.h" compile="0" resource="0"
+              file="Source/View/CustomDrawableButton.h"/>
+      </GROUP>
     </GROUP>
     <GROUP id="{C61A0867-1E87-1969-876A-3CC9E304CA3B}" name="Assets">
+      <FILE id="tu5j5V" name="icon.png" compile="0" resource="1" file="Assets/icon.png"/>
       <FILE id="TfIAeu" name="background.png" compile="0" resource="1" file="Assets/background.png"/>
       <FILE id="U3wtsJ" name="dimensions.png" compile="0" resource="1" file="Assets/dimensions.png"/>
       <FILE id="wdfw1J" name="knob.png" compile="0" resource="1" file="Assets/knob.png"/>
       <FILE id="nPIYPc" name="string.png" compile="0" resource="1" file="Assets/string.png"/>
       <FILE id="u4ndxp" name="drum_skin.png" compile="0" resource="1" file="Assets/drum_skin.png"/>
       <FILE id="hZ400v" name="question.png" compile="0" resource="1" file="Assets/question.png"/>
+      <FILE id="BaRXjv" name="savePreset.png" compile="0" resource="1" file="Assets/savePreset.png"/>
+      <FILE id="alFNSq" name="midi.png" compile="0" resource="1" file="Assets/midi.png"/>
+      <FILE id="Vna9Fq" name="saveMapping.png" compile="0" resource="1" file="Assets/saveMapping.png"/>
+      <FILE id="yq1gwZ" name="midiReset.png" compile="0" resource="1" file="Assets/midiReset.png"/>
+      <FILE id="KX4dHo" name="midiLearn.png" compile="0" resource="1" file="Assets/midiLearn.png"/>
       <FILE id="j5P3Sn" name="arial_narrow_7.ttf" compile="0" resource="1"
             file="Assets/arial_narrow_7.ttf"/>
       <FILE id="Hafu1s" name="123Marker.ttf" compile="0" resource="1" file="Assets/123Marker.ttf"/>
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" bigIcon="tu5j5V">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug"/>
         <CONFIGURATION isDebug="0" name="Release"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../Documents/music_tech/JUCE/modules"/>
-        <MODULEPATH id="juce_opengl" path="../Documents/music_tech/JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_plugin_client"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_processors_headless"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_opengl"/>
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2022 targetFolder="Builds/VisualStudio2022" extraDefs="_USE_MATH_DEFINES"
-            extraCompilerFlags="/permissive-">
+            extraCompilerFlags="/permissive-" bigIcon="tu5j5V">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" headerPath="C:\Programmation\audio\asiosdk_2.3.3_2019-06-14\common"
-                       useRuntimeLibDLL="0"/>
-        <CONFIGURATION isDebug="0" name="Release" headerPath="C:\Programmation\audio\asiosdk_2.3.3_2019-06-14\common"
-                       useRuntimeLibDLL="0"/>
+        <CONFIGURATION isDebug="1" name="Debug" useRuntimeLibDLL="0"/>
+        <CONFIGURATION isDebug="0" name="Release" useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
-        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
-        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
-        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
-        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
-        <MODULEPATH id="juce_core" path="../../juce"/>
-        <MODULEPATH id="juce_data_structures" path="../../juce"/>
-        <MODULEPATH id="juce_events" path="../../juce"/>
-        <MODULEPATH id="juce_graphics" path="../../juce"/>
-        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
-        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
-        <MODULEPATH id="juce_opengl" path="../../juce"/>
+        <MODULEPATH id="juce_audio_basics"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_plugin_client"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_processors_headless"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_opengl"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>
@@ -88,6 +121,8 @@
     <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
             useGlobalPath="1"/>
     <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors_headless" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
     <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
@@ -102,5 +137,6 @@
   </LIVE_SETTINGS>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_USE_CURL="0" JUCE_WEB_BROWSER="0"
                JUCE_USE_FLAC="0" JUCE_USE_OGGVORBIS="0" JUCE_USE_MP3AUDIOFORMAT="0"
-               JUCE_USE_LAME_AUDIO_FORMAT="0" JUCE_USE_WINDOWS_MEDIA_FORMAT="0"/>
+               JUCE_USE_LAME_AUDIO_FORMAT="0" JUCE_USE_WINDOWS_MEDIA_FORMAT="0"
+               JUCE_ASIO="1" JUCE_FORCE_USE_LEGACY_PARAM_IDS="1"/>
 </JUCERPROJECT>

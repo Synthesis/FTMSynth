@@ -25,27 +25,13 @@
   ==============================================================================
 */
 
-#include <JuceHeader.h>
 #include "VisualPanel.h"
-#include "CustomLookAndFeel.h"
 
 //==============================================================================
-VisualPanel::VisualPanel(FTMSynthAudioProcessor& p, Slider& attachedX, Slider& attachedY, Slider& attachedZ)
-    : processor(p), xSlider(attachedX), ySlider(attachedY), zSlider(attachedZ),
-      boundsDelta(12.0f), mouseDownInBounds(false)
+VisualPanel::VisualPanel(AudioProcessorValueTreeState& treeState, Slider& attachedX, Slider& attachedY, Slider& attachedZ)
+    : tree(treeState), xSlider(attachedX), ySlider(attachedY), zSlider(attachedZ),
+      mouseBoundsDelta(12.0f), mouseDownInBounds(false)
 {
-    setLookAndFeel(new FunnyFont());
-
-    String typeStr("this is\na");
-
-    thisIsALabel.setText(typeStr, dontSendNotification);
-    thisIsALabel.setJustificationType(Justification(Justification::topLeft));
-    thisIsALabel.setColour(Label::textColourId, Colour(0xFF5F5F5F));
-    thisIsALabel.setInterceptsMouseClicks(false, true);
-    addChildComponent(thisIsALabel);
-    nameLabel.setInterceptsMouseClicks(false, true);
-    addChildComponent(nameLabel);
-
     // 1D resources
     strImage = ImageCache::getFromMemory(BinaryData::string_png, BinaryData::string_pngSize);
     delimiter = strImage.getClippedImage(Rectangle<int>(0, 0, strImage.getWidth()/2, strImage.getHeight()));
@@ -57,59 +43,66 @@ VisualPanel::VisualPanel(FTMSynthAudioProcessor& p, Slider& attachedX, Slider& a
 
 VisualPanel::~VisualPanel()
 {
+    setLookAndFeel(nullptr);
 }
 
+
+//==============================================================================
 void VisualPanel::setDimensions(int dim)
 {
     dimensions = dim;
-    updateBounds();
+    updateMouseBounds();
 }
 
-void VisualPanel::updateBounds()
+void VisualPanel::updateMouseBounds()
 {
+    // visualPanel.setBounds(16, 180, 352, 212);
+    Point<float> topLeft(152.0f, 108.0f);
+    topLeft.setX(152.0f);
+    topLeft.setY(108.0f);
+
     if (dimensions == 1)
     {
-        bounds.setBounds(128.0f, 104.0f, 192.0f, 32.0f);
+        mouseBounds.setBounds(center.x - 96.0f, center.y - 8.0f, 192.0f, 32.0f);
     }
     if (dimensions == 2)
     {
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        bounds.setBounds(128.0f, 108.0f-(192.0f*alpha1/2.0f),
-                         192.0f, 192.0f*alpha1);
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
+        mouseBounds.setBounds(center.x - 96.0f, center.y - (96.0f*alpha1),
+                              192.0f, 192.0f*alpha1);
     }
     if (dimensions == 3)
     {
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        float alpha2 = processor.tree.getRawParameterValue("cubeness")->load();
-        float r3 = processor.tree.getRawParameterValue("r3")->load();
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
+        float alpha2 = tree.getRawParameterValue("alpha3d")->load();
+        float r3 = tree.getRawParameterValue("r3")->load();
         float height = 128.0f*alpha1;
         float depth = 64.0f*alpha2;
-        bounds.setBounds(160.0f+((r3-0.5f)*depth), 108.0f-(height*0.5f)+((0.5f-r3)*depth),
-                         128.0f, height);
+        mouseBounds.setBounds((center.x - 64.0f) + ((r3-0.5f)*depth),
+                              center.y - (height*0.5f) + ((0.5f-r3)*depth),
+                              128.0f, height);
     }
 }
 
+
+//==============================================================================
 void VisualPanel::paint(Graphics& g)
 {
-    String objStr("");
-
     if (dimensions == 1)
     {
-        objStr += "string.";
+        float r1 = tree.getRawParameterValue("r1")->load();
 
-        float r1 = processor.tree.getRawParameterValue("r1")->load();
-
-        int left = 120;
-        int right = 312;
-        int y = 112;
+        int left = int(center.x) - 96;
+        int right = int(center.x) + 96;
+        int y = int(center.y);
 
         // draw string
         for (int i = left; i < right; i += 16)
-            g.drawImageAt(wire, i+8, y);
+            g.drawImageWithin(wire, i, y, 16, 16, RectanglePlacement::stretchToFit);
 
-        float length = float(right-left)-12.0f;
-        float posX = float(left)+14.0f+r1*length;
-        float posY = float(y)+2;
+        float length = float(right - left);
+        float posX = float(left) + r1*length;
+        float posY = float(y + 2);
         float triangleW = 5.0f;
         float triangleH = 10.0f;
 
@@ -121,31 +114,29 @@ void VisualPanel::paint(Graphics& g)
         g.setColour(Colours::black);
 
         // draw ends
-        g.drawImageAt(delimiter, left, y);
-        g.drawImageAt(delimiter, right, y);
+        g.drawImageWithin(delimiter, left - 8, y, 16, 16, RectanglePlacement::stretchToFit);
+        g.drawImageWithin(delimiter, right - 8, y, 16, 16, RectanglePlacement::stretchToFit);
     }
     else if (dimensions == 2)
     {
-        objStr += "drum.";
-
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        float r1 = processor.tree.getRawParameterValue("r1")->load();
-        float r2 = processor.tree.getRawParameterValue("r2")->load();
-        r2 = 1-r2; // Y is inverted on a screen
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
+        float r1 = tree.getRawParameterValue("r1")->load();
+        float r2 = tree.getRawParameterValue("r2")->load();
+        r2 = 1-r2;  // Y is inverted on a screen
 
         float thickness = 3.0f;
 
         float destWidth = 192.0f;
         float destHeight = 192.0f*alpha1;
-        float destX = 128.0f;
-        float destY = 108.0f-(destHeight/2.0f);
+        float destX = center.x - (destWidth*0.5f);
+        float destY = center.y - (destHeight*0.5f);
 
         float impulseX = destX+(r1*destWidth);
         float impulseY = destY+(r2*destHeight);
 
         // draw drum skin
-        float srcX = 0.f;
-        float srcY = (1-alpha1)*drumSkin.getHeight()/2.0f;
+        float srcX = 0.0f;
+        float srcY = (1-alpha1)*drumSkin.getHeight()*0.5f;
         float srcWidth = float(drumSkin.getWidth());
         float srcHeight = alpha1*drumSkin.getHeight();
         g.drawImage(drumSkin, int(destX), int(destY), int(destWidth), int(destHeight),
@@ -160,19 +151,17 @@ void VisualPanel::paint(Graphics& g)
 
         // draw bounds
         g.setColour(Colour(0xFF451A08));
-        g.drawRect(destX-(thickness/2.0f), destY-(thickness/2.0f), destWidth+thickness, destHeight+thickness, thickness);
+        g.drawRect(destX-(thickness*0.5f), destY-(thickness*0.5f), destWidth+thickness, destHeight+thickness, thickness);
         g.setColour(Colours::black);
     }
     else if (dimensions == 3)
     {
-        objStr += "cuboid.";
-
-        float alpha1 = processor.tree.getRawParameterValue("squareness")->load();
-        float alpha2 = processor.tree.getRawParameterValue("cubeness")->load();
-        float r1 = processor.tree.getRawParameterValue("r1")->load();
-        float r2 = processor.tree.getRawParameterValue("r2")->load();
-        float r3 = processor.tree.getRawParameterValue("r3")->load();
-        r2 = 1-r2; // vertical direction is inverted on a screen
+        float alpha1 = tree.getRawParameterValue("alpha2d")->load();
+        float alpha2 = tree.getRawParameterValue("alpha3d")->load();
+        float r1 = tree.getRawParameterValue("r1")->load();
+        float r2 = tree.getRawParameterValue("r2")->load();
+        float r3 = tree.getRawParameterValue("r3")->load();
+        r2 = 1-r2;  // vertical direction is inverted on a screen
         r3 = 1-r3;
 
         float thickness = 3.0f;
@@ -185,12 +174,14 @@ void VisualPanel::paint(Graphics& g)
         float depth = 64.0f*alpha2;
 
         // compute coordinates of cube vertices
-        float frontLeft = 160.0f-(depth/2.0f);
-        float frontTop = 108.0f-(height/2.0f)+(depth/2.0f);
+        float centerLeft = center.x - 64.0f;
+        float centerTop = center.y;
+        float frontLeft = centerLeft - (depth*0.5f);
+        float frontTop = centerTop - (height*0.5f) + (depth*0.5f);
         float frontRight = frontLeft + width;
         float frontBottom = frontTop + height;
-        float backLeft = 160.0f+(depth/2.0f);
-        float backTop = 108.0f-(height/2.0f)-(depth/2.0f);
+        float backLeft = centerLeft + (depth*0.5f);
+        float backTop = centerTop - (height*0.5f) - (depth*0.5f);
         float backRight = backLeft + width;
         float backBottom = backTop + height;
 
@@ -199,7 +190,7 @@ void VisualPanel::paint(Graphics& g)
 
         // draw backface and edge
         g.setColour(Colour(0xFF7F7F7F));
-        g.drawRect(backLeft-(thickness/2.0f), backTop-(thickness/2.0f), width+thickness, height+thickness, thickness);
+        g.drawRect(backLeft-(thickness*0.5f), backTop-(thickness*0.5f), width+thickness, height+thickness, thickness);
         g.drawLine(frontLeft, frontBottom, backLeft, backBottom, thickness);
 
         // draw left and bottom impact depth-plane contour
@@ -248,47 +239,31 @@ void VisualPanel::paint(Graphics& g)
         g.drawLine(frontRight, frontTop, backRight, backTop, thickness);
         g.drawLine(backRight, backTop, backRight, backBottom, thickness);
         g.drawLine(backRight, backBottom, frontRight, frontBottom, thickness);
-        g.drawRect(frontLeft-(thickness/2.0f), frontTop-(thickness/2.0f), width+thickness, height+thickness, thickness);
-    }
-
-    nameLabel.setText(objStr, dontSendNotification);
-    nameLabel.setJustificationType(Justification(Justification::topLeft));
-
-    if (dimensions >= 1 && dimensions <= 3)
-    {
-        if (! thisIsALabel.isVisible()) thisIsALabel.setVisible(true);
-        if (! nameLabel.isVisible()) nameLabel.setVisible(true);
-    }
-    else
-    {
-        if (thisIsALabel.isVisible()) thisIsALabel.setVisible(false);
-        if (nameLabel.isVisible()) nameLabel.setVisible(false);
+        g.drawRect(frontLeft-(thickness*0.5f), frontTop-(thickness*0.5f), width+thickness, height+thickness, thickness);
     }
 }
 
 void VisualPanel::resized()
 {
-    int offsetX = 16;
-    int offsetY = 12;
-
-    thisIsALabel.setBounds(offsetX, offsetY, 96, 64);
-    nameLabel.setBounds(offsetX + 20, offsetY + 28, 80, 40);
+    center = getLocalBounds().getCentre().toFloat();
 }
 
+
+//==============================================================================
 void VisualPanel::updateXYonMouse(const MouseEvent& e)
 {
-    if (bounds.expanded(boundsDelta).contains(e.position))
+    if (mouseBounds.expanded(mouseBoundsDelta).contains(e.position))
     {
         if (dimensions >= 1)
         {
             double r1 = jlimit(xSlider.getMinimum(), xSlider.getMaximum(),
-                              double((e.position.getX()-bounds.getX()) / bounds.getWidth()));
+                              double((e.position.getX()-mouseBounds.getX()) / mouseBounds.getWidth()));
             xSlider.setValue(r1);
         }
         if (dimensions == 2 || dimensions == 3)
         {
             double r2 = jlimit(ySlider.getMinimum(), ySlider.getMaximum(),
-                              double((bounds.getBottom()-e.position.getY()) / bounds.getHeight()));
+                              double((mouseBounds.getBottom()-e.position.getY()) / mouseBounds.getHeight()));
             ySlider.setValue(r2);
         }
     }
@@ -296,7 +271,7 @@ void VisualPanel::updateXYonMouse(const MouseEvent& e)
 
 void VisualPanel::mouseDown(const MouseEvent& e)
 {
-    if (e.mods.isLeftButtonDown() && bounds.expanded(boundsDelta).contains(e.position))
+    if (e.mods.isLeftButtonDown() && mouseBounds.expanded(mouseBoundsDelta).contains(e.position))
     {
         mouseDownInBounds = true;
         updateXYonMouse(e);
