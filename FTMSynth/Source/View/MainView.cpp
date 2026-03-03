@@ -302,10 +302,13 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     addChildComponent(dimensionsSlider);
 
     setDimensions(processor.tree.getParameterAsValue("dimensions").getValue(), false);
+
+    processor.tree.state.addListener(this);
 }
 
 MainView::~MainView()
 {
+    processor.tree.state.removeListener(this);
     pitchSlider.setLookAndFeel(nullptr);
     voicesSlider.setLookAndFeel(nullptr);
     algoComboBox.setLookAndFeel(nullptr);
@@ -333,16 +336,29 @@ void MainView::showHelp(bool show)
 
 void MainView::syncModes(Slider& source)
 {
+    if (restoringState)
+        return;
+
     if (!modesLinkButton.getToggleState())
         return;
 
-    if (source.isMouseButtonDown(true) || source.isMouseOver(true) || source.hasKeyboardFocus(true))
+    double val = source.getValue();
+    if (m1Slider.getValue() != val) m1Slider.setValue(val, sendNotificationSync);
+    if (m2Slider.getValue() != val) m2Slider.setValue(val, sendNotificationSync);
+    if (m3Slider.getValue() != val) m3Slider.setValue(val, sendNotificationSync);
+}
+
+void MainView::valueTreeRedirected(ValueTree&)
+{
+    restoringState = true;
+
+    // Use an async callback to clear the flag after all
+    // parameter listeners have finished processing.
+    MessageManager::callAsync([safeThis = SafePointer<MainView>(this)]
     {
-        double val = source.getValue();
-        if (m1Slider.getValue() != val) m1Slider.setValue(val, sendNotificationSync);
-        if (m2Slider.getValue() != val) m2Slider.setValue(val, sendNotificationSync);
-        if (m3Slider.getValue() != val) m3Slider.setValue(val, sendNotificationSync);
-    }
+        if (safeThis != nullptr)
+            safeThis->restoringState = false;
+    });
 }
 
 void MainView::setDimensions(int dimensions, bool btnToSlider)

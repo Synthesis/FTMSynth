@@ -35,7 +35,7 @@
 #include "HelpPanel.h"
 
 //==============================================================================
-class MainView : public Component
+class MainView : public Component, private ValueTree::Listener
 {
 public:
     MainView(FTMSynthAudioProcessor& p);
@@ -48,6 +48,8 @@ public:
 
 private:
     void syncModes(Slider& source);
+    void valueTreeRedirected(ValueTree& tree) override;
+    bool restoringState = false;
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
     void updateVisualization(bool updateMouseBounds = false);
