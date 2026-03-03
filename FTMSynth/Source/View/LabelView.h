@@ -62,7 +62,6 @@ private:
     Label alpha1Label;
     Label alpha2Label;
     Label rLabel;
-    Label mLabel;
     Label xLabel;
     Label yLabel;
     Label zLabel;

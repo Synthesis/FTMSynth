@@ -32,6 +32,7 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     : processor(p),
       stringButton("string"), drumButton("drum"), boxButton("box"),
       kbTrackButton("KB TRACK"), tauGateButton("RELEASE"), pGateButton("RING"),
+      modesLinkButton("modesLink"),
       visualPanel(p.tree, r1Slider, r2Slider, r3Slider)
 {
     setSize(640, 400);
@@ -203,24 +204,46 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     r3Slider.textFromValueFunction = [] (double value) { return String(value, 3); };
     addAndMakeVisible(r3Slider);
 
+    mLabel.setText("MODES", dontSendNotification);
+    mLabel.setJustificationType(Justification::centred);
+    mLabel.setTooltip("Number of modes (partials)\nper dimension");
+    addAndMakeVisible(mLabel);
+
     m1Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     m1Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     m1Slider.setPopupDisplayEnabled(true, true, this);
     m1Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "m1", m1Slider));
+    m1Slider.onValueChange = [this] { syncModes(m1Slider); };
     addAndMakeVisible(m1Slider);
 
     m2Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     m2Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     m2Slider.setPopupDisplayEnabled(true, true, this);
     m2Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "m2", m2Slider));
+    m2Slider.onValueChange = [this] { syncModes(m2Slider); };
     addAndMakeVisible(m2Slider);
 
     m3Slider.setSliderStyle(Slider::SliderStyle::RotaryHorizontalVerticalDrag);
     m3Slider.setTextBoxStyle(Slider::TextEntryBoxPosition::NoTextBox, true, 0, 0);
     m3Slider.setPopupDisplayEnabled(true, true, this);
     m3Tree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "m3", m3Slider));
+    m3Slider.onValueChange = [this] { syncModes(m3Slider); };
     addAndMakeVisible(m3Slider);
 
+    Image linkImage = ImageCache::getFromMemory(BinaryData::link_png, BinaryData::link_pngSize);
+    DrawableImage linkDrawableOff(linkImage.getClippedImage(Rectangle<int>(0, 0, linkImage.getWidth() / 4, linkImage.getHeight())));
+    DrawableImage linkDrawableOffHovered(linkImage.getClippedImage(Rectangle<int>(linkImage.getWidth() / 4, 0, linkImage.getWidth() / 4, linkImage.getHeight())));
+    DrawableImage linkDrawableOn(linkImage.getClippedImage(Rectangle<int>(linkImage.getWidth() * 2 / 4, 0, linkImage.getWidth() / 4, linkImage.getHeight())));
+    DrawableImage linkDrawableOnHovered(linkImage.getClippedImage(Rectangle<int>(linkImage.getWidth() * 3 / 4, 0, linkImage.getWidth() / 4, linkImage.getHeight())));
+
+    modesLinkButton.setImages(&linkDrawableOff, &linkDrawableOffHovered, &linkDrawableOnHovered, &linkDrawableOff,
+                              &linkDrawableOn, &linkDrawableOnHovered, &linkDrawableOffHovered, &linkDrawableOn);
+    modesLinkButton.setStyle(CustomDrawableButton::Borderless);
+    modesLinkButton.setClickingTogglesState(true);
+    modesLinkButton.onStateChange = [this] { repaint(); };
+    modesLinkTree.reset(new AudioProcessorValueTreeState::ButtonAttachment(processor.tree, "modesLink", modesLinkButton));
+    modesLinkButton.setTooltip("Link number of modes\nto all dimensions");
+    addAndMakeVisible(modesLinkButton);
 
     // View panel
     thisIsALabel.setLookAndFeel(&funnyFont);
@@ -308,6 +331,20 @@ void MainView::showHelp(bool show)
     }
 }
 
+void MainView::syncModes(Slider& source)
+{
+    if (!modesLinkButton.getToggleState())
+        return;
+
+    if (source.isMouseButtonDown(true) || source.isMouseOver(true) || source.hasKeyboardFocus(true))
+    {
+        double val = source.getValue();
+        if (m1Slider.getValue() != val) m1Slider.setValue(val, sendNotificationSync);
+        if (m2Slider.getValue() != val) m2Slider.setValue(val, sendNotificationSync);
+        if (m3Slider.getValue() != val) m3Slider.setValue(val, sendNotificationSync);
+    }
+}
+
 void MainView::setDimensions(int dimensions, bool btnToSlider)
 {
     if (btnToSlider)
@@ -328,7 +365,7 @@ void MainView::setDimensions(int dimensions, bool btnToSlider)
         {
             boxButton.setToggleState(true, dontSendNotification);
         }
-        updateDimensionComponents();
+        repaint();
     }
 }
 
@@ -383,9 +420,29 @@ void MainView::updateVisualization(bool updateMouseBounds)
     visualPanel.repaint();
 }
 
-void MainView::paint(Graphics&)
+void MainView::paint(Graphics& g)
 {
     updateDimensionComponents();
+
+    if (modesLinkButton.getToggleState())
+    {
+        int dimensions = int(dimensionsSlider.getValue());
+        Colour colorOn(0xFF3F3F3F);
+        Colour colorOff = colorOn.withAlpha(alphaOff);
+        g.setColour(colorOn);
+
+        float x1 = (float)m1Slider.getRight() + 2.0f;
+        float x2 = (float)m2Slider.getX() - 2.0f;
+        float y = (float)m1Slider.getBounds().getCentreY();
+
+        if (dimensions < 2) g.setColour(colorOff);
+        g.drawLine(x1, y, x2, y, 2.0f);
+
+        if (dimensions < 3) g.setColour(colorOff);
+        x1 = (float)m2Slider.getRight() + 2.0f;
+        x2 = (float)m3Slider.getX() - 2.0f;
+        g.drawLine(x1, y, x2, y, 2.0f);
+    }
 }
 
 void MainView::resized()
@@ -419,12 +476,14 @@ void MainView::resized()
     alpha1Slider.setBounds( mainControls.getX() + 350, mainControls.getY() +   knobOffY,      64, 64);
     alpha2Slider.setBounds( mainControls.getX() + 434, mainControls.getY() +   knobOffY,      64, 64);
 
-    r1Slider.setBounds(xyzControls.getX() +  12, xyzControls.getY() +  34, 48, 48);
-    r2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
-    r3Slider.setBounds(xyzControls.getX() + 148, xyzControls.getY() +  34, 48, 48);
-    m1Slider.setBounds(xyzControls.getX() +  12, xyzControls.getY() + 110, 48, 48);
-    m2Slider.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
-    m3Slider.setBounds(xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
+    r1Slider.setBounds(       xyzControls.getX() +  12, xyzControls.getY() +  34, 48, 48);
+    r2Slider.setBounds(       xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
+    r3Slider.setBounds(       xyzControls.getX() + 148, xyzControls.getY() +  34, 48, 48);
+    m1Slider.setBounds(       xyzControls.getX() +  12, xyzControls.getY() + 110, 48, 48);
+    m2Slider.setBounds(       xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
+    m3Slider.setBounds(       xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
+    mLabel.setBounds(         xyzControls.getX() +  80, xyzControls.getY() + 164, 50, 14);
+    modesLinkButton.setBounds(xyzControls.getX() +  28, xyzControls.getY() + 163, 16, 16);
 
     thisIsALabel.setBounds(  32,      278,  96,  64);
     nameLabel.setBounds(32 + 20, 278 + 28,  80,  40);

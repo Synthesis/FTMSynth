@@ -30,12 +30,33 @@
 
 //==============================================================================
 CustomDrawableButton::CustomDrawableButton(const String &buttonName)
-    : DrawableButton(buttonName, DrawableButton::ImageOnButtonBackground)
+    : DrawableButton(buttonName, DrawableButton::ImageOnButtonBackground),
+      sStyle(Default)
 {
 }
 
+CustomDrawableButton::CustomDrawableButton(const String &buttonName, Style style)
+    : DrawableButton(buttonName, DrawableButton::ImageOnButtonBackground),
+      sStyle(style)
+{
+}
+
+void CustomDrawableButton::setStyle(Style newStyle)
+{
+    sStyle = newStyle;
+}
 
 Rectangle<float> CustomDrawableButton::getImageBounds() const
 {
     return getLocalBounds().toFloat();
+}
+
+void CustomDrawableButton::paintButton(Graphics &g,
+                                     bool shouldDrawButtonAsHighlighted,
+                                     bool shouldDrawButtonAsDown)
+{
+    if (sStyle == Default)
+    {
+        DrawableButton::paintButton(g, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+    }
 }

@@ -88,6 +88,7 @@ private:
     MidiConfigButton m1Button;
     MidiConfigButton m2Button;
     MidiConfigButton m3Button;
+    MidiConfigButton modesLinkButton;
     MidiConfigButton voicesButton;
     MidiConfigButton algoButton;
 
@@ -113,6 +114,7 @@ private:
         &m1Button,
         &m2Button,
         &m3Button,
+        &modesLinkButton,
         &voicesButton,
         &algoButton
     };
@@ -123,6 +125,8 @@ private:
     Label ringLabel;
     Label gateLabel;
     Label dimensionsLabel;
+    ImageComponent linkComponent;
+    Label mLabel;
 
     // Center panel UI components
     Label configLabel;

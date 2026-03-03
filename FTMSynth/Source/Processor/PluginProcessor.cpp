@@ -46,22 +46,23 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
         std::make_unique<AudioParameterChoice>(ParameterID("algorithm", 1), "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
         std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
         std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack",
-            NormalisableRange<float>(0.0f, 4.0f,
+            NormalisableRange<float>(0.0f, 2.0f,
                 [](float start, float end, float normalizedSliderPos)
                 {
                     float value = start + normalizedSliderPos * (end - start);
                     float nearestInt = std::round(value);
-                    float snapWidth = 0.1f;
+                    float snapWidth = 0.03125f;
 
-                    if (nearestInt < 1.0f || nearestInt > 3.0f) return value;
+                    if (nearestInt != 1.0f) return value;
                     if (std::abs(value - nearestInt) < snapWidth) return nearestInt;
 
                     return value + (value > nearestInt ? -snapWidth : snapWidth);
                 },
                 [](float start, float end, float value)
                 {
-                    float nearestInt = std::round(value), snapWidth = 0.1f;
-                    float valWithSnap = (nearestInt >= 1.0f && nearestInt <= 3.0f && value != nearestInt)
+                    float nearestInt = std::round(value);
+                    float snapWidth = 0.03125f;
+                    float valWithSnap = (nearestInt == 1.0f && value != nearestInt)
                                           ? value + (value > nearestInt ? snapWidth : -snapWidth)
                                           : value;
                     return (valWithSnap - start) / (end - start);
@@ -84,6 +85,7 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
         std::make_unique<AudioParameterInt>(ParameterID("m1", 1), "Modes X", 1, MAX_M1, 5),
         std::make_unique<AudioParameterInt>(ParameterID("m2", 1), "Modes Y", 1, MAX_M2, 5),
         std::make_unique<AudioParameterInt>(ParameterID("m3", 1), "Modes Z", 1, MAX_M3, 5),
+        std::make_unique<AudioParameterBool>(ParameterID("modesLink", 1), "Link Modes", false),
         std::make_unique<AudioParameterInt>(ParameterID("dimensions", 1), "Dimensions", 1, 3, 2),
         std::make_unique<AudioParameterInt>(ParameterID("voices", 1), "Polyphony voices", 1, 16, 4)
     })

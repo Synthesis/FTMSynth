@@ -33,10 +33,21 @@
 class CustomDrawableButton  : public DrawableButton
 {
 public:
+    enum Style { Default, Borderless };
+
     CustomDrawableButton(const String &buttonName);
+    CustomDrawableButton(const String &buttonName, Style style);
+
+    void setStyle(Style newStyle);
 
     Rectangle<float> getImageBounds() const override;
 
+    void paintButton(Graphics &g,
+                     bool shouldDrawButtonAsHighlighted,
+                     bool shouldDrawButtonAsDown) override;
+
 private:
+    Style sStyle;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CustomDrawableButton)
 };

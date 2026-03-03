@@ -54,6 +54,7 @@
       <FILE id="TfIAeu" name="background.png" compile="0" resource="1" file="Assets/background.png"/>
       <FILE id="U3wtsJ" name="dimensions.png" compile="0" resource="1" file="Assets/dimensions.png"/>
       <FILE id="wdfw1J" name="knob.png" compile="0" resource="1" file="Assets/knob.png"/>
+      <FILE id="yKfIJF" name="link.png" compile="0" resource="1" file="Assets/link.png"/>
       <FILE id="nPIYPc" name="string.png" compile="0" resource="1" file="Assets/string.png"/>
       <FILE id="u4ndxp" name="drum_skin.png" compile="0" resource="1" file="Assets/drum_skin.png"/>
       <FILE id="hZ400v" name="question.png" compile="0" resource="1" file="Assets/question.png"/>
@@ -91,7 +92,7 @@
       </MODULEPATHS>
     </XCODE_MAC>
     <VS2022 targetFolder="Builds/VisualStudio2022" extraDefs="_USE_MATH_DEFINES"
-            extraCompilerFlags="/permissive-" bigIcon="tu5j5V">
+            bigIcon="tu5j5V">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" useRuntimeLibDLL="0"/>
         <CONFIGURATION isDebug="0" name="Release" useRuntimeLibDLL="0"/>

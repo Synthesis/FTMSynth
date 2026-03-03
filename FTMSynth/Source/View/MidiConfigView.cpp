@@ -28,7 +28,7 @@
 #include "MidiConfigView.h"
 
 //==============================================================================
-// Helper: convert 1-based button index → param ID string
+// Helper: convert 1-based button index -> param ID string
 static inline const char* getParamID(int buttonID)
 {
     if (buttonID >= 1 && buttonID <= numMappableParams)
@@ -66,6 +66,7 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
         ID_M1,
         ID_M2,
         ID_M3,
+        ID_MODES_LINK,
         ID_VOICES,
         ID_ALGORITHM
     };
@@ -161,6 +162,10 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     m3Button.setRadioGroupId(2);
     addAndMakeVisible(m3Button);
 
+    modesLinkButton.onClick = [this] { updateView(ID_MODES_LINK); };
+    modesLinkButton.setRadioGroupId(2);
+    addAndMakeVisible(modesLinkButton);
+
     voicesButton.onClick = [this] { updateView(ID_VOICES); };
     voicesButton.setRadioGroupId(2);
     addAndMakeVisible(voicesButton);
@@ -188,6 +193,16 @@ MidiConfigView::MidiConfigView(FTMSynthAudioProcessor& p)
     dimensionsLabel.setText("DIMENSIONS", dontSendNotification);
     dimensionsLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(dimensionsLabel);
+
+    Image linkImage = ImageCache::getFromMemory(BinaryData::link_png, BinaryData::link_pngSize);
+    linkComponent.setImage(linkImage.getClippedImage(Rectangle<int>(linkImage.getWidth() * 2 / 4, 0, linkImage.getWidth() / 4, linkImage.getHeight())));
+    linkComponent.setTooltip("Link number of modes\nto all dimensions");
+    addAndMakeVisible(linkComponent);
+
+    mLabel.setText("MODES", dontSendNotification);
+    mLabel.setJustificationType(Justification::centred);
+    mLabel.setTooltip("Number of modes (partials)\nper dimension");
+    addAndMakeVisible(mLabel);
 
     // Config panel
     configLabel.setLookAndFeel(&funnyFont);
@@ -605,29 +620,32 @@ void MidiConfigView::resized()
     alpha1Button.setBounds(    mainControls.getX()    + 358, mainControls.getY() + knobOffY,      48, 48);
     alpha2Button.setBounds(    mainControls.getX()    + 442, mainControls.getY() + knobOffY,      48, 48);
 
-    r1Button.setBounds(xyzControls.getX() +  12, xyzControls.getY() +  34, 48, 48);
-    r2Button.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
-    r3Button.setBounds(xyzControls.getX() + 148, xyzControls.getY() +  34, 48, 48);
-    m1Button.setBounds(xyzControls.getX() +  12, xyzControls.getY() + 110, 48, 48);
-    m2Button.setBounds(xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
-    m3Button.setBounds(xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
+    r1Button.setBounds(       xyzControls.getX() +  12, xyzControls.getY() +  34, 48, 48);
+    r2Button.setBounds(       xyzControls.getX() +  80, xyzControls.getY() +  34, 48, 48);
+    r3Button.setBounds(       xyzControls.getX() + 148, xyzControls.getY() +  34, 48, 48);
+    m1Button.setBounds(       xyzControls.getX() +  12, xyzControls.getY() + 110, 48, 48);
+    m2Button.setBounds(       xyzControls.getX() +  80, xyzControls.getY() + 110, 48, 48);
+    m3Button.setBounds(       xyzControls.getX() + 148, xyzControls.getY() + 110, 48, 48);
+    modesLinkButton.setBounds(xyzControls.getX() +  12, xyzControls.getY() + 159, 92, 24);
+    linkComponent.setBounds(  xyzControls.getX() + 108, xyzControls.getY() + 163, 16, 16);
+    mLabel.setBounds(         xyzControls.getX() + 148, xyzControls.getY() + 164, 50, 14);
 
     voicesButton.setBounds(16,  16,  80, 24);
     algoButton.setBounds( 496, 368, 128, 24);
 
     configLabel.setBounds(32, 278, 96, 64);
 
-    paramNameLabel.setBounds(    configControls.getCentreX() -  48, configControls.getY()            + 25, 96, 14);
-    midiCCLabel.setBounds(       configControls.getCentreX() - 128, configControls.getCentreY() - 23 - 12, 96, 14);
-    resetCCButton.setBounds(     configControls.getCentreX() -  24, configControls.getCentreY() - 28 - 12, 24, 24);
-    midiCCSlider.setBounds(      configControls.getCentreX() +   4, configControls.getCentreY() - 28 - 12, 64, 24);
-    learnCCButton.setBounds(     configControls.getCentreX() +  72, configControls.getCentreY() - 28 - 12, 24, 24);
-    midiChannelLabel.setBounds(  configControls.getCentreX() - 128, configControls.getCentreY() +  9 - 12, 96, 14);
-    resetChannelButton.setBounds(configControls.getCentreX() -  24, configControls.getCentreY() +  4 - 12, 24, 24);
-    midiChannelSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() +  4 - 12, 64, 24);
-    learnChannelButton.setBounds(configControls.getCentreX() +  72, configControls.getCentreY() +  4 - 12, 24, 24);
-    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getCentreY() + 41 - 12, 96, 14);
-    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() + 36 - 12, 64, 24);
+    paramNameLabel.setBounds(    configControls.getCentreX() -  80, configControls.getY()            + 25, 160, 14);
+    midiCCLabel.setBounds(       configControls.getCentreX() - 128, configControls.getCentreY() - 23 - 12,  96, 14);
+    resetCCButton.setBounds(     configControls.getCentreX() -  24, configControls.getCentreY() - 28 - 12,  24, 24);
+    midiCCSlider.setBounds(      configControls.getCentreX() +   4, configControls.getCentreY() - 28 - 12,  64, 24);
+    learnCCButton.setBounds(     configControls.getCentreX() +  72, configControls.getCentreY() - 28 - 12,  24, 24);
+    midiChannelLabel.setBounds(  configControls.getCentreX() - 128, configControls.getCentreY() +  9 - 12,  96, 14);
+    resetChannelButton.setBounds(configControls.getCentreX() -  24, configControls.getCentreY() +  4 - 12,  24, 24);
+    midiChannelSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() +  4 - 12,  64, 24);
+    learnChannelButton.setBounds(configControls.getCentreX() +  72, configControls.getCentreY() +  4 - 12,  24, 24);
+    midiDefaultLabel.setBounds(  configControls.getCentreX() - 100, configControls.getCentreY() + 41 - 12,  96, 14);
+    midiDefaultSlider.setBounds( configControls.getCentreX() +   4, configControls.getCentreY() + 36 - 12,  64, 24);
 
     mappingFileButton.setBounds(112, 344, 48, 48);
 }

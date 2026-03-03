@@ -30,6 +30,7 @@
 #include <JuceHeader.h>
 #include "../Processor/PluginProcessor.h"
 #include "../LookAndFeel/CustomLookAndFeel.h"
+#include "CustomDrawableButton.h"
 #include "VisualPanel.h"
 #include "HelpPanel.h"
 
@@ -46,6 +47,7 @@ public:
     void showHelp(bool show);
 
 private:
+    void syncModes(Slider& source);
     void setDimensions(int dimensions, bool btnToSlider);
     void updateDimensionComponents();
     void updateVisualization(bool updateMouseBounds = false);
@@ -88,6 +90,8 @@ private:
     Slider m1Slider;
     Slider m2Slider;
     Slider m3Slider;
+    Label mLabel;
+    CustomDrawableButton modesLinkButton;
     Slider voicesSlider;
     ComboBox algoComboBox;
 
@@ -118,6 +122,7 @@ private:
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m1Tree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m2Tree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> m3Tree;
+    std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> modesLinkTree;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> voicesTree;
     std::unique_ptr<AudioProcessorValueTreeState::ComboBoxAttachment> algoTree;
 

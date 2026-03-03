@@ -86,11 +86,6 @@ LabelView::LabelView(FTMSynthAudioProcessor& p)
     rLabel.setTooltip("Location of the impulse on the\nstring/drum surface/cuboid");
     addAndMakeVisible(rLabel);
 
-    mLabel.setText("MODES", dontSendNotification);
-    mLabel.setJustificationType(Justification::centred);
-    mLabel.setTooltip("Number of modes (partials)\nper dimension");
-    addAndMakeVisible(mLabel);
-
     xLabel.setText("X", dontSendNotification);
     xLabel.setJustificationType(Justification::centred);
     addAndMakeVisible(xLabel);
@@ -160,21 +155,20 @@ void LabelView::resized()
     // UI components
     int lblOffY = 140;
 
-    volumeLabel.setBounds(mainControls.getX() -  90, mainControls.getY() + lblOffY,      72, 14);
-    attackLabel.setBounds(mainControls.getX() -  82, mainControls.getY() + lblOffY + 80, 56, 14);
-    pitchLabel.setBounds( mainControls.getX() +  10, mainControls.getY() + lblOffY,      72, 14);
-    tauLabel.setBounds(   mainControls.getX() +  94, mainControls.getY() + lblOffY,      72, 14);
-    pLabel.setBounds(     mainControls.getX() + 178, mainControls.getY() + lblOffY,      72, 14);
-    dLabel.setBounds(     mainControls.getX() + 262, mainControls.getY() + lblOffY,      72, 14);
-    alpha1Label.setBounds(mainControls.getX() + 346, mainControls.getY() + lblOffY,      72, 14);
-    alpha2Label.setBounds(mainControls.getX() + 430, mainControls.getY() + lblOffY,      72, 14);
+    volumeLabel.setBounds(mainControls.getX() -  91, mainControls.getY() + lblOffY,      72, 14);
+    attackLabel.setBounds(mainControls.getX() -  83, mainControls.getY() + lblOffY + 80, 56, 14);
+    pitchLabel.setBounds( mainControls.getX() +  11, mainControls.getY() + lblOffY,      72, 14);
+    tauLabel.setBounds(   mainControls.getX() +  95, mainControls.getY() + lblOffY,      72, 14);
+    pLabel.setBounds(     mainControls.getX() + 179, mainControls.getY() + lblOffY,      72, 14);
+    dLabel.setBounds(     mainControls.getX() + 263, mainControls.getY() + lblOffY,      72, 14);
+    alpha1Label.setBounds(mainControls.getX() + 347, mainControls.getY() + lblOffY,      72, 14);
+    alpha2Label.setBounds(mainControls.getX() + 431, mainControls.getY() + lblOffY,      72, 14);
 
-    rLabel.setBounds(xyzControls.getX() +  81, xyzControls.getY() +  14, 50, 14);
-    mLabel.setBounds(xyzControls.getX() +  81, xyzControls.getY() + 164, 50, 14);
-    xLabel.setBounds(xyzControls.getX() +  26, xyzControls.getY() +  89, 24, 14);
-    yLabel.setBounds(xyzControls.getX() +  94, xyzControls.getY() +  89, 24, 14);
-    zLabel.setBounds(xyzControls.getX() + 162, xyzControls.getY() +  89, 24, 14);
+    rLabel.setBounds(xyzControls.getX() +  80, xyzControls.getY() +  14, 50, 14);
+    xLabel.setBounds(xyzControls.getX() +  25, xyzControls.getY() +  89, 24, 14);
+    yLabel.setBounds(xyzControls.getX() +  93, xyzControls.getY() +  89, 24, 14);
+    zLabel.setBounds(xyzControls.getX() + 161, xyzControls.getY() +  89, 24, 14);
 
-    voicesLabel.setBounds( 18,  48, 76, 14);
+    voicesLabel.setBounds( 19,  44, 76, 14);
     algoLabel.setBounds(  416, 368, 72, 24);
 }
