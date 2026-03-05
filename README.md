@@ -8,7 +8,11 @@ A physical modeling JUCE plugin using the Functional Transformation Method (FTM)
 
 ## Description
 
-(TODO)
+FTMSynth is a software synthesizer that generates percussive sounds by modeling the vibration of physical objects — a string (1D), a rectangular drum (2D), or a cuboid box (3D). It uses the Functional Transformation Method to decompose the vibration into a set of frequency modes, each with its own pitch, amplitude, and decay rate. Those modes are summed together in real time to produce the output signal.
+
+It provides controls to adjust the physical properties of the model, such as pitch, sustain, dampening, dispersion (inharmonicity), geometry, impulse position, and the number of computed modes. A built-in visualization displays the shape of the model as well as the impulse position.
+
+Tweak the knobs to sculpt unique timbral characters!
 
 ### Controls
 
@@ -16,7 +20,7 @@ A physical modeling JUCE plugin using the Functional Transformation Method (FTM)
 
 - **volume** — main volume control (linear multiplier)
 - **attack** — attack smoothing (in period cycles, ranges from 0 to 2)
-  - the knob is grayed out when set to 0, meaning that the sound is unaltered.
+  - note: this knob was added as a bonus, in order not to have to rely on an external dynamics processor to tame the attack of the sound for some extreme combinations of physical parameters. This is why it is grayed out when set to 0, meaning that the sound is 100% unaltered FTM synthesis.
 - **dimension** buttons (top right) — switch between 1D, 2D, and 3D models
 
 **Timbre controls:**
@@ -39,8 +43,10 @@ A physical modeling JUCE plugin using the Functional Transformation Method (FTM)
 
 **Misc:**
 
-- **poly voices** (top left) — maximum number of notes that can be played at the same time
-- **algorithm** (bottom right) — you can choose between *Ivan* and *Rabenstein* synthesis methods (TODO explain these methods)
+- **polyphony voices** (top left) — maximum number of notes that can be played at the same time
+- **algorithm** (bottom right) — you can choose between the following two synthesis methods:
+  - **Ivan**
+  - **Rabenstein**
 
 ## MIDI configuration
 
