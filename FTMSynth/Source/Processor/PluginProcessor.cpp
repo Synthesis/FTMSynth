@@ -76,7 +76,7 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
         std::make_unique<AudioParameterFloat>(ParameterID("damp", 1), "Damp", NormalisableRange<float>(0.0f, 0.5f, 0.0f, log(0.5f)/log(0.1f/0.5f)), 0.0f),
         std::make_unique<AudioParameterBool>(ParameterID("dampGate", 1), "Damp Gate", false),
         std::make_unique<AudioParameterFloat>(ParameterID("ring", 1), "Ring", NormalisableRange<float>(0.0f, 0.5f, 0.0f, log(0.5f)/log(0.1f/0.5f)), 0.0f),
-        std::make_unique<AudioParameterFloat>(ParameterID("dispersion", 1), "Inharmonicity", NormalisableRange<float>(0.0f, 5.0f, 0.0f, log(0.5f)/log(1.0f/5.0f)), 0.06f),
+        std::make_unique<AudioParameterFloat>(ParameterID("dispersion", 1), "Dispersion", NormalisableRange<float>(0.0f, 5.0f, 0.0f, log(0.5f)/log(1.0f/5.0f)), 0.06f),
         std::make_unique<AudioParameterFloat>(ParameterID("alpha2d", 1), "Height", NormalisableRange<float>(0.01f, 1.0f), 0.5f),
         std::make_unique<AudioParameterFloat>(ParameterID("alpha3d", 1), "Depth", NormalisableRange<float>(0.01f, 1.0f), 0.5f),
         std::make_unique<AudioParameterFloat>(ParameterID("r1", 1), "Impulse X", NormalisableRange<float>(0.005f, 0.995f), 0.5f),

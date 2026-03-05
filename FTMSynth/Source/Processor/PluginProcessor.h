@@ -68,7 +68,7 @@ static constexpr ParamInfo paramTable[] = {
     { "m2",         "MODES Y" },
     { "m3",         "MODES Z" },
     { "modesLink",  "LINK MODES ON/OFF" },
-    { "voices",     "POLY VOICES" },
+    { "voices",     "POLYPHONY VOICES" },
     { "algorithm",  "ALGORITHM" },
 };
 
