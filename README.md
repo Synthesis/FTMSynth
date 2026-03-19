@@ -115,7 +115,7 @@ The mapping is saved in plain text to a `.xml` file containing, for each paramet
 
 ## Credits
 
-[Han Han](https://github.com/lylyhan) — original concept, synthesis engines
-[Loïc Jankowiak](https://github.com/Synthesis) — optimization for real time, UI design and implementation
+- [Han Han](https://github.com/lylyhan) — original concept, synthesis engines
+- [Loïc Jankowiak](https://github.com/Synthesis) — optimization for real time, UI design and implementation
 
 This project is distributed for free under the [GNU AGPLv3 license](LICENSE).
