@@ -289,7 +289,7 @@ MainView::MainView(FTMSynthAudioProcessor& p)
     voicesTree.reset(new AudioProcessorValueTreeState::SliderAttachment(processor.tree, "voices", voicesSlider));
     addAndMakeVisible(voicesSlider);
 
-    algoComboBox.addItemList(StringArray{"IVAN", "RABENSTEIN"}, 1);
+    algoComboBox.addItemList(StringArray{"STRIKE", "PLUCK"}, 1);
     algoComboBox.setEditableText(false);
     algoComboBox.setLookAndFeel(&customComboBox);
     algoTree.reset(new AudioProcessorValueTreeState::ComboBoxAttachment(processor.tree, "algorithm", algoComboBox));

@@ -43,7 +43,7 @@ FTMSynthAudioProcessor::FTMSynthAudioProcessor()
 #endif
     tree(*this, nullptr, "Parameters",
     {
-        std::make_unique<AudioParameterChoice>(ParameterID("algorithm", 1), "Algorithm", StringArray{"Ivan", "Rabenstein"}, 0),
+        std::make_unique<AudioParameterChoice>(ParameterID("algorithm", 1), "Algorithm", StringArray{"Strike", "Pluck"}, 0),
         std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f), 0.75f),
         std::make_unique<AudioParameterFloat>(ParameterID("attack", 1), "Attack",
             NormalisableRange<float>(0.0f, 2.0f,

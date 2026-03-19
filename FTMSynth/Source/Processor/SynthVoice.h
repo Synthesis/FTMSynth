@@ -37,7 +37,7 @@
 #define SIN_LUT_RESOLUTION    0x40000
 
 enum Algorithm {
-    ivan, rabenstein
+    selesnick, rabenstein
 };
 
 
@@ -93,12 +93,12 @@ public:
 
 
 private:
-    // Methods used for the Ivan method
-    void ivan_deff();
-    void ivan_getf();
-    void ivan_getSigma(double _tau, double p);
-    void ivan_getw(double p);
-    void ivan_getK();
+    // Methods used for the Selesnick method
+    void selesnick_deff();
+    void selesnick_getf();
+    void selesnick_getSigma(double _tau, double p);
+    void selesnick_getw(double p);
+    void selesnick_getK();
 
     // Methods used for the Rabenstein method
     void rabenstein_getCoefficients(double _tau, double _p);
@@ -159,7 +159,7 @@ private:
     int dim, nextDim;
 
 
-    // ===== Variables used for the Ivan method
+    // ===== Variables used for the Selesnick method
     int tau = 300;
 
     double fx1[301];  // tau

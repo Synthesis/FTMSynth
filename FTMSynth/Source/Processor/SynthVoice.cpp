@@ -77,7 +77,7 @@ void SynthVoice::getcusParam(std::atomic<float>* algo,
 {
     // this function fetches parameters from the customized GUI and calculates the
     // corresponding parameters in order to synthesize the sound
-    nextAlgorithm = ((int(algo->load()) >= 1) ? Algorithm::rabenstein : Algorithm::ivan);
+    nextAlgorithm = ((int(algo->load()) >= 1) ? Algorithm::rabenstein : Algorithm::selesnick);
     mainVolume = volume->load();
     nextAtk = attack->load();
 
@@ -106,7 +106,7 @@ void SynthVoice::getcusParam(std::atomic<float>* algo,
 
 
 // define f(x) as a gaussian distribution with mean at the middle point l/2
-void SynthVoice::ivan_deff()
+void SynthVoice::selesnick_deff()
 {
     double s = 0.4;  // standard deviation
     // 1D
@@ -139,7 +139,7 @@ void SynthVoice::ivan_deff()
 }
 
 // get coefficients of the integral f1m1 using trapezoid rule
-void SynthVoice::ivan_getf()
+void SynthVoice::selesnick_getf()
 {
     // integrate f(x)sin(mpix/l)dx from 0 to l using trapezoid rule
     double integ;
@@ -196,7 +196,7 @@ void SynthVoice::ivan_getf()
 
 // intermediate variables
 // sigma
-void SynthVoice::ivan_getSigma(double _tau, double p)
+void SynthVoice::selesnick_getSigma(double _tau, double p)
 {
     double fsigma = -1/_tau;
 
@@ -241,7 +241,7 @@ void SynthVoice::ivan_getSigma(double _tau, double p)
 }
 
 // get coefficient omega for the impulse response
-void SynthVoice::ivan_getw(double p)
+void SynthVoice::selesnick_getw(double p)
 {
     // 1D
     if (dim == 0)
@@ -306,7 +306,7 @@ void SynthVoice::ivan_getw(double p)
 }
 
 // get coefficient k for the impulse response
-void SynthVoice::ivan_getK()
+void SynthVoice::selesnick_getK()
 {
     double l1 = M_PI;
     double x1 = l1*r1;
@@ -537,7 +537,7 @@ void SynthVoice::findmax()
     {
         coef = 1;
         decay = 0;
-        if (currentAlgorithm == Algorithm::ivan)
+        if (currentAlgorithm == Algorithm::selesnick)
         {
             decay = sigma[i];
         }
@@ -778,14 +778,14 @@ void SynthVoice::startNote(int midiNoteNumber, float velocity, SynthesiserSound 
     m2 = nextm2;
     m3 = nextm3;
 
-    if (currentAlgorithm == Algorithm::ivan)
+    if (currentAlgorithm == Algorithm::selesnick)
     {
-        ivan_deff();
-        ivan_getf();
+        selesnick_deff();
+        selesnick_getf();
 
-        ivan_getSigma(ftau, fp);
-        ivan_getw(fp);
-        ivan_getK();
+        selesnick_getSigma(ftau, fp);
+        selesnick_getw(fp);
+        selesnick_getK();
     }
     else if (currentAlgorithm == Algorithm::rabenstein)
     {
@@ -826,9 +826,9 @@ void SynthVoice::stopNote(float /*velocity*/, bool allowTailOff)
         {
             double _tau = (bgate ? frel : ftau);
             double p = (bpGate ? fring : fp);
-            if (currentAlgorithm == Algorithm::ivan)
+            if (currentAlgorithm == Algorithm::selesnick)
             {
-                ivan_getSigma(_tau, p);
+                selesnick_getSigma(_tau, p);
             }
             else if (currentAlgorithm == Algorithm::rabenstein)
             {
@@ -910,10 +910,10 @@ void SynthVoice::setCurrentPlaybackSampleRate(double newRate)
     sr = newRate;
     double _tau = (((!bgate) || isKeyDown()) ? ftau : frel);
     double p = (((!bpGate) || isKeyDown()) ? fp : fring);
-    if (currentAlgorithm == Algorithm::ivan)
+    if (currentAlgorithm == Algorithm::selesnick)
     {
-        ivan_getSigma(_tau, p);
-        ivan_getw(p);
+        selesnick_getSigma(_tau, p);
+        selesnick_getw(p);
     }
     else if (currentAlgorithm == Algorithm::rabenstein)
     {

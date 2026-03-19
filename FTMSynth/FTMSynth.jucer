@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="ez6eyY" projectType="audioplug" jucerFormatVersion="1" name="FTMSynth"
-              companyName="LS2N" companyWebsite="audio.ls2n.fr" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
+              version="1.0.0" pluginFormats="buildStandalone,buildAU,buildVST,buildVST3"
               pluginCharacteristicsValue="pluginIsSynth,pluginProducesMidiOut,pluginWantsMidiIn"
               aaxIdentifier="fr.ljankowiak.ftmsynth" pluginAUMainType="'aumu'"
               pluginVST3Category="Drum,Instrument,Synth" lv2Uri="urn:uuid:01927853-bb20-7c91-9a67-ab4786345508"

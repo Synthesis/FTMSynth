@@ -14,6 +14,9 @@ It provides controls to adjust the physical properties of the model, such as pit
 
 Tweak the knobs to sculpt unique timbral characters!
 
+> For a more technical description of the method, see chapter 4 of [lylyhan](https://github.com/lylyhan)'s paper [*"Unearthing the physicality of instrumental timbre"* [Han, 2025]](https://hal.science/tel-05169110/) (available at HAL, published under the Hal authorization v1).
+
+
 ### Controls
 
 **Main controls:**
@@ -45,8 +48,9 @@ Tweak the knobs to sculpt unique timbral characters!
 
 - **polyphony voices** (top left) — maximum number of notes that can be played at the same time
 - **algorithm** (bottom right) — you can choose between the following two synthesis methods:
-  - **Ivan**
-  - **Rabenstein**
+  - **strike**: when a note is played, the model simulates an impulse at coordinates `(x [,y [,z]])` with an intensity proportional to the velocity of the MIDI note (a delta function is used as an excitation function) — similar to like a piano for the 1D model
+  - **pluck**: when a note is played, the model simulates the immediate release of a displacement of a distance proportional to the velocity of the MIDI note — similar to a harpsichord for the 1D model
+  - (see section 4.2 and Table 4.2 of [[Han, 2025]](https://hal.science/tel-05169110/) for more technical details)
 
 ## MIDI configuration
 
@@ -111,7 +115,7 @@ The mapping is saved in plain text to a `.xml` file containing, for each paramet
 
 ## Credits
 
-[Han Han](https://github.com/lylyhan) — synthesis engines
-[Loïc Jankowiak](https://github.com/Synthesis) — real-time optimization, UI design and implementation
+[Han Han](https://github.com/lylyhan) — original concept, synthesis engines
+[Loïc Jankowiak](https://github.com/Synthesis) — optimization for real time, UI design and implementation
 
 This project is distributed for free under the [GNU AGPLv3 license](LICENSE).
